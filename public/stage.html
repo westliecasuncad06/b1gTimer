@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>B1G Timer - Stage Display</title>
+    
+    <style>
+        *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+        html, body {
+            width:100vw; height:100vh; overflow:hidden;
+            background:#000; color:#fff;
+            font-family: 'Courier New', 'Monaco', 'Menlo', monospace;
+        }
+
+        .stage-wrap {
+            width:100%; height:100%;
+            display:flex; flex-direction:column;
+            justify-content:center; align-items:center;
+            position:relative;
+        }
+
+        /* Countdown */
+        .countdown-display {
+            font-size: 22vw;
+            font-weight:700;
+            font-variant-numeric:tabular-nums;
+            letter-spacing:.04em;
+            line-height:1;
+            text-align:center;
+            color:#fff;
+            padding-bottom:2vh;
+        }
+
+        /* Divider line */
+        .stage-divider {
+            width:70%;
+            height:2px;
+            background:rgba(255,255,255,.15);
+            margin:1.5vh 0;
+        }
+
+        /* Current time */
+        .current-time-display {
+            font-size:6vw;
+            font-weight:400;
+            font-variant-numeric:tabular-nums;
+            color:rgba(255,255,255,.5);
+            letter-spacing:.03em;
+            padding-top:1vh;
+        }
+
+        /* Timer name */
+        .timer-name {
+            position:absolute;
+            top:2vh;
+            left:50%;
+            transform:translateX(-50%);
+            font-size:2vw;
+            color:rgba(255,255,255,.35);
+            font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+            font-weight:500;
+            letter-spacing:.04em;
+            text-transform:uppercase;
+        }
+
+        /* Blackout overlay */
+        .blackout-overlay {
+            position:fixed; inset:0;
+            background:#000;
+            display:none;
+            z-index:100;
+        }
+        .blackout-overlay.active { display:block; }
+
+        /* Message ribbon */
+        .message-ribbon {
+            position:fixed;
+            bottom:3vh;
+            left:5vw; right:5vw;
+            background:rgba(0,0,0,.85);
+            border:1px solid rgba(255,255,255,.15);
+            border-radius:8px;
+            padding:1.5vw 2vw;
+            display:none;
+            align-items:center;
+            justify-content:center;
+            text-align:center;
+            backdrop-filter:blur(10px);
+            z-index:50;
+        }
+        .message-ribbon.visible { display:flex; }
+        .message-ribbon-text {
+            font-size:3vw;
+            font-weight:700;
+            font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+            line-height:1.3;
+            word-break:break-word;
+        }
+        .message-ribbon.bold .message-ribbon-text { font-weight:900; }
+
+        /* Color classes */
+        .color-white { color:#fff; }
+        .color-green { color:#00ff00; }
+        .color-red { color:#ff0000; }
+        .color-yellow { color:#ffff00; }
+
+        /* Connection status dot */
+        .connection-status {
+            position:fixed;
+            top:1.5vh; right:1.5vw;
+            width:12px; height:12px;
+            border-radius:50%;
+            background:#ef4444;
+            z-index:50;
+        }
+        .connection-status.connected { background:#4ade80; }
+
+        /* Waiting state */
+        .countdown-display.waiting {
+            color:rgba(255,255,255,.25);
+        }
+    </style>
+</head>
+<body>
+    <!-- Blackout Overlay -->
+    <div class="blackout-overlay" id="blackout-overlay"></div>
+
+    <!-- Connection Status -->
+    <div class="connection-status" id="connection-status"></div>
+
+    <!-- Main Stage -->
+    <div class="stage-wrap">
+        <div class="timer-name" id="timer-name"></div>
+        <div class="countdown-display waiting" id="countdown">0:00</div>
+        <div class="stage-divider"></div>
+        <div class="current-time-display" id="time-of-day">12:00:00 AM</div>
+    </div>
+
+    <!-- Message Ribbon -->
+    <div class="message-ribbon" id="message-ribbon">
+        <div class="message-ribbon-text" id="message-text"></div>
+    </div>
+
+    <!-- Pusher SDK -->
+    <script src="https://js.pusher.com/8.2/pusher.min.js"></script>
+    
+    <!-- JS Modules -->
+    <script src="js/api-client.js"></script>
+    <script src="js/timer-math.js"></script>
+    <script src="js/state-manager.js"></script>
+    <script src="js/pusher-manager.js"></script>
+    <script src="js/message-manager.js"></script>
+    <script src="js/stage-display-enhancements.js"></script>
+    <script src="js/stage-display.js"></script>
+</body>
+</html>

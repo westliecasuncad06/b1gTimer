@@ -1,0 +1,1307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>B1G Timer - Control Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* ===== RESET & BASE ===== */
+        *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+        html, body { height:100%; overflow:hidden; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: #0d0d0d;
+            color: #e0e0e0;
+            font-size: 14px;
+        }
+        ::-webkit-scrollbar { width:6px; }
+        ::-webkit-scrollbar-track { background:#1a1a2e; }
+        ::-webkit-scrollbar-thumb { background:#444; border-radius:3px; }
+        input, select, textarea, button { font-family:inherit; }
+
+        /* ===== TOP BAR ===== */
+        .top-bar {
+            height: 48px;
+            background: #151525;
+            border-bottom: 1px solid #2a2a3a;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            z-index: 100;
+        }
+        .top-bar-left, .top-bar-right { display:flex; align-items:center; gap:10px; }
+        .brand { font-size:1.3rem; font-weight:800; color:#fff; letter-spacing:1px; }
+        .page-title { font-size:.9rem; color:#bbb; font-weight:500; }
+        .top-btn {
+            background: #2a2a3e;
+            color: #ccc;
+            border: 1px solid #3a3a50;
+            border-radius: 6px;
+            padding: 5px 14px;
+            font-size: .8rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: background .15s;
+        }
+        .top-btn:hover { background:#3a3a50; color:#fff; }
+        .top-btn.primary { background:#3b82f6; border-color:#3b82f6; color:#fff; }
+        .top-btn.primary:hover { background:#2563eb; }
+        .room-select-wrap {
+            display:flex; align-items:center; gap:6px;
+        }
+        .room-select-wrap label { color:#888; font-size:.8rem; }
+        #room-selector {
+            background: #1e1e30;
+            color: #e0e0e0;
+            border: 1px solid #3a3a50;
+            border-radius: 5px;
+            padding: 4px 8px;
+            font-size: .8rem;
+            min-width: 140px;
+        }
+
+        /* ===== MAIN LAYOUT ===== */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 340px 1fr 320px;
+            height: calc(100vh - 48px);
+            overflow: hidden;
+        }
+
+        /* ===== PANEL BASE ===== */
+        .panel {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border-right: 1px solid #1e1e30;
+        }
+        .panel:last-child { border-right: none; }
+        .panel-header {
+            padding: 10px 16px;
+            border-bottom: 1px solid #1e1e30;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            min-height: 42px;
+            background: #111120;
+            flex-shrink: 0;
+        }
+        .panel-header-title { font-weight:600; font-size:.85rem; color:#ccc; }
+        .panel-header-actions { display:flex; align-items:center; gap:6px; }
+        .panel-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+            background: #0d0d0d;
+        }
+
+        /* ===== TOGGLE BUTTONS ===== */
+        .toggle-btn {
+            background: transparent;
+            color: #888;
+            border: 1px solid #333;
+            border-radius: 5px;
+            padding: 4px 12px;
+            font-size: .75rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all .15s;
+        }
+        .toggle-btn:hover { border-color:#555; color:#ccc; }
+        .toggle-btn.active { background:#fff; color:#000; border-color:#fff; }
+        .toggle-btn .dot {
+            width:7px; height:7px; border-radius:50%;
+            background:#555; display:inline-block;
+        }
+        .toggle-btn.active .dot { background:#4ade80; }
+
+        /* ===== PREVIEW PANEL (LEFT) ===== */
+        .preview-panel .panel-body { padding:0; background:#111; }
+        .preview-header-bar {
+            display:flex; align-items:center; gap:8px;
+            padding:8px 12px;
+            background: #181828;
+            border-bottom:1px solid #252540;
+            font-size:.75rem; color:#888;
+        }
+        .preview-header-bar select {
+            background:#1e1e30; color:#ccc; border:1px solid #333;
+            border-radius:4px; padding:3px 6px; font-size:.75rem;
+        }
+        .preview-header-bar .icon-btn {
+            background:none; border:1px solid #333; color:#888;
+            width:26px; height:26px; border-radius:4px; cursor:pointer;
+            display:flex; align-items:center; justify-content:center;
+            font-size:.7rem;
+        }
+        .preview-header-bar .icon-btn:hover { border-color:#555; color:#ccc; }
+
+        .preview-display {
+            background: #000;
+            padding: 16px;
+            text-align: center;
+        }
+        .preview-timer-name {
+            font-size: .75rem;
+            color: #4ade80;
+            margin-bottom: 4px;
+        }
+        .preview-countdown {
+            font-size: 6rem;
+            font-weight: 700;
+            color: #fff;
+            font-family: 'Courier New', 'Monaco', monospace;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: 2px;
+            line-height: 1;
+            padding: 10px 0;
+        }
+        .preview-countdown .colon {
+            color: #fff;
+            margin: 0 4px;
+        }
+
+        /* Progress bar */
+        .preview-progress-wrap {
+            position:relative;
+            height:24px;
+            background:#1a1a1a;
+            margin:0 16px 8px;
+            border-radius:3px;
+            overflow:hidden;
+        }
+        .preview-progress-bar {
+            height:100%;
+            background: linear-gradient(90deg, #4ade80 0%, #4ade80 60%, #facc15 75%, #f97316 88%, #ef4444 100%);
+            width:100%;
+            transition: width .1s linear;
+            position:relative;
+        }
+        .preview-progress-marker {
+            position:absolute; top:-4px;
+            width:0; height:0;
+            border-left:6px solid transparent;
+            border-right:6px solid transparent;
+            border-top:6px solid #ccc;
+            transform:translateX(-50%);
+        }
+
+        /* ON AIR row */
+        .on-air-row {
+            display:flex; align-items:center; gap:10px;
+            padding:4px 16px 8px;
+            font-size:.8rem;
+        }
+        .on-air-badge {
+            background:#1a2a1a; color:#4ade80; border:1px solid #2a3a2a;
+            font-size:.65rem; font-weight:600; padding:2px 8px;
+            border-radius:3px; text-transform:uppercase;
+        }
+        .on-air-badge.danger { background:#2a1a1a; color:#ef4444; border-color:#3a2a2a; }
+        .on-air-dot {
+            width:8px; height:8px; border-radius:50%;
+            background:#555;
+        }
+        .on-air-dot.green { background:#4ade80; }
+        .on-air-dot.red { background:#ef4444; animation:pulse-red 1s infinite; }
+        @keyframes pulse-red { 0%,100%{opacity:1;} 50%{opacity:.4;} }
+        .on-air-time {
+            font-family:'Courier New', monospace;
+            font-weight:600; color:#ccc;
+            font-variant-numeric:tabular-nums;
+        }
+
+        /* Time markers */
+        .time-markers {
+            display:flex; justify-content:space-between;
+            padding:0 16px 4px;
+            font-size:.65rem; color:#555;
+            position:relative;
+        }
+        .time-markers-bar {
+            height:4px; margin:0 16px 2px;
+            background: linear-gradient(90deg, #4ade80 0%, #4ade80 60%, #facc15 75%, #f97316 88%, #ef4444 100%);
+            border-radius:2px;
+            position:relative;
+        }
+        .time-markers-bar .marker-flag {
+            position:absolute; top:-8px;
+            width:2px; height:12px;
+            background:#ef4444;
+        }
+
+        /* Transport controls */
+        .transport-row {
+            display:flex; align-items:center; justify-content:center;
+            padding:12px 16px;
+            gap:6px;
+        }
+        .transport-btn {
+            background:#1e1e30;
+            color:#ccc;
+            border:1px solid #333;
+            width:46px; height:40px;
+            border-radius:5px;
+            cursor:pointer;
+            display:flex; align-items:center; justify-content:center;
+            font-size:.85rem;
+            transition:all .15s;
+        }
+        .transport-btn:hover { background:#2a2a3e; border-color:#555; color:#fff; }
+        .transport-btn.play {
+            background:#3b82f6; border-color:#3b82f6; color:#fff;
+            width:56px;
+        }
+        .transport-btn.play:hover { background:#2563eb; }
+        .transport-btn.play.running {
+            background:#ef4444; border-color:#ef4444;
+        }
+        .transport-btn.play.running:hover { background:#dc2626; }
+        .transport-btn.small {
+            width:30px; height:32px;
+            font-size:.6rem; background:#151525;
+        }
+        .transport-label {
+            font-size:.7rem; color:#888;
+        }
+
+        /* Metadata section */
+        .preview-meta {
+            padding:8px 16px;
+            border-top:1px solid #1e1e30;
+        }
+        .meta-row {
+            display:flex; align-items:center; justify-content:space-between;
+            padding:4px 0;
+        }
+        .meta-label { font-size:.7rem; color:#555; }
+        .meta-value {
+            font-size:.85rem; color:#ccc; font-weight:600;
+            font-family:'Courier New', monospace;
+            font-variant-numeric:tabular-nums;
+        }
+        .meta-divider {
+            border:none; border-top:1px solid #1e1e30;
+            margin:6px 0;
+        }
+        .meta-nav {
+            display:flex; align-items:center; gap:4px;
+        }
+        .meta-nav-btn {
+            background:none; border:none; color:#555; cursor:pointer;
+            font-size:.8rem; padding:2px 4px;
+        }
+        .meta-nav-btn:hover { color:#ccc; }
+
+        /* Live connections */
+        .live-connections {
+            display:flex; align-items:center; justify-content:space-between;
+            padding:10px 16px;
+            border-top:1px solid #1e1e30;
+            cursor:pointer;
+        }
+        .live-connections:hover { background:#151525; }
+        .live-conn-text {
+            font-size:.82rem; font-weight:600; color:#ccc;
+        }
+
+        /* ===== TIMERS PANEL (CENTER) ===== */
+        .timers-panel .panel-body { padding:0; }
+
+        /* Selection toolbar */
+        .selection-toolbar {
+            display:none;
+            align-items:center;
+            gap:8px;
+            padding:8px 16px;
+            background:#2a1a1a;
+            border-bottom:1px solid #3a2a2a;
+            font-size:.8rem;
+        }
+        .selection-toolbar.active { display:flex; }
+        .selection-toolbar .sel-close {
+            background:none; border:none; color:#ccc; cursor:pointer;
+            font-size:1rem; margin-right:4px;
+        }
+        .selection-toolbar .sel-info { color:#ccc; margin-right: auto; }
+        .sel-action-btn {
+            background:#2a2a3e; color:#ccc; border:1px solid #3a3a50;
+            border-radius:5px; padding:4px 10px; font-size:.75rem;
+            cursor:pointer; display:flex; align-items:center; gap:4px;
+        }
+        .sel-action-btn:hover { background:#3a3a50; }
+        .sel-action-btn.danger { background:#7f1d1d; border-color:#991b1b; color:#fca5a5; }
+
+        /* Timer list */
+        #timer-list { min-height:100px; }
+        .timer-card {
+            display:grid;
+            grid-template-columns: auto 100px 70px 1fr auto;
+            align-items:center;
+            gap:8px;
+            padding:12px 16px;
+            border-bottom:1px solid #1a1a2a;
+            cursor:pointer;
+            transition:background .12s;
+            position:relative;
+        }
+        .timer-card:hover { background:#151530; }
+        .timer-card.active {
+            background:#1e3a8a;
+            border-color:#2563eb;
+        }
+        .timer-card.active:hover { background:#1e40af; }
+        .timer-card.running-danger {
+            background:#7f1d1d;
+            border-color:#991b1b;
+        }
+        .timer-card .tc-drag {
+            color:#444; font-size:.9rem; cursor:grab;
+            padding:4px; display:flex; align-items:center;
+        }
+        .timer-card.active .tc-drag { color:#6b9dff; }
+        .timer-card .tc-checkbox {
+            display:none;
+            width:18px; height:18px;
+            accent-color:#3b82f6;
+            cursor:pointer;
+        }
+        .timer-card.select-mode .tc-checkbox { display:block; }
+        .timer-card.select-mode .tc-drag { display:none; }
+        .timer-card .tc-number {
+            color:#555; font-size:.8rem; font-weight:600;
+            min-width:16px;
+        }
+        .timer-card.active .tc-number { color:#93b5ff; }
+        .tc-start-time {
+            font-size:.75rem; color:#888;
+            font-family:'Courier New', monospace;
+        }
+        .timer-card.active .tc-start-time { color:#93b5ff; }
+        .tc-duration {
+            font-size:.95rem; font-weight:700; color:#fff;
+        }
+        .tc-info {
+            display:flex; flex-direction:column; gap:2px;
+            min-width:0;
+        }
+        .tc-title-row {
+            display:flex; align-items:center; gap:6px;
+        }
+        .tc-title {
+            font-size:.85rem; font-weight:600; color:#e0e0e0;
+            white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+        }
+        .timer-card.active .tc-title { color:#fff; }
+        .tc-edit-btn {
+            background:none; border:none; color:#555; cursor:pointer;
+            font-size:.7rem; padding:2px;
+        }
+        .tc-edit-btn:hover { color:#ccc; }
+        .timer-card.active .tc-edit-btn { color:#93b5ff; }
+        .tc-type {
+            font-size:.7rem; color:#666;
+            cursor:pointer;
+        }
+        .tc-type:hover { color:#aaa; text-decoration:underline; }
+        .timer-card.active .tc-type { color:#7ba3ff; }
+        .tc-controls {
+            display:flex; align-items:center; gap:4px;
+        }
+        .tc-ctrl-btn {
+            background:#1e1e30;
+            color:#888;
+            border:1px solid #2a2a3e;
+            width:34px; height:34px;
+            border-radius:5px;
+            cursor:pointer;
+            display:flex; align-items:center; justify-content:center;
+            font-size:.75rem;
+            transition:all .12s;
+        }
+        .tc-ctrl-btn:hover { background:#2a2a3e; color:#ccc; border-color:#444; }
+        .tc-ctrl-btn.play-green { color:#4ade80; }
+        .tc-ctrl-btn.play-green:hover { color:#22c55e; }
+        .timer-card.active .tc-ctrl-btn {
+            background:#1e3a8a; border-color:#2563eb;
+            color:#93b5ff;
+        }
+        .timer-card.active .tc-ctrl-btn:hover {
+            background:#1e40af; color:#fff;
+        }
+
+        /* Add timer button */
+        .add-timer-btn {
+            display:flex; align-items:center; justify-content:center;
+            gap:8px;
+            padding:14px 16px;
+            color:#888;
+            font-size:.82rem;
+            cursor:pointer;
+            border:none;
+            background:none;
+            width:100%;
+            border-top:1px dashed #252540;
+            transition:color .15s;
+        }
+        .add-timer-btn:hover { color:#ccc; background:#111120; }
+
+        /* ===== MESSAGES PANEL (RIGHT) ===== */
+        .messages-panel .panel-body { padding:0; }
+        .message-card {
+            padding:12px 16px;
+            border-bottom:1px solid #1a1a2a;
+        }
+        .message-input-wrap {
+            position:relative;
+        }
+        .message-input-wrap textarea {
+            width:100%;
+            background:#1a1a2e;
+            color:#e0e0e0;
+            border:1px solid #2a2a3e;
+            border-radius:6px;
+            padding:10px 40px 10px 12px;
+            font-size:.85rem;
+            resize:vertical;
+            min-height:52px;
+        }
+        .message-input-wrap textarea:focus {
+            outline:none;
+            border-color:#3b82f6;
+        }
+        .message-input-wrap .emoji-btns {
+            position:absolute; right:8px; top:8px;
+            display:flex; gap:3px;
+        }
+        .emoji-btn {
+            background:none; border:none; font-size:1rem; cursor:pointer;
+            color:#888; padding:2px;
+        }
+        .emoji-btn:hover { color:#ccc; }
+        .msg-number {
+            font-size:.75rem; color:#555; margin-bottom:6px;
+        }
+        .msg-format-row {
+            display:flex; align-items:center; gap:4px;
+            padding:6px 0;
+        }
+        .msg-delete-btn {
+            background:none; border:none; color:#555; cursor:pointer;
+            font-size:.85rem; padding:4px;
+        }
+        .msg-delete-btn:hover { color:#ef4444; }
+        .msg-color-btn {
+            font-size:.85rem; font-weight:700;
+            padding:2px 6px;
+            border:none; background:none;
+            cursor:pointer;
+            border-bottom:2px solid transparent;
+            transition:all .12s;
+        }
+        .msg-color-btn:hover { opacity:.8; }
+        .msg-color-btn.selected { border-bottom-color: currentColor; }
+        .msg-color-btn.c-white { color:#fff; }
+        .msg-color-btn.c-green { color:#4ade80; }
+        .msg-color-btn.c-red { color:#ef4444; }
+        .msg-bold-btn {
+            font-size:.85rem; font-weight:800; color:#ccc;
+            padding:2px 6px; background:none; border:none;
+            cursor:pointer;
+        }
+        .msg-bold-btn.active { color:#fff; background:#2a2a3e; border-radius:3px; }
+        .msg-size-btn {
+            font-size:.75rem; color:#888;
+            padding:2px 6px; background:none; border:none;
+            cursor:pointer;
+        }
+        .msg-size-btn.active { color:#ccc; }
+        .msg-show-toggle {
+            margin-left:auto;
+            display:flex; align-items:center; gap:4px;
+        }
+        .msg-show-toggle .dot { width:7px; height:7px; border-radius:50%; background:#555; }
+        .msg-show-toggle.active .dot { background:#4ade80; }
+        .msg-show-toggle label {
+            font-size:.75rem; color:#888; cursor:pointer;
+        }
+        .add-message-btn {
+            display:flex; align-items:center; justify-content:center; gap:6px;
+            padding:12px; color:#888; font-size:.8rem;
+            cursor:pointer; border:none; background:none; width:100%;
+            transition:color .15s;
+        }
+        .add-message-btn:hover { color:#ccc; background:#111120; }
+        .submit-link {
+            text-align:center; padding:8px;
+            font-size:.75rem; color:#555;
+        }
+
+        /* ===== CONTEXT MENU (3-dot) ===== */
+        .ctx-menu {
+            display:none;
+            position:absolute;
+            background:#1e1e30;
+            border:1px solid #333;
+            border-radius:6px;
+            box-shadow:0 8px 24px rgba(0,0,0,.5);
+            z-index:200;
+            min-width:120px;
+            overflow:hidden;
+        }
+        .ctx-menu.show { display:block; }
+        .ctx-menu-item {
+            display:flex; align-items:center; gap:8px;
+            padding:8px 14px;
+            color:#ccc; font-size:.8rem;
+            cursor:pointer;
+            border:none; background:none; width:100%;
+            text-align:left;
+        }
+        .ctx-menu-item:hover { background:#2a2a3e; }
+        .ctx-menu-item.danger { color:#ef4444; }
+        .ctx-menu-item.danger:hover { background:#2a1a1a; }
+
+        /* ===== MODAL / SETTINGS ===== */
+        .modal-overlay {
+            display:none;
+            position:fixed;
+            inset:0;
+            background:rgba(0,0,0,.6);
+            z-index:500;
+            align-items:center;
+            justify-content:center;
+        }
+        .modal-overlay.show { display:flex; }
+        .modal {
+            background:#1e1e30;
+            border:1px solid #333;
+            border-radius:10px;
+            width:90%;
+            max-width:680px;
+            max-height:90vh;
+            overflow-y:auto;
+            box-shadow:0 12px 48px rgba(0,0,0,.5);
+        }
+        .modal-header {
+            display:flex; align-items:center; justify-content:space-between;
+            padding:16px 20px;
+            border-bottom:1px solid #2a2a3e;
+        }
+        .modal-header h2 {
+            font-size:.95rem; font-weight:600; color:#ccc;
+            display:flex; align-items:center; gap:8px;
+        }
+        .modal-close {
+            background:none; border:none; color:#666; cursor:pointer;
+            font-size:1.1rem;
+        }
+        .modal-close:hover { color:#ccc; }
+        .modal-body { padding:20px; }
+        .modal-footer {
+            display:flex; justify-content:flex-end; gap:8px;
+            padding:16px 20px;
+            border-top:1px solid #2a2a3e;
+        }
+        .modal-btn {
+            padding:8px 24px;
+            border-radius:6px;
+            border:1px solid #333;
+            font-size:.82rem;
+            cursor:pointer;
+            transition:all .15s;
+        }
+        .modal-btn.cancel {
+            background:transparent; color:#888;
+        }
+        .modal-btn.cancel:hover { color:#ccc; background:#2a2a3e; }
+        .modal-btn.confirm {
+            background:#3b82f6; color:#fff; border-color:#3b82f6;
+        }
+        .modal-btn.confirm:hover { background:#2563eb; }
+
+        /* Form fields in modal */
+        .form-group {
+            margin-bottom:14px;
+        }
+        .form-label {
+            display:block; font-size:.75rem; color:#888;
+            margin-bottom:4px; font-weight:500;
+        }
+        .form-input {
+            width:100%;
+            background:#151525;
+            color:#e0e0e0;
+            border:1px solid #2a2a3e;
+            border-radius:5px;
+            padding:8px 10px;
+            font-size:.82rem;
+        }
+        .form-input:focus {
+            outline:none;
+            border-color:#3b82f6;
+        }
+        .form-textarea {
+            width:100%;
+            background:#151525;
+            color:#e0e0e0;
+            border:1px solid #2a2a3e;
+            border-radius:5px;
+            padding:8px 10px;
+            font-size:.82rem;
+            resize:vertical;
+            min-height:60px;
+        }
+        .form-textarea:focus { outline:none; border-color:#3b82f6; }
+        .form-select {
+            background:#151525;
+            color:#e0e0e0;
+            border:1px solid #2a2a3e;
+            border-radius:5px;
+            padding:8px 10px;
+            font-size:.82rem;
+            width:100%;
+        }
+        .form-row {
+            display:grid; gap:14px;
+        }
+        .form-row.two { grid-template-columns:1fr 1fr; }
+        .duration-inputs {
+            display:flex; align-items:center; gap:4px;
+        }
+        .duration-inputs input {
+            width:52px; text-align:center;
+            background:#151525; color:#e0e0e0;
+            border:1px solid #2a2a3e; border-radius:5px;
+            padding:8px 4px; font-size:.9rem; font-weight:600;
+        }
+        .duration-inputs input:focus { outline:none; border-color:#3b82f6; }
+        .duration-inputs .sep { color:#555; font-weight:600; }
+
+        /* Wrap-up section */
+        .wrapup-section {
+            margin-top:16px;
+            border-top:1px solid #2a2a3e;
+            padding-top:14px;
+        }
+        .wrapup-title {
+            font-size:.8rem; font-weight:600; color:#ccc;
+            margin-bottom:10px;
+        }
+        .wrapup-bar {
+            height:10px;
+            background: linear-gradient(90deg, #4ade80 0%, #4ade80 60%, #facc15 75%, #f97316 88%, #ef4444 100%);
+            border-radius:5px;
+            margin-bottom:12px;
+        }
+        .wrapup-row {
+            display:grid;
+            grid-template-columns: 70px 80px 1fr 1fr;
+            align-items:center;
+            gap:8px;
+            padding:4px 0;
+            font-size:.78rem;
+        }
+        .wrapup-row .dot {
+            width:8px; height:8px; border-radius:50%;
+            display:inline-block; margin-right:4px;
+        }
+        .wrapup-row .dot.green { background:#4ade80; }
+        .wrapup-row .dot.yellow { background:#facc15; }
+        .wrapup-row .dot.red { background:#ef4444; }
+        .wrapup-row .dot.gray { background:#555; }
+        .wrapup-time-input {
+            display:flex; align-items:center; gap:2px;
+        }
+        .wrapup-time-input input {
+            width:36px; text-align:center;
+            background:#151525; color:#e0e0e0;
+            border:1px solid #2a2a3e; border-radius:3px;
+            padding:4px 2px; font-size:.75rem;
+        }
+        .wrapup-time-input input:focus { outline:none; border-color:#3b82f6; }
+        .wrapup-time-input .sep { color:#555; font-size:.7rem; }
+
+        /* ===== POPOVER (Start/Duration inline editors) ===== */
+        .popover {
+            display:none;
+            position:absolute;
+            background:#1e1e30;
+            border:1px solid #333;
+            border-radius:8px;
+            box-shadow:0 8px 24px rgba(0,0,0,.5);
+            z-index:300;
+            min-width:240px;
+            padding:12px 16px;
+        }
+        .popover.show { display:block; }
+        .popover-header {
+            display:flex; align-items:center; justify-content:space-between;
+            margin-bottom:10px;
+        }
+        .popover-footer {
+            display:flex; justify-content:flex-end; gap:6px;
+            margin-top:12px;
+        }
+        .popover-btn {
+            padding:5px 16px; border-radius:5px;
+            font-size:.78rem; cursor:pointer;
+            border:1px solid #333;
+        }
+        .popover-btn.cancel { background:transparent; color:#888; }
+        .popover-btn.save { background:#3b82f6; color:#fff; border-color:#3b82f6; }
+
+        /* ===== EMPTY STATE ===== */
+        .empty-state {
+            text-align:center;
+            color:#555;
+            padding:40px 20px;
+        }
+        .empty-state i {
+            font-size:2rem;
+            margin-bottom:8px;
+            display:block;
+        }
+
+        /* ===== OUTPUT LINKS MODAL ===== */
+        .output-link-item {
+            display:flex; align-items:center; justify-content:space-between;
+            background:#151525;
+            padding:10px 14px;
+            border-radius:6px;
+            margin-bottom:8px;
+        }
+        .output-link-item .link-text {
+            font-size:.78rem; color:#93b5ff;
+            text-decoration:none;
+            word-break:break-all;
+        }
+        .output-link-item .link-text:hover { text-decoration:underline; }
+        .copy-link-btn {
+            background:#2a2a3e; color:#ccc; border:1px solid #3a3a50;
+            border-radius:4px; padding:4px 10px; font-size:.7rem;
+            cursor:pointer;
+        }
+        .copy-link-btn:hover { background:#3a3a50; }
+
+        /* ===== TOAST NOTIFICATION ===== */
+        .toast-container {
+            position:fixed;
+            top:16px;
+            right:16px;
+            z-index:9999;
+            display:flex;
+            flex-direction:column;
+            gap:8px;
+        }
+        .toast {
+            background:#1e1e30;
+            color:#e0e0e0;
+            border:1px solid #333;
+            border-radius:8px;
+            padding:12px 20px;
+            font-size:.85rem;
+            box-shadow:0 8px 24px rgba(0,0,0,.5);
+            display:flex;
+            align-items:center;
+            gap:10px;
+            animation: toastIn .3s ease forwards;
+            max-width:360px;
+        }
+        .toast.success { border-left:4px solid #4ade80; }
+        .toast.success i { color:#4ade80; }
+        .toast.error { border-left:4px solid #ef4444; }
+        .toast.error i { color:#ef4444; }
+        .toast.info { border-left:4px solid #3b82f6; }
+        .toast.info i { color:#3b82f6; }
+        .toast.removing { animation: toastOut .3s ease forwards; }
+        @keyframes toastIn { from { opacity:0; transform:translateX(40px); } to { opacity:1; transform:translateX(0); } }
+        @keyframes toastOut { from { opacity:1; transform:translateX(0); } to { opacity:0; transform:translateX(40px); } }
+
+        /* ===== DIALOG MODAL (replaces alert/prompt/confirm) ===== */
+        .dialog-overlay {
+            display:none;
+            position:fixed;
+            inset:0;
+            background:rgba(0,0,0,.65);
+            z-index:600;
+            align-items:center;
+            justify-content:center;
+        }
+        .dialog-overlay.show { display:flex; }
+        .dialog-box {
+            background:#1e1e30;
+            border:1px solid #333;
+            border-radius:10px;
+            width:90%;
+            max-width:400px;
+            box-shadow:0 12px 48px rgba(0,0,0,.5);
+            animation: dialogIn .2s ease;
+        }
+        @keyframes dialogIn { from { opacity:0; transform:scale(.95); } to { opacity:1; transform:scale(1); } }
+        .dialog-header {
+            padding:16px 20px 0;
+            font-size:.95rem;
+            font-weight:600;
+            color:#ccc;
+        }
+        .dialog-body {
+            padding:12px 20px 16px;
+            font-size:.85rem;
+            color:#aaa;
+            line-height:1.5;
+        }
+        .dialog-body input {
+            width:100%;
+            background:#151525;
+            color:#e0e0e0;
+            border:1px solid #2a2a3e;
+            border-radius:5px;
+            padding:8px 10px;
+            font-size:.85rem;
+            margin-top:8px;
+        }
+        .dialog-body input:focus { outline:none; border-color:#3b82f6; }
+        .dialog-footer {
+            display:flex;
+            justify-content:flex-end;
+            gap:8px;
+            padding:0 20px 16px;
+        }
+        .dialog-btn {
+            padding:8px 20px;
+            border-radius:6px;
+            border:1px solid #333;
+            font-size:.82rem;
+            cursor:pointer;
+            transition:all .15s;
+        }
+        .dialog-btn.cancel { background:transparent; color:#888; }
+        .dialog-btn.cancel:hover { color:#ccc; background:#2a2a3e; }
+        .dialog-btn.confirm { background:#3b82f6; color:#fff; border-color:#3b82f6; }
+        .dialog-btn.confirm:hover { background:#2563eb; }
+        .dialog-btn.danger { background:#dc2626; color:#fff; border-color:#dc2626; }
+        .dialog-btn.danger:hover { background:#b91c1c; }
+    </style>
+</head>
+<body>
+
+    <!-- ===== TOP BAR ===== -->
+    <div class="top-bar">
+        <div class="top-bar-left">
+            <span class="brand">B1G</span>
+            <span class="page-title">Dashboard</span>
+            <button class="top-btn" title="Menu"><i class="fas fa-chevron-down"></i></button>
+            <button class="top-btn" id="btn-output-links"><i class="fas fa-desktop"></i> Output Links</button>
+        </div>
+        <div class="top-bar-right">
+            <div class="room-select-wrap">
+                <label>Room</label>
+                <select id="room-selector">
+                    <option value="">-- Select Room --</option>
+                </select>
+                <button class="top-btn" id="btn-create-room" title="Create Room"><i class="fas fa-plus"></i></button>
+            </div>
+            <button class="top-btn primary" id="btn-save" data-action="save-timers"><i class="fas fa-save"></i> Save</button>
+        </div>
+    </div>
+
+    <!-- ===== MAIN 3-COLUMN LAYOUT ===== -->
+    <div class="main-layout">
+
+        <!-- ===== LEFT: PREVIEW PANEL ===== -->
+        <div class="panel preview-panel">
+            <div class="preview-header-bar">
+                <span style="font-weight:600;color:#888;">PREVIEW:</span>
+                <select id="preview-mode">
+                    <option>Viewer</option>
+                    <option>Minimal</option>
+                </select>
+                <button class="icon-btn" title="Edit display"><i class="fas fa-pen"></i></button>
+                <button class="icon-btn" id="btn-open-stage" title="Open stage display"><i class="fas fa-external-link-alt"></i></button>
+            </div>
+
+            <div class="preview-display" id="preview-display">
+                <div class="preview-timer-name" id="preview-timer-name">--</div>
+                <div class="preview-countdown" id="preview-countdown">
+                    <span class="hr">0</span><span class="colon">:</span><span class="min">00</span><span class="colon">:</span><span class="sec">00</span>
+                </div>
+            </div>
+
+            <!-- Progress bar -->
+            <div class="preview-progress-wrap">
+                <div class="preview-progress-bar" id="preview-progress-bar">
+                    <div class="preview-progress-marker" id="preview-progress-marker" style="left:50%;"></div>
+                </div>
+            </div>
+
+            <!-- ON AIR row -->
+            <div class="on-air-row">
+                <span class="on-air-badge" id="on-air-badge">ON AIR</span>
+                <span class="on-air-dot" id="on-air-dot"></span>
+                <span class="on-air-time" id="on-air-time">0:00.0</span>
+            </div>
+
+            <!-- Time markers bar -->
+            <div class="time-markers-bar" id="time-markers-bar">
+                <div class="marker-flag" id="marker-flag" style="left:50%;"></div>
+            </div>
+            <div class="time-markers" id="time-markers">
+                <span>10:00</span><span>7:30</span><span>5:00</span><span>2:30</span>
+            </div>
+
+            <!-- Transport controls -->
+            <div class="transport-row">
+                <button class="transport-btn small" data-action="adjust-time" data-adjust="-1" title="Fine -1s"><i class="fas fa-chevron-down"></i></button>
+                <button class="transport-btn" data-action="adjust-time" data-adjust="-60" title="-1 minute"><span class="transport-label">-1m</span></button>
+                <button class="transport-btn" data-action="previous-timer" title="Previous"><i class="fas fa-step-backward"></i></button>
+                <button class="transport-btn play" id="btn-play-pause" data-action="play-pause" title="Play/Pause"><i class="fas fa-play"></i></button>
+                <button class="transport-btn" data-action="next-timer" title="Next"><i class="fas fa-step-forward"></i></button>
+                <button class="transport-btn" data-action="adjust-time" data-adjust="60" title="+1 minute"><span class="transport-label">+1m</span></button>
+                <button class="transport-btn small" data-action="adjust-time" data-adjust="1" title="Fine +1s"><i class="fas fa-chevron-down" style="transform:rotate(180deg)"></i></button>
+            </div>
+
+            <!-- Metadata -->
+            <div class="preview-meta">
+                <hr class="meta-divider">
+                <div class="meta-row">
+                    <span class="meta-value" id="current-time-display" style="font-size:1rem;">--:--:-- --</span>
+                    <span class="meta-label" id="timezone-label">Asia / Singapore (SGT)</span>
+                </div>
+                <hr class="meta-divider">
+                <div style="display:flex;align-items:center;justify-content:space-between;">
+                    <div>
+                        <div class="meta-label">Cue finish</div>
+                        <div class="meta-value" id="cue-finish-display">--:--:-- --</div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div class="meta-label">Over/Under</div>
+                        <div class="meta-value" id="over-under-display">&ndash;</div>
+                    </div>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:center;gap:16px;padding:6px 0;">
+                    <button class="meta-nav-btn" title="Previous timer info"><i class="fas fa-chevron-left"></i></button>
+                    <span style="color:#333;">&mdash; &nbsp; <i class="fas fa-chevron-down" style="font-size:.6rem;color:#444;"></i> &nbsp; &mdash;</span>
+                    <button class="meta-nav-btn" title="Next timer info"><i class="fas fa-chevron-right"></i></button>
+                </div>
+            </div>
+
+            <!-- Live connections -->
+            <div class="live-connections" id="live-connections">
+                <span class="live-conn-text">Live Connections <span id="display-count">0/0</span></span>
+                <i class="fas fa-chevron-right" style="color:#555;font-size:.7rem;"></i>
+            </div>
+        </div>
+
+        <!-- ===== CENTER: TIMERS PANEL ===== -->
+        <div class="panel timers-panel">
+            <div class="panel-header">
+                <div class="panel-header-title">
+                    <span style="font-weight:700;">Timers</span>
+                    <button class="toggle-btn" id="btn-select-mode" style="margin-left:8px;">Select</button>
+                </div>
+                <div class="panel-header-actions">
+                    <button class="toggle-btn" id="btn-blackout" data-action="blackout-toggle">
+                        <span class="dot"></span> Blackout
+                    </button>
+                    <button class="toggle-btn" id="btn-flash" data-action="flash-trigger">
+                        <i class="fas fa-bolt" style="font-size:.65rem;"></i> Flash
+                    </button>
+                    <button class="toggle-btn" id="btn-timers-more" title="More options">
+                        <i class="fas fa-ellipsis-h"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Selection toolbar (hidden by default) -->
+            <div class="selection-toolbar" id="selection-toolbar">
+                <button class="sel-close" id="sel-close-btn"><i class="fas fa-times"></i></button>
+                <label style="display:flex;align-items:center;gap:4px;cursor:pointer;color:#ccc;font-size:.8rem;">
+                    <input type="checkbox" id="sel-all-check" style="accent-color:#3b82f6;"> Select All
+                </label>
+                <span class="sel-info" id="sel-info">0 of 0 selected</span>
+                <button class="sel-action-btn danger" id="sel-delete-btn"><i class="fas fa-trash"></i> Delete</button>
+                <button class="sel-action-btn" id="sel-duplicate-btn"><i class="fas fa-copy"></i> Duplicate</button>
+                <button class="sel-action-btn" id="sel-move-btn"><i class="fas fa-arrows-alt"></i> Move</button>
+                <button class="sel-action-btn" id="sel-more-btn"><i class="fas fa-ellipsis-h"></i> More</button>
+            </div>
+
+            <div class="panel-body">
+                <div id="timer-list">
+                    <div class="empty-state">
+                        <i class="fas fa-inbox"></i>
+                        No timers yet. Select a room to get started.
+                    </div>
+                </div>
+                <button class="add-timer-btn" id="btn-add-timer" data-action="add-timer">
+                    <i class="fas fa-plus"></i> Add Timer
+                </button>
+            </div>
+        </div>
+
+        <!-- ===== RIGHT: MESSAGES PANEL ===== -->
+        <div class="panel messages-panel">
+            <div class="panel-header">
+                <div class="panel-header-title">Messages</div>
+                <div class="panel-header-actions">
+                    <button class="toggle-btn" id="btn-msg-focus">
+                        <span class="dot"></span> Focus
+                    </button>
+                    <button class="toggle-btn" id="btn-msg-flash">
+                        <i class="fas fa-bolt" style="font-size:.65rem;"></i> Flash
+                    </button>
+                </div>
+            </div>
+            <div class="panel-body" id="messages-body">
+                <div id="messages-list">
+                    <!-- Messages rendered by JS -->
+                </div>
+                <button class="add-message-btn" id="btn-add-message">
+                    <i class="fas fa-plus"></i> Add Message
+                </button>
+                <div class="submit-link">Submit questions link</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== CONTEXT MENU (for 3-dot on timer) ===== -->
+    <div class="ctx-menu" id="timer-ctx-menu">
+        <button class="ctx-menu-item danger" id="ctx-delete"><i class="fas fa-trash"></i> Delete</button>
+        <button class="ctx-menu-item" id="ctx-clone"><i class="fas fa-copy"></i> Clone</button>
+    </div>
+
+    <!-- ===== TIMER SETTINGS MODAL ===== -->
+    <div class="modal-overlay" id="settings-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2><i class="fas fa-cog"></i> <span id="settings-modal-title">Settings for Timer</span></h2>
+                <button class="modal-close" id="settings-modal-close"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Title</label>
+                    <input class="form-input" id="setting-title" placeholder="Timer name">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Speaker</label>
+                    <input class="form-input" id="setting-speaker" placeholder="Speaker (optional)">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Notes</label>
+                    <textarea class="form-textarea" id="setting-notes" placeholder="Notes (optional)"></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Labels</label>
+                    <button class="top-btn" id="setting-add-label" style="font-size:.75rem;"><i class="fas fa-plus"></i> Add label</button>
+                </div>
+
+                <hr style="border-color:#2a2a3e;margin:14px 0;">
+
+                <div class="form-row two">
+                    <div>
+                        <label class="form-label">Start</label>
+                        <select class="form-select" id="setting-start-type">
+                            <option value="manual">Manual</option>
+                            <option value="scheduled">Scheduled</option>
+                        </select>
+                        <div style="margin-top:8px;">
+                            <label class="form-label">Time <i class="fas fa-info-circle" style="font-size:.6rem;color:#555;"></i></label>
+                            <input class="form-input" type="time" id="setting-start-time" placeholder="Select time (optional)">
+                        </div>
+                        <div style="margin-top:8px;">
+                            <label class="form-label">Date <i class="fas fa-info-circle" style="font-size:.6rem;color:#555;"></i></label>
+                            <input class="form-input" type="date" id="setting-start-date" placeholder="Select date (optional)">
+                        </div>
+                        <div style="margin-top:6px;font-size:.7rem;color:#666;" id="setting-start-hint">
+                            No start time given. Triggered manually.
+                        </div>
+                    </div>
+                    <div>
+                        <label class="form-label">Duration</label>
+                        <select class="form-select" id="setting-duration-type">
+                            <option value="duration">Duration</option>
+                            <option value="end-time">End Time</option>
+                        </select>
+                        <div style="margin-top:8px;">
+                            <label class="form-label">Duration <i class="fas fa-info-circle" style="font-size:.6rem;color:#555;"></i></label>
+                            <div class="duration-inputs">
+                                <div style="text-align:center;"><div style="font-size:.6rem;color:#666;margin-bottom:2px;">Hours</div><input type="number" id="setting-dur-h" min="0" max="23" value="00" placeholder="HH"></div>
+                                <span class="sep">:</span>
+                                <div style="text-align:center;"><div style="font-size:.6rem;color:#666;margin-bottom:2px;">Min</div><input type="number" id="setting-dur-m" min="0" max="59" value="10" placeholder="MM"></div>
+                                <span class="sep">:</span>
+                                <div style="text-align:center;"><div style="font-size:.6rem;color:#666;margin-bottom:2px;">Sec</div><input type="number" id="setting-dur-s" min="0" max="59" value="00" placeholder="SS"></div>
+                            </div>
+                        </div>
+                        <div style="margin-top:8px;">
+                            <label class="form-label">Appearance</label>
+                            <select class="form-select" id="setting-appearance">
+                                <option value="countdown">Countdown</option>
+                                <option value="countup">Count Up</option>
+                                <option value="clock">Clock</option>
+                                <option value="hidden">Hidden</option>
+                            </select>
+                            <div style="text-align:right;margin-top:4px;">
+                                <button class="top-btn" id="setting-apply-all" style="font-size:.7rem;">Apply to all</button>
+                            </div>
+                        </div>
+                        <div style="margin-top:8px;font-size:.7rem;color:#666;" id="setting-duration-hint">
+                            Counting down from 10 mins.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Wrap-up times -->
+                <div class="wrapup-section">
+                    <div class="wrapup-title">Wrap-up times &amp; actions</div>
+                    <div class="wrapup-bar"></div>
+                    <div class="wrapup-row">
+                        <span><span class="dot green"></span> Start</span>
+                        <span></span>
+                        <span style="color:#555;font-size:.72rem;">Chime: None</span>
+                        <span style="color:#555;font-size:.72rem;">Flash: x0</span>
+                    </div>
+                    <div class="wrapup-row">
+                        <span><span class="dot yellow"></span> Yellow</span>
+                        <div class="wrapup-time-input">
+                            <input type="number" id="setting-yellow-m" min="0" max="59" value="01">
+                            <span class="sep">:</span>
+                            <input type="number" id="setting-yellow-s" min="0" max="59" value="00">
+                        </div>
+                        <span style="color:#555;font-size:.72rem;">Chime: None</span>
+                        <span style="color:#555;font-size:.72rem;">Flash: x0</span>
+                    </div>
+                    <div class="wrapup-row">
+                        <span><span class="dot red"></span> Red</span>
+                        <div class="wrapup-time-input">
+                            <input type="number" id="setting-red-m" min="0" max="59" value="00">
+                            <span class="sep">:</span>
+                            <input type="number" id="setting-red-s" min="0" max="59" value="15">
+                        </div>
+                        <span style="color:#555;font-size:.72rem;">Chime: None</span>
+                        <span style="color:#555;font-size:.72rem;">Flash: x0</span>
+                    </div>
+                    <div class="wrapup-row">
+                        <span><span class="dot gray"></span> 0:00</span>
+                        <span></span>
+                        <span style="color:#555;font-size:.72rem;">Chime: None</span>
+                        <span style="color:#555;font-size:.72rem;">Flash: x0</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn cancel" id="settings-cancel">Cancel</button>
+                <button class="modal-btn confirm" id="settings-confirm">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== OUTPUT LINKS MODAL ===== -->
+    <div class="modal-overlay" id="output-modal">
+        <div class="modal" style="max-width:480px;">
+            <div class="modal-header">
+                <h2><i class="fas fa-desktop"></i> Output Links</h2>
+                <button class="modal-close" id="output-modal-close"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size:.78rem;color:#888;margin-bottom:12px;">Open these links on your Stage Display screens:</p>
+                <div class="output-link-item">
+                    <a class="link-text" id="stage-link" href="stage.html" target="_blank">stage.html</a>
+                    <button class="copy-link-btn" id="copy-stage-link">Copy</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== INLINE EDIT POPOVER (Start Time) ===== -->
+    <div class="popover" id="start-popover">
+        <div class="popover-header">
+            <select class="form-select" id="pop-start-type" style="width:auto;">
+                <option value="manual">Manual</option>
+                <option value="scheduled">Scheduled</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Time <i class="fas fa-info-circle" style="font-size:.6rem;color:#555;"></i></label>
+            <input class="form-input" type="time" id="pop-start-time" placeholder="Select time (optional)">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Date <i class="fas fa-info-circle" style="font-size:.6rem;color:#555;"></i></label>
+            <input class="form-input" type="date" id="pop-start-date" placeholder="Select date (optional)">
+        </div>
+        <div style="font-size:.7rem;color:#666;" id="pop-start-hint">No start time given. Triggered manually.</div>
+        <div class="popover-footer">
+            <button class="popover-btn cancel" id="pop-start-cancel">Cancel</button>
+            <button class="popover-btn save" id="pop-start-save">Save</button>
+        </div>
+    </div>
+
+    <!-- ===== INLINE EDIT POPOVER (Duration) ===== -->
+    <div class="popover" id="duration-popover">
+        <div class="popover-header">
+            <select class="form-select" id="pop-dur-type" style="width:auto;">
+                <option value="duration">Duration</option>
+                <option value="end-time">End Time</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Duration <i class="fas fa-info-circle" style="font-size:.6rem;color:#555;"></i></label>
+            <div class="duration-inputs">
+                <div style="text-align:center;"><div style="font-size:.6rem;color:#666;margin-bottom:2px;">Hours</div><input type="number" id="pop-dur-h" min="0" max="23" value="00"></div>
+                <span class="sep">:</span>
+                <div style="text-align:center;"><div style="font-size:.6rem;color:#666;margin-bottom:2px;">Min</div><input type="number" id="pop-dur-m" min="0" max="59" value="10"></div>
+                <span class="sep">:</span>
+                <div style="text-align:center;"><div style="font-size:.6rem;color:#666;margin-bottom:2px;">Sec</div><input type="number" id="pop-dur-s" min="0" max="59" value="00"></div>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Appearance</label>
+            <select class="form-select" id="pop-appearance">
+                <option value="countdown">Countdown</option>
+                <option value="countup">Count Up</option>
+                <option value="clock">Clock</option>
+            </select>
+            <div style="text-align:right;margin-top:4px;font-size:.7rem;color:#555;">Apply to all</div>
+        </div>
+        <div style="font-size:.7rem;color:#666;" id="pop-dur-hint">Counting down from 10 mins.</div>
+        <div class="popover-footer">
+            <button class="popover-btn cancel" id="pop-dur-cancel">Cancel</button>
+            <button class="popover-btn save" id="pop-dur-save">Save</button>
+        </div>
+    </div>
+
+    <!-- ===== TOAST CONTAINER ===== -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- ===== DIALOG MODAL (replaces alert/prompt/confirm) ===== -->
+    <div class="dialog-overlay" id="dialog-overlay">
+        <div class="dialog-box">
+            <div class="dialog-header" id="dialog-title"></div>
+            <div class="dialog-body" id="dialog-body"></div>
+            <div class="dialog-footer" id="dialog-footer"></div>
+        </div>
+    </div>
+
+    <!-- ===== SCRIPTS ===== -->
+    <script src="https://js.pusher.com/8.2/pusher.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+
+    <script src="js/api-client.js"></script>
+    <script src="js/timer-math.js"></script>
+    <script src="js/state-manager.js"></script>
+    <script src="js/pusher-manager.js"></script>
+    <script src="js/room-manager.js"></script>
+    <script src="js/timer-engine.js"></script>
+    <script src="js/message-manager.js"></script>
+    <script src="js/sortable-handler.js"></script>
+    <script src="js/validation-handler.js"></script>
+    <script src="js/phase-5-enhancements.js"></script>
+    <script src="js/control-dashboard.js"></script>
+</body>
+</html>

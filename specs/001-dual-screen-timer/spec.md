@@ -149,9 +149,9 @@ The operator selects or creates a "Room" (a distinct event/venue session) from a
    - Column 3 (Messages): Text input with formatting options (color, bold, font size), "Show" button, queued message list, "Focus" and "Flash" buttons
 
 2. **Stage Display must be full-screen, dark mode, distraction-free**:
-   - Top section: Massive MM:SS countdown (and negative overage when >00:00)
-   - Middle: Progress bar (color: green → yellow at 2:00 → red at 00:00)
-   - Bottom: Current time of day (HH:MM AM/PM format)
+   - Top section: Massive MM:SS countdown (≥120px font, white #FFFFFF on near-black #0a0a0a background)
+   - Middle: Progress bar (color: green #10b981 → yellow #f59e0b at 2:00 → red #ef4444 at 00:00)
+   - Bottom: Current time of day (≥48px font, HH:MM AM/PM format, white on dark background)
    - Footer ribbon: Message area (appears only when message is active)
 
 3. **All styling must use Tailwind CSS utility classes exclusively**. No inline styles except dynamically calculated dimensions (e.g., progress bar width percentage via JavaScript).
@@ -208,6 +208,19 @@ The operator selects or creates a "Room" (a distinct event/venue session) from a
 18. **Message text**: Max 255 characters, no HTML tags (plain text or basic Markdown), XSS-safe.
 
 19. **Authentication (Phase 2 scope, noted for planning)**: Rooms are not protected by authentication in Phase 1 MVP. All rooms are publicly accessible (same-origin only via BroadcastChannel).
+
+### Error Handling & Resilience
+
+20. **API/Database failure resilience**: When API requests fail or database is unavailable:
+    - Display clear error notification on Control Dashboard (e.g., "Connection Lost - Retrying...")
+    - Stage Display shows stored state (last known timer, message, blackout state)
+    - Allow operator to continue local adjustments (play/pause/adjust timers in memory)
+    - Auto-retry connection with exponential backoff
+    - Once connection restored, sync local state back to database
+
+21. **Client-side state preservation**: Application maintains in-memory state of all timers, current playback state, blackout status, and messages. On reconnection, operator can choose to: (a) save changes to database, or (b) discard and reload from database.
+
+22. **Network error messages**: Errors to operator must be human-readable and actionable (e.g., "Database connection lost. Local timers will resume when connection is restored."), not cryptic HTTP status codes.
 
 ---
 
@@ -268,16 +281,29 @@ All criteria must be met for MVP launch.
 
 ---
 
+## Clarifications
+
+### Session 2026-03-19
+
+- Q: When multiple browser tabs have the Stage Display open or multiple Control Dashboards connect, how should timer control conflicts be resolved? → A: All connected tabs/dashboards can control timers; last command wins (broadcast to all).
+- Q: What are the exact font sizes and color scheme targets for the Stage Display (venue projection scenarios)? → A: Countdown font >=120px, time-of-day font >=48px; text white (#FFFFFF), background near-black (#0a0a0a), progress bar: green (#10b981) -> yellow (#f59e0b) at 2:00 -> red (#ef4444) at 00:00.
+- Q: When a critical failure occurs (e.g., database unavailable, API returns 500), what should the application display and behavior? → A: Display error notification; retain last known state in memory; allow local timer adjustments; auto-reconnect when available.
+- Q: What are the practical scalability limits for timers per room, concurrent dashboards, and daily active rooms? → A: 100 timers max/room, 5 concurrent dashboards/room, 100 daily active rooms MVP baseline.
+- Q: Should MVP implement full drag-to-reorder or simplified arrow button reordering? → A: Full drag-to-reorder support (HTML5 drag-drop or SortableJS library).
+
+---
+
 ## Assumptions
 
 - **Same-origin deployment**: Control Dashboard and Stage Display are on the same domain (or subdomain supporting BroadcastChannel). Cross-origin scenarios (e.g., different domain) are out of scope for Phase 1.
-- **Single operator per room**: Concurrent editing by multiple operators is not supported in Phase 1 (eventual consistency is documented; collisions are user responsibility).
+- **Concurrent dashboard control**: Multiple Control Dashboard tabs can connect and issue commands simultaneously. The most recent command takes effect and broadcasts to all connected displays. Collision handling is on the operator (intent is to support backup control in live event scenarios).
 - **Timer drift tolerance**: Sub-millisecond precision is not achievable; ±50ms is the acceptable ceiling (native browser limitations).
 - **Persistent connection assumed**: Network connectivity is stable for the duration of an event. Offline-first / reconnection strategies are Phase 2 scope.
 - **Modern browser stack**: ES6+ support, BroadcastChannel API support (Chrome/Firefox/Safari/Edge all support; IE11 not supported).
 - **No authentication in Phase 1**: Rooms are not password-protected. Security is left to network/deployment (VPN, firewall).
 - **Message text is plain text only**: No embedded images, videos, or complex formatting (color/bold/size only).
-- **Vertical timer list in Column 2**: Drag-to-reorder UX is preferred but can be simplified to up/down arrow buttons if complexity is a concern.
+- **Timer reordering UX**: Full drag-to-reorder support using HTML5 drag-drop API or SortableJS library (not simplified to arrow buttons). Improves event workflow efficiency.
+- **MVP scalability targets**: Maximum 100 timers per room, 5 concurrent dashboards per room, baseline of 100 daily active rooms. These constraints ensure reasonable performance without over-engineering Phase 1.
 
 ---
 

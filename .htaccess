@@ -1,0 +1,23 @@
+# B1G Timer - URL Rewriting Configuration
+#
+# XAMPP:       RewriteBase /B1G_TIMER/
+# InfinityFree: RewriteBase /
+# Change the line below when you deploy.
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    
+    # ── CHANGE THIS for your environment ──
+    RewriteBase /B1G_TIMER/
+    
+    # Existing files/dirs served directly (CSS, JS, images, HTML)
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+    
+    # Route /api/* to api/index.php (clean REST URLs)
+    RewriteRule ^api/(.*)$ api/index.php [QSA,L]
+</IfModule>
+
+# Prevent directory listing
+Options -Indexes
