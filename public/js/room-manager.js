@@ -30,12 +30,18 @@ const RoomManager = {
             const room = await APIClient.getRoom(roomId);
             StateManager.setCurrentRoom(room);
             StateManager.setSelectedRoom(roomId);
+            if (typeof StateManager.persistTimerState === 'function') {
+                StateManager.persistTimerState();
+            }
             this.renderTimerList(room.timers);
             
             // Subscribe to real-time updates for this room
             PusherManager.subscribeToRoom(roomId, (action, data) => {
                 this.handleRoomEvent(action, data);
             });
+            
+            // Initialize BroadcastChannel early so SYNC_REQUEST from stage is heard
+            APIClient._getLocalChannel(roomId);
             
             return room;
         } catch (error) {

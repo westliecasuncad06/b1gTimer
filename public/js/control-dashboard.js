@@ -102,6 +102,35 @@ const ControlDashboard = {
                 console.warn('[ControlDashboard] Pusher not available');
             }
             await RoomManager.loadRooms();
+
+            // Restore last selected room and timer state from localStorage
+            const persisted = typeof StateManager.getPersistedTimerState === 'function'
+                ? StateManager.getPersistedTimerState() : null;
+            if (persisted && persisted.selectedRoomId) {
+                const selector = document.getElementById('room-selector');
+                if (selector) {
+                    selector.value = persisted.selectedRoomId;
+                    await RoomManager.loadRoom(persisted.selectedRoomId);
+                }
+                // Restore running timer state
+                if (persisted.currentTimerIndex != null && StateManager.state.timers.length > persisted.currentTimerIndex) {
+                    StateManager.state.currentTimerIndex = persisted.currentTimerIndex;
+                    if (persisted.isRunning && persisted.currentTimerStartTime) {
+                        // Calculate how much time elapsed since last save
+                        const elapsed = (Date.now() - new Date(persisted.savedAt).getTime()) / 1000;
+                        const remaining = persisted.currentTimerRemainingSeconds - elapsed;
+                        TimerEngine.start(persisted.currentTimerIndex, remaining);
+                        console.log('[ControlDashboard] Restored running timer, remaining:', remaining.toFixed(1) + 's');
+                    } else if (persisted.currentTimerRemainingSeconds != null) {
+                        // Paused state - restore remaining time and display
+                        StateManager.state.currentTimerRemainingSeconds = persisted.currentTimerRemainingSeconds;
+                        StateManager.state.currentTimerStartTime = persisted.currentTimerStartTime;
+                        this.updatePreviewDisplay(persisted.currentTimerRemainingSeconds);
+                        RoomManager.renderTimerList(StateManager.state.timers);
+                    }
+                }
+            }
+
             this.setupEventListeners();
             this.setupStateListeners();
             this.startTimeDisplay();

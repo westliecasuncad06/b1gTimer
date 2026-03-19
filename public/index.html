@@ -889,6 +889,56 @@
         .dialog-btn.confirm:hover { background:#2563eb; }
         .dialog-btn.danger { background:#dc2626; color:#fff; border-color:#dc2626; }
         .dialog-btn.danger:hover { background:#b91c1c; }
+
+        /* ===== MOBILE RESPONSIVE ===== */
+        @media (max-width: 1024px) {
+            .main-layout {
+                grid-template-columns: 280px 1fr 260px;
+            }
+        }
+        @media (max-width: 768px) {
+            html, body { overflow: auto; height: auto; }
+            .main-layout {
+                display: flex;
+                flex-direction: column;
+                height: auto;
+                min-height: calc(100vh - 48px);
+            }
+            .panel { border-right: none; border-bottom: 1px solid #1e1e30; overflow: visible; }
+            .panel:last-child { border-bottom: none; }
+            .preview-panel { order: 1; }
+            .timers-panel { order: 2; }
+            .messages-panel { order: 3; }
+            .preview-countdown { font-size: 4rem; }
+            .top-bar { flex-wrap: wrap; height: auto; padding: 8px 12px; gap: 8px; }
+            .top-bar-left, .top-bar-right { flex-wrap: wrap; gap: 6px; }
+            .room-select-wrap { flex-wrap: wrap; }
+            .timer-card {
+                grid-template-columns: auto 70px 60px 1fr auto;
+                padding: 10px 12px;
+                font-size: .8rem;
+            }
+            .tc-controls { gap: 2px; }
+            .tc-ctrl-btn { width: 30px; height: 30px; font-size: .7rem; }
+            .transport-row { flex-wrap: wrap; padding: 8px 12px; }
+            .transport-btn { width: 40px; height: 36px; font-size: .75rem; }
+            .transport-btn.play { width: 48px; }
+            .modal { width: 95%; max-width: none; }
+            .form-row.two { grid-template-columns: 1fr; }
+            .panel-body { overflow-y: auto; max-height: none; }
+        }
+        @media (max-width: 480px) {
+            .preview-countdown { font-size: 3rem; }
+            .timer-card {
+                grid-template-columns: auto 1fr auto;
+                gap: 6px;
+            }
+            .timer-card .tc-start-time,
+            .timer-card .tc-duration { display: none; }
+            .top-bar-left .page-title { display: none; }
+            .panel-header { padding: 8px 10px; }
+            .on-air-row { flex-wrap: wrap; padding: 4px 10px; }
+        }
     </style>
 </head>
 <body>
@@ -1292,16 +1342,16 @@
     <script src="https://js.pusher.com/8.2/pusher.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 
-    <script src="js/api-client.js"></script>
-    <script src="js/timer-math.js"></script>
-    <script src="js/state-manager.js"></script>
-    <script src="js/pusher-manager.js"></script>
-    <script src="js/room-manager.js"></script>
-    <script src="js/timer-engine.js"></script>
-    <script src="js/message-manager.js"></script>
-    <script src="js/sortable-handler.js"></script>
-    <script src="js/validation-handler.js"></script>
-    <script src="js/phase-5-enhancements.js"></script>
-    <script src="js/control-dashboard.js"></script>
+    <script src="js/api-client.js?v=2"></script>
+    <script src="js/timer-math.js?v=2"></script>
+    <script src="js/state-manager.js?v=2"></script>
+    <script src="js/pusher-manager.js?v=2"></script>
+    <script src="js/room-manager.js?v=2"></script>
+    <script src="js/timer-engine.js?v=2"></script>
+    <script src="js/message-manager.js?v=2"></script>
+    <script src="js/sortable-handler.js?v=2"></script>
+    <script src="js/validation-handler.js?v=2"></script>
+    <script src="js/phase-5-enhancements.js?v=2"></script>
+    <script src="js/control-dashboard.js?v=2"></script>
 </body>
 </html>

@@ -55,6 +55,9 @@ const StageDisplay = {
             const statusEl = document.getElementById('connection-status');
             if (statusEl) statusEl.classList.add('connected');
             
+            // Request sync from dashboard after subscribing
+            this.requestSync(roomId);
+            
             console.log('[StageDisplay] Ready (Display ID: ' + this.displayId + ')');
         } catch (error) {
             console.error('[StageDisplay] Initialization error:', error);
@@ -79,8 +82,51 @@ const StageDisplay = {
                 }
             };
             console.log('[StageDisplay] BroadcastChannel ready for room', roomId);
+
+            // Request sync via BroadcastChannel
+            this.requestSync(roomId);
         } catch (e) {
             console.warn('[StageDisplay] BroadcastChannel not supported:', e.message);
+        }
+    },
+
+    /**
+     * Request current timer state from dashboard (sync on join)
+     */
+    requestSync(roomId) {
+        // Method 1: Send SYNC_REQUEST via BroadcastChannel for dashboard to respond
+        if (this.broadcastChannel) {
+            try {
+                this.broadcastChannel.postMessage({ action: 'SYNC_REQUEST', data: { displayId: this.displayId } });
+                console.log('[StageDisplay] Sent SYNC_REQUEST via BroadcastChannel');
+            } catch (e) { /* ignore */ }
+        }
+
+        // Method 2: Read from localStorage as immediate fallback (same origin)
+        try {
+            const raw = localStorage.getItem('b1g_timer_state');
+            if (raw) {
+                const persisted = JSON.parse(raw);
+                if (persisted && String(persisted.selectedRoomId) === String(roomId)) {
+                    console.log('[StageDisplay] Restoring state from localStorage:', persisted);
+                    if (persisted.isRunning && persisted.savedAt) {
+                        const elapsed = (Date.now() - new Date(persisted.savedAt).getTime()) / 1000;
+                        const remaining = persisted.currentTimerRemainingSeconds - elapsed;
+                        this.startCountdown({
+                            startedAt: new Date().toISOString(),
+                            remainingSeconds: remaining,
+                            timerTitle: persisted.timerTitle || ''
+                        });
+                    } else if (persisted.currentTimerRemainingSeconds != null) {
+                        // Paused - show static remaining time
+                        this.displayCountdown(persisted.currentTimerRemainingSeconds);
+                        const nameEl = document.getElementById('timer-name');
+                        if (nameEl && persisted.timerTitle) nameEl.textContent = persisted.timerTitle;
+                    }
+                }
+            }
+        } catch (e) {
+            console.warn('[StageDisplay] Could not read persisted state:', e.message);
         }
     },
     
@@ -103,7 +149,7 @@ const StageDisplay = {
                 break;
                 
             case 'TIMER_RESUME':
-                this.resumeCountdown();
+                this.resumeCountdown(data);
                 break;
                 
             case 'TIMER_STOP':
@@ -116,9 +162,13 @@ const StageDisplay = {
                 
             case 'NEXT_TIMER':
             case 'PREVIOUS_TIMER':
-            case 'TIME_ADJUSTMENT':
-                // Reset countdown to new timer
+                // These start a new timer - handled via TIMER_START that follows
                 this.updateCountdown(data.remainingSeconds);
+                break;
+                
+            case 'TIME_ADJUSTMENT':
+                // Restart the countdown interval with the adjusted remaining time
+                this.adjustRunningCountdown(data);
                 break;
                 
             case 'BLACKOUT_ON':
@@ -186,10 +236,15 @@ const StageDisplay = {
     },
     
     /**
-     * Resume countdown
+     * Resume countdown with current remaining time
      */
-    resumeCountdown() {
-        // Resume will be called via startCountdown with new times
+    resumeCountdown(data) {
+        const remaining = (data && data.remainingSeconds != null) ? data.remainingSeconds : 0;
+        this.startCountdown({
+            startedAt: (data && data.resumedAt) || new Date().toISOString(),
+            remainingSeconds: remaining,
+            timerTitle: (data && data.timerTitle) || ''
+        });
     },
     
     /**
@@ -211,10 +266,33 @@ const StageDisplay = {
     },
     
     /**
-     * Update countdown display
+     * Update countdown display (static, non-running)
      */
     updateCountdown(seconds) {
         this.displayCountdown(seconds);
+    },
+
+    /**
+     * Adjust a running countdown in-place (for +1m/-1m buttons)
+     * Restarts the interval with new remaining seconds so it keeps ticking
+     */
+    adjustRunningCountdown(data) {
+        const newRemaining = data.newRemaining != null ? data.newRemaining : (data.remainingSeconds || 0);
+        const adjustedAt = data.adjustedAt || new Date().toISOString();
+
+        // If countdown is currently running, restart the interval with new values
+        if (this.updateInterval) {
+            clearInterval(this.updateInterval);
+            this.startTime = new Date(adjustedAt);
+
+            this.updateInterval = setInterval(() => {
+                const elapsed = (Date.now() - this.startTime.getTime()) / 1000;
+                let remaining = newRemaining - elapsed;
+                this.displayCountdown(remaining);
+            }, 100);
+        }
+
+        this.displayCountdown(newRemaining);
     },
     
     /**

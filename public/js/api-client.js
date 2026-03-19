@@ -92,6 +92,29 @@ const APIClient = {
         if (!this._broadcastChannels[roomId]) {
             try {
                 this._broadcastChannels[roomId] = new BroadcastChannel('b1g-timer-room-' + roomId);
+                // Listen for SYNC_REQUEST from stage displays
+                this._broadcastChannels[roomId].onmessage = (event) => {
+                    const { action } = event.data || {};
+                    if (action === 'SYNC_REQUEST' && typeof StateManager !== 'undefined') {
+                        const state = StateManager.state;
+                        if (state.selectedRoomId != null) {
+                            const syncData = {
+                                isRunning: state.isRunning,
+                                currentTimerIndex: state.currentTimerIndex,
+                                remainingSeconds: state.currentTimerRemainingSeconds,
+                                startedAt: state.currentTimerStartTime,
+                                timerTitle: (state.timers[state.currentTimerIndex] || {}).title || ''
+                            };
+                            try {
+                                this._broadcastChannels[roomId].postMessage({
+                                    action: state.isRunning ? 'TIMER_START' : 'TIMER_PAUSE',
+                                    data: syncData
+                                });
+                                console.log('[APIClient] Responded to SYNC_REQUEST with current state');
+                            } catch (e) { /* ignore */ }
+                        }
+                    }
+                };
             } catch (e) {
                 // BroadcastChannel not supported
             }

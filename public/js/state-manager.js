@@ -203,6 +203,42 @@ const StateManager = {
             value = value?.[part];
         }
         return value;
+    },
+
+    /**
+     * Persist running timer state to localStorage (called frequently)
+     */
+    persistTimerState() {
+        try {
+            const data = {
+                selectedRoomId: this.state.selectedRoomId,
+                currentTimerIndex: this.state.currentTimerIndex,
+                isRunning: this.state.isRunning,
+                currentTimerRemainingSeconds: this.state.currentTimerRemainingSeconds,
+                currentTimerStartTime: this.state.currentTimerStartTime,
+                timerTitle: (this.state.timers[this.state.currentTimerIndex] || {}).title || '',
+                savedAt: new Date().toISOString()
+            };
+            localStorage.setItem('b1g_timer_state', JSON.stringify(data));
+        } catch (e) { /* ignore */ }
+    },
+
+    /**
+     * Restore timer state from localStorage
+     */
+    getPersistedTimerState() {
+        try {
+            const raw = localStorage.getItem('b1g_timer_state');
+            if (!raw) return null;
+            return JSON.parse(raw);
+        } catch (e) { return null; }
+    },
+
+    /**
+     * Clear persisted timer state
+     */
+    clearPersistedTimerState() {
+        try { localStorage.removeItem('b1g_timer_state'); } catch (e) { /* ignore */ }
     }
 };
 

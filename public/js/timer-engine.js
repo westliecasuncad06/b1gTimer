@@ -32,6 +32,9 @@ const TimerEngine = {
         
         console.log(`[TimerEngine] Starting timer: ${timers[timerIndex].title} (${TimerMath.formatTime(remainingSeconds)})`);
         
+        // Persist state immediately
+        if (typeof StateManager.persistTimerState === 'function') StateManager.persistTimerState();
+
         // Start countdown loop
         this.intervalId = setInterval(() => {
             this.tick();
@@ -58,6 +61,7 @@ const TimerEngine = {
         
         clearInterval(this.intervalId);
         StateManager.stopTimer();
+        if (typeof StateManager.persistTimerState === 'function') StateManager.persistTimerState();
         
         console.log('[TimerEngine] Timer paused');
         
@@ -119,6 +123,7 @@ const TimerEngine = {
         
         const timerIndex = StateManager.state.currentTimerIndex;
         StateManager.stopTimer();
+        if (typeof StateManager.persistTimerState === 'function') StateManager.persistTimerState();
         
         console.log('[TimerEngine] Timer stopped');
         
@@ -269,6 +274,9 @@ const TimerEngine = {
         
         // Allow negative (overtime) - don't clamp to 0
         StateManager.updateTimerRemaining(remaining);
+
+        // Persist state for refresh recovery
+        if (typeof StateManager.persistTimerState === 'function') StateManager.persistTimerState();
     },
     
     /**
