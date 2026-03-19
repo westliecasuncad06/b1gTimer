@@ -9,7 +9,7 @@ const MessageManager = {
     /**
      * Show message on Stage Display
      */
-    async showMessage(text, color = 'white', bold = false, fontSize = 36) {
+    async showMessage(text, color = 'white', bold = false, fontSize = 'normal', fontStyle = 'sans-serif', scrollEnabled = false, scrollDirection = 'left', scrollSpeed = 10, msgBgType = 'default', msgBgColor = '#000000') {
         try {
             // Update state
             StateManager.showMessage(text, color, bold, fontSize);
@@ -23,6 +23,12 @@ const MessageManager = {
                     color,
                     bold,
                     fontSize,
+                    fontStyle,
+                    scrollEnabled,
+                    scrollDirection,
+                    scrollSpeed,
+                    msgBgType,
+                    msgBgColor,
                     displayId: localStorage.getItem('displayId') || 'unknown'
                 }
             );
@@ -57,9 +63,9 @@ const MessageManager = {
     /**
      * Flash message on Stage Display
      */
-    async flashMessage(text, color = 'white', bold = false, fontSize = 36) {
+    async flashMessage(text, color = 'white', bold = false, fontSize = 'normal', fontStyle = 'sans-serif', scrollEnabled = false, scrollDirection = 'left', scrollSpeed = 10, msgBgType = 'default', msgBgColor = '#000000') {
         try {
-            await this.showMessage(text, color, bold, fontSize);
+            await this.showMessage(text, color, bold, fontSize, fontStyle, scrollEnabled, scrollDirection, scrollSpeed, msgBgType, msgBgColor);
             
             // Add flash animation
             const ribbon = document.getElementById('message-ribbon');
@@ -159,11 +165,49 @@ const MessageManager = {
             ribbon.classList.add('bold');
         }
         
-        ribbon.style.fontSize = `${messageData.fontSize}px`;
+        // Font size mapping
+        const fontSizeMap = {
+            small: '2vw',
+            normal: '3vw',
+            large: '4.5vw',
+            xlarge: '6vw'
+        };
+        const fontSize = fontSizeMap[messageData.fontSize] || fontSizeMap.normal;
+        messageText.style.fontSize = fontSize;
+        
+        // Font style mapping
+        const fontFamilyMap = {
+            'sans-serif': "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif",
+            'serif': "'Georgia','Times New Roman',serif",
+            'monospace': "'Courier New','Monaco',monospace",
+            'cursive': "'Brush Script MT','Segoe Script',cursive"
+        };
+        messageText.style.fontFamily = fontFamilyMap[messageData.fontStyle] || fontFamilyMap['sans-serif'];
+        
         messageText.style.color = this.getColorHex(messageData.color);
         
         // Apply color class for predefined colors
         ribbon.classList.add(`color-${messageData.color}`);
+        
+        // Scrolling
+        if (messageData.scrollEnabled) {
+            ribbon.classList.add('scrolling');
+            if (messageData.scrollDirection === 'right') {
+                ribbon.classList.add('scroll-right');
+            }
+            const speed = Math.max(2, Math.min(60, messageData.scrollSpeed || 10));
+            ribbon.style.setProperty('--scroll-duration', speed + 's');
+        }
+        
+        // Message background
+        const bgType = messageData.msgBgType || 'default';
+        if (bgType === 'transparent') {
+            ribbon.classList.add('msg-bg-transparent');
+            ribbon.style.backgroundColor = '';
+        } else if (bgType === 'custom' && messageData.msgBgColor) {
+            ribbon.style.backgroundColor = messageData.msgBgColor;
+        }
+        // 'default' uses the CSS default (rgba(0,0,0,.85))
         
         console.log('[MessageManager] Message displayed on stage');
     },
@@ -177,6 +221,16 @@ const MessageManager = {
             ribbon.classList.remove('visible');
             ribbon.classList.remove('bold');
             ribbon.classList.remove('flash');
+            ribbon.classList.remove('scrolling');
+            ribbon.classList.remove('scroll-right');
+            ribbon.classList.remove('msg-bg-transparent');
+            ribbon.style.removeProperty('--scroll-duration');
+            ribbon.style.backgroundColor = '';
+            const messageText = document.getElementById('message-text');
+            if (messageText) {
+                messageText.style.fontSize = '';
+                messageText.style.fontFamily = '';
+            }
             console.log('[MessageManager] Message hidden on stage');
         }
     },

@@ -13,7 +13,12 @@ const StageDisplay = {
     broadcastChannel: null,
     stageStyle: {
         timerColor: '#ffffff',
-        clockColor: 'rgba(255,255,255,.5)'
+        clockColor: 'rgba(255,255,255,.5)',
+        timerFont: "'Courier New', monospace",
+        timerFontSize: 22,
+        clockFont: "'Courier New', monospace",
+        clockFontSize: 6,
+        bgColor: '#000000'
     },
     
     /**
@@ -324,7 +329,7 @@ const StageDisplay = {
     },
     
     /**
-     * Apply stage style updates (timer color, clock color)
+     * Apply stage style updates (timer color, clock color, fonts, background)
      */
     applyStageStyle(data) {
         if (data.timerColor) {
@@ -338,6 +343,30 @@ const StageDisplay = {
             this.stageStyle.clockColor = data.clockColor;
             const timeEl = document.getElementById('time-of-day');
             if (timeEl) timeEl.style.color = data.clockColor;
+        }
+        if (data.timerFont) {
+            this.stageStyle.timerFont = data.timerFont;
+            const countdownEl = document.getElementById('countdown');
+            if (countdownEl) countdownEl.style.fontFamily = data.timerFont;
+        }
+        if (data.timerFontSize) {
+            this.stageStyle.timerFontSize = data.timerFontSize;
+            const countdownEl = document.getElementById('countdown');
+            if (countdownEl) countdownEl.style.fontSize = data.timerFontSize + 'vw';
+        }
+        if (data.clockFont) {
+            this.stageStyle.clockFont = data.clockFont;
+            const timeEl = document.getElementById('time-of-day');
+            if (timeEl) timeEl.style.fontFamily = data.clockFont;
+        }
+        if (data.clockFontSize) {
+            this.stageStyle.clockFontSize = data.clockFontSize;
+            const timeEl = document.getElementById('time-of-day');
+            if (timeEl) timeEl.style.fontSize = data.clockFontSize + 'vw';
+        }
+        if (data.bgColor) {
+            this.stageStyle.bgColor = data.bgColor;
+            document.body.style.backgroundColor = data.bgColor;
         }
         console.log('[StageDisplay] Stage style updated:', data);
     },
@@ -356,6 +385,13 @@ const StageDisplay = {
             } else {
                 countdownEl.classList.remove('negative');
                 countdownEl.style.color = this.stageStyle.timerColor || '';
+            }
+            // Apply font family and size from stage style
+            if (this.stageStyle.timerFont) {
+                countdownEl.style.fontFamily = this.stageStyle.timerFont;
+            }
+            if (this.stageStyle.timerFontSize) {
+                countdownEl.style.fontSize = this.stageStyle.timerFontSize + 'vw';
             }
         }
     },

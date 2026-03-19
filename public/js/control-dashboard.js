@@ -7,7 +7,7 @@ const ControlDashboard = {
     // State
     selectMode: false,
     selectedTimers: new Set(),
-    messages: [{ id: 1, text: '', color: 'white', bold: false, fontSize: 36, visible: false }],
+    messages: [{ id: 1, text: '', color: 'white', bold: false, fontSize: 'normal', visible: false, fontStyle: 'sans-serif', scrollEnabled: false, scrollDirection: 'left', scrollSpeed: 10, msgBgType: 'default', msgBgColor: '#000000' }],
     editingTimerIndex: null,
     activePopover: null,
     blackoutActive: false,
@@ -136,10 +136,21 @@ const ControlDashboard = {
                 StateManager.state.stageStyle = persisted.stageStyle;
                 const timerColorEl = document.getElementById('stage-timer-color');
                 const clockColorEl = document.getElementById('stage-clock-color');
+                const timerFontEl = document.getElementById('stage-timer-font');
+                const timerFontSizeEl = document.getElementById('stage-timer-font-size');
+                const clockFontEl = document.getElementById('stage-clock-font');
+                const clockFontSizeEl = document.getElementById('stage-clock-font-size');
+                const bgColorEl = document.getElementById('stage-bg-color');
                 if (timerColorEl && persisted.stageStyle.timerColor) timerColorEl.value = persisted.stageStyle.timerColor;
                 if (clockColorEl && persisted.stageStyle.clockColor) clockColorEl.value = persisted.stageStyle.clockColor;
+                if (timerFontEl && persisted.stageStyle.timerFont) timerFontEl.value = persisted.stageStyle.timerFont;
+                if (timerFontSizeEl && persisted.stageStyle.timerFontSize) timerFontSizeEl.value = persisted.stageStyle.timerFontSize;
+                if (clockFontEl && persisted.stageStyle.clockFont) clockFontEl.value = persisted.stageStyle.clockFont;
+                if (clockFontSizeEl && persisted.stageStyle.clockFontSize) clockFontSizeEl.value = persisted.stageStyle.clockFontSize;
+                if (bgColorEl && persisted.stageStyle.bgColor) bgColorEl.value = persisted.stageStyle.bgColor;
             }
 
+            this.loadMessages();
             this.setupEventListeners();
             this.setupStateListeners();
             this.startTimeDisplay();
@@ -214,6 +225,10 @@ const ControlDashboard = {
         this.on('#stage-clock-color-reset', 'click', () => {
             const el = document.getElementById('stage-clock-color');
             if (el) el.value = '#808080';
+        });
+        this.on('#stage-bg-color-reset', 'click', () => {
+            const el = document.getElementById('stage-bg-color');
+            if (el) el.value = '#000000';
         });
 
         // Popovers - cancel buttons
@@ -520,8 +535,14 @@ const ControlDashboard = {
     async applyStageStyle() {
         const timerColor = document.getElementById('stage-timer-color')?.value || '#ffffff';
         const clockColor = document.getElementById('stage-clock-color')?.value || '#808080';
+        const timerFont = document.getElementById('stage-timer-font')?.value || "'Courier New', monospace";
+        const timerFontSize = parseFloat(document.getElementById('stage-timer-font-size')?.value) || 22;
+        const clockFont = document.getElementById('stage-clock-font')?.value || "'Courier New', monospace";
+        const clockFontSize = parseFloat(document.getElementById('stage-clock-font-size')?.value) || 6;
+        const bgColor = document.getElementById('stage-bg-color')?.value || '#000000';
         
-        StateManager.state.stageStyle = { timerColor, clockColor };
+        const stageStyle = { timerColor, clockColor, timerFont, timerFontSize, clockFont, clockFontSize, bgColor };
+        StateManager.state.stageStyle = stageStyle;
         if (typeof StateManager.persistTimerState === 'function') {
             StateManager.persistTimerState();
         }
@@ -529,7 +550,7 @@ const ControlDashboard = {
         await APIClient.broadcastEvent(
             StateManager.state.selectedRoomId,
             'STAGE_STYLE_UPDATE',
-            { timerColor, clockColor }
+            stageStyle
         ).catch(() => {});
         
         this.showToast('Stage style applied!', 'success');
@@ -880,6 +901,41 @@ const ControlDashboard = {
                         <label data-msg-show="${i}">Show</label>
                     </div>
                 </div>
+                <div class="msg-settings-row" style="display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:4px 0;border-top:1px solid #1a1a2a;margin-top:4px;">
+                    <select data-msg-fontstyle="${i}" style="background:#1a1a2e;color:#ccc;border:1px solid #2a2a3e;border-radius:4px;padding:2px 4px;font-size:.7rem;width:90px;" title="Font style">
+                        <option value="sans-serif" ${msg.fontStyle === 'sans-serif' ? 'selected' : ''}>Sans-serif</option>
+                        <option value="serif" ${msg.fontStyle === 'serif' ? 'selected' : ''}>Serif</option>
+                        <option value="monospace" ${msg.fontStyle === 'monospace' ? 'selected' : ''}>Monospace</option>
+                        <option value="cursive" ${msg.fontStyle === 'cursive' ? 'selected' : ''}>Cursive</option>
+                    </select>
+                    <select data-msg-fontsize="${i}" style="background:#1a1a2e;color:#ccc;border:1px solid #2a2a3e;border-radius:4px;padding:2px 4px;font-size:.7rem;width:70px;" title="Font size">
+                        <option value="small" ${msg.fontSize === 'small' ? 'selected' : ''}>Small</option>
+                        <option value="normal" ${msg.fontSize === 'normal' ? 'selected' : ''}>Normal</option>
+                        <option value="large" ${msg.fontSize === 'large' ? 'selected' : ''}>Large</option>
+                        <option value="xlarge" ${msg.fontSize === 'xlarge' ? 'selected' : ''}>X-Large</option>
+                    </select>
+                    <label style="display:flex;align-items:center;gap:3px;font-size:.7rem;color:#888;cursor:pointer;" title="Enable scrolling">
+                        <input type="checkbox" data-msg-scroll="${i}" ${msg.scrollEnabled ? 'checked' : ''} style="accent-color:#3b82f6;width:12px;height:12px;">
+                        Scroll
+                    </label>
+                    <select data-msg-scrolldir="${i}" style="background:#1a1a2e;color:#ccc;border:1px solid #2a2a3e;border-radius:4px;padding:2px 4px;font-size:.7rem;width:56px;" title="Scroll direction" ${!msg.scrollEnabled ? 'disabled' : ''}>
+                        <option value="left" ${msg.scrollDirection === 'left' ? 'selected' : ''}>Left</option>
+                        <option value="right" ${msg.scrollDirection === 'right' ? 'selected' : ''}>Right</option>
+                    </select>
+                    <label style="display:flex;align-items:center;gap:2px;font-size:.65rem;color:#888;" title="Scroll speed (seconds for one cycle)">
+                        <input type="number" data-msg-scrollspeed="${i}" value="${msg.scrollSpeed || 10}" min="2" max="60" step="1" style="width:36px;background:#1a1a2e;color:#ccc;border:1px solid #2a2a3e;border-radius:3px;padding:2px;font-size:.65rem;text-align:center;" ${!msg.scrollEnabled ? 'disabled' : ''}>
+                        s
+                    </label>
+                </div>
+                <div class="msg-settings-row" style="display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:4px 0;border-top:1px solid #1a1a2a;margin-top:2px;">
+                    <span style="font-size:.65rem;color:#666;min-width:20px;">BG:</span>
+                    <select data-msg-bgtype="${i}" style="background:#1a1a2e;color:#ccc;border:1px solid #2a2a3e;border-radius:4px;padding:2px 4px;font-size:.7rem;width:90px;" title="Message background">
+                        <option value="default" ${(msg.msgBgType || 'default') === 'default' ? 'selected' : ''}>Default</option>
+                        <option value="transparent" ${msg.msgBgType === 'transparent' ? 'selected' : ''}>Transparent</option>
+                        <option value="custom" ${msg.msgBgType === 'custom' ? 'selected' : ''}>Custom</option>
+                    </select>
+                    <input type="color" data-msg-bgcolor="${i}" value="${msg.msgBgColor || '#000000'}" style="width:24px;height:24px;border:1px solid #3a3a50;border-radius:4px;background:transparent;cursor:pointer;padding:0;${msg.msgBgType !== 'custom' ? 'opacity:.3;pointer-events:none;' : ''}" title="Background color">
+                </div>
             </div>
         `).join('');
 
@@ -918,6 +974,54 @@ const ControlDashboard = {
                 }
             });
         });
+        list.querySelectorAll('[data-msg-fontstyle]').forEach(sel => {
+            sel.addEventListener('change', (e) => {
+                const idx = parseInt(e.target.dataset.msgFontstyle, 10);
+                if (this.messages[idx]) this.messages[idx].fontStyle = e.target.value;
+            });
+        });
+        list.querySelectorAll('[data-msg-fontsize]').forEach(sel => {
+            sel.addEventListener('change', (e) => {
+                const idx = parseInt(e.target.dataset.msgFontsize, 10);
+                if (this.messages[idx]) this.messages[idx].fontSize = e.target.value;
+            });
+        });
+        list.querySelectorAll('[data-msg-scroll]').forEach(cb => {
+            cb.addEventListener('change', (e) => {
+                const idx = parseInt(e.target.dataset.msgScroll, 10);
+                if (this.messages[idx]) {
+                    this.messages[idx].scrollEnabled = e.target.checked;
+                    this.renderMessages();
+                }
+            });
+        });
+        list.querySelectorAll('[data-msg-scrolldir]').forEach(sel => {
+            sel.addEventListener('change', (e) => {
+                const idx = parseInt(e.target.dataset.msgScrolldir, 10);
+                if (this.messages[idx]) this.messages[idx].scrollDirection = e.target.value;
+            });
+        });
+        list.querySelectorAll('[data-msg-scrollspeed]').forEach(inp => {
+            inp.addEventListener('change', (e) => {
+                const idx = parseInt(e.target.dataset.msgScrollspeed, 10);
+                if (this.messages[idx]) this.messages[idx].scrollSpeed = parseInt(e.target.value, 10) || 10;
+            });
+        });
+        list.querySelectorAll('[data-msg-bgtype]').forEach(sel => {
+            sel.addEventListener('change', (e) => {
+                const idx = parseInt(e.target.dataset.msgBgtype, 10);
+                if (this.messages[idx]) {
+                    this.messages[idx].msgBgType = e.target.value;
+                    this.renderMessages();
+                }
+            });
+        });
+        list.querySelectorAll('[data-msg-bgcolor]').forEach(inp => {
+            inp.addEventListener('input', (e) => {
+                const idx = parseInt(e.target.dataset.msgBgcolor, 10);
+                if (this.messages[idx]) this.messages[idx].msgBgColor = e.target.value;
+            });
+        });
         list.querySelectorAll('[data-msg-show]').forEach(lbl => {
             lbl.addEventListener('click', (e) => {
                 const idx = parseInt(e.currentTarget.dataset.msgShow, 10);
@@ -925,13 +1029,16 @@ const ControlDashboard = {
                 if (!msg) return;
                 msg.visible = !msg.visible;
                 if (msg.visible && msg.text.trim()) {
-                    MessageManager.showMessage(msg.text, msg.color, msg.bold, msg.fontSize);
+                    MessageManager.showMessage(msg.text, msg.color, msg.bold, msg.fontSize, msg.fontStyle, msg.scrollEnabled, msg.scrollDirection, msg.scrollSpeed, msg.msgBgType, msg.msgBgColor);
                 } else {
                     MessageManager.hideMessage();
                 }
                 this.renderMessages();
             });
         });
+
+        // Save messages to localStorage
+        this.saveMessages();
     },
 
     addMessage() {
@@ -940,7 +1047,13 @@ const ControlDashboard = {
             text: '',
             color: 'white',
             bold: false,
-            fontSize: 36,
+            fontSize: 'normal',
+            fontStyle: 'sans-serif',
+            scrollEnabled: false,
+            scrollDirection: 'left',
+            scrollSpeed: 10,
+            msgBgType: 'default',
+            msgBgColor: '#000000',
             visible: false
         });
         this.renderMessages();
@@ -956,8 +1069,41 @@ const ControlDashboard = {
         if (btn) { btn.classList.add('active'); setTimeout(() => btn.classList.remove('active'), 300); }
         const visMsg = this.messages.find(m => m.visible);
         if (visMsg) {
-            await MessageManager.flashMessage(visMsg.text, visMsg.color, visMsg.bold, visMsg.fontSize);
+            await MessageManager.flashMessage(visMsg.text, visMsg.color, visMsg.bold, visMsg.fontSize, visMsg.fontStyle, visMsg.scrollEnabled, visMsg.scrollDirection, visMsg.scrollSpeed, visMsg.msgBgType, visMsg.msgBgColor);
         }
+    },
+
+    // ===== MESSAGE PERSISTENCE =====
+
+    saveMessages() {
+        try {
+            localStorage.setItem('b1g_timer_messages', JSON.stringify(this.messages));
+        } catch (e) { /* ignore */ }
+    },
+
+    loadMessages() {
+        try {
+            const raw = localStorage.getItem('b1g_timer_messages');
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    this.messages = parsed.map(m => ({
+                        id: m.id || Date.now(),
+                        text: m.text || '',
+                        color: m.color || 'white',
+                        bold: !!m.bold,
+                        fontSize: m.fontSize || 'normal',
+                        fontStyle: m.fontStyle || 'sans-serif',
+                        scrollEnabled: !!m.scrollEnabled,
+                        scrollDirection: m.scrollDirection || 'left',
+                        scrollSpeed: m.scrollSpeed || 10,
+                        msgBgType: m.msgBgType || 'default',
+                        msgBgColor: m.msgBgColor || '#000000',
+                        visible: false // Always start hidden on load
+                    }));
+                }
+            }
+        } catch (e) { /* ignore */ }
     },
 
     // ===== OUTPUT LINKS =====

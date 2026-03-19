@@ -40,7 +40,12 @@ const StateManager = {
         // Stage style
         stageStyle: {
             timerColor: '#ffffff',
-            clockColor: 'rgba(255,255,255,.5)'
+            clockColor: 'rgba(255,255,255,.5)',
+            timerFont: "'Courier New', monospace",
+            timerFontSize: 22,
+            clockFont: "'Courier New', monospace",
+            clockFontSize: 6,
+            bgColor: '#000000'
         }
     },
     
