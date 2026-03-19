@@ -92,6 +92,13 @@ const TimerEngine = {
         StateManager.state.currentTimerStartTime = new Date().toISOString();
         StateManager.state.isRunning = true;
         
+        // Emit timer-started so the play button updates to show pause icon
+        StateManager.emit('timer-started', {
+            timerIndex: StateManager.state.currentTimerIndex,
+            remainingSeconds: StateManager.state.currentTimerRemainingSeconds,
+            timer: StateManager.state.timers[StateManager.state.currentTimerIndex]
+        });
+
         this.intervalId = setInterval(() => {
             this.tick();
         }, this.updateFrequency);

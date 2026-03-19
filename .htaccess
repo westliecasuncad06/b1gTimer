@@ -1,15 +1,20 @@
 # B1G Timer - URL Rewriting Configuration
 #
-# XAMPP:       RewriteBase /B1G_TIMER/
-# InfinityFree: RewriteBase /
-# Change the line below when you deploy.
+# XAMPP local:   RewriteBase /B1G_TIMER/
+# InfinityFree:  RewriteBase /
+# Change the RewriteBase line below when you deploy.
 
 <IfModule mod_rewrite.c>
     RewriteEngine On
     
     # ── CHANGE THIS for your environment ──
+    # For XAMPP local testing:  RewriteBase /B1G_TIMER/
+    # For InfinityFree hosting: RewriteBase /
     RewriteBase /B1G_TIMER/
-    
+
+    # Redirect bare root to public/index.html (main dashboard)
+    RewriteRule ^$ public/index.html [L,R=302]
+
     # Existing files/dirs served directly (CSS, JS, images, HTML)
     RewriteCond %{REQUEST_FILENAME} -f [OR]
     RewriteCond %{REQUEST_FILENAME} -d
