@@ -36,8 +36,8 @@ define('PUSHER_OPTIONS', [
     'timeout' => 10  // 10 second timeout
 ]);
 
-// Define Pusher channel naming conventions
-define('PUSHER_CHANNEL_PREFIX', 'presence-room-');
+// Define Pusher channel naming conventions (public channels, no auth needed)
+define('PUSHER_CHANNEL_PREFIX', 'room-');
 
 /**
  * Get Pusher singleton instance

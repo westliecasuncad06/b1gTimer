@@ -87,8 +87,11 @@ const StageDisplay = {
     /**
      * Handle real-time events from Pusher or BroadcastChannel
      */
-    handleRoomEvent(action, data) {
+    handleRoomEvent(action, rawData) {
         console.log('[StageDisplay] Event:', action);
+        
+        // Normalize data: Pusher wraps payload inside .payload, BroadcastChannel sends directly
+        const data = rawData.payload || rawData;
         
         switch (action) {
             case 'TIMER_START':
@@ -165,13 +168,7 @@ const StageDisplay = {
             const elapsed = (Date.now() - this.startTime.getTime()) / 1000;
             let remaining = initialSeconds - elapsed;
             
-            if (remaining <= 0) {
-                this.displayCountdown(0);
-                this.animateCountdownComplete();
-                clearInterval(this.updateInterval);
-                return;
-            }
-            
+            // Continue into negative (overtime) - don't stop at zero
             this.displayCountdown(remaining);
         }, 100);
         
@@ -227,6 +224,12 @@ const StageDisplay = {
         const countdownEl = document.getElementById('countdown');
         if (countdownEl) {
             countdownEl.textContent = TimerMath.formatTime(totalSeconds);
+            // Show red when negative (overtime)
+            if (totalSeconds < 0) {
+                countdownEl.classList.add('negative');
+            } else {
+                countdownEl.classList.remove('negative');
+            }
         }
     },
     
@@ -327,16 +330,29 @@ const StageDisplay = {
 };
 
 /**
- * Get room ID from URL parameter or default
+ * Get room ID from URL parameter, or fetch first available room from API
  */
-function getStageRoomId() {
+async function getStageRoomId() {
     const params = new URLSearchParams(window.location.search);
-    return params.get('room') || 1;  // Default to room 1
+    const urlRoom = params.get('room');
+    if (urlRoom) return urlRoom;
+    
+    // No room specified — try to get the first available room
+    try {
+        const rooms = await APIClient.getRooms();
+        if (rooms && rooms.length > 0) {
+            console.log('[StageDisplay] No room param — using first room:', rooms[0].id, rooms[0].name);
+            return rooms[0].id;
+        }
+    } catch (e) {
+        console.warn('[StageDisplay] Could not fetch rooms:', e.message);
+    }
+    return 1;  // Final fallback
 }
 
 // Auto-initialize when DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
-    const roomId = getStageRoomId();
+document.addEventListener('DOMContentLoaded', async () => {
+    const roomId = await getStageRoomId();
     StageDisplay.init(roomId);
 });
 

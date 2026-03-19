@@ -158,7 +158,8 @@ const ControlDashboard = {
 
         // Open stage display
         this.on('#btn-open-stage', 'click', () => {
-            window.open('stage.html', '_blank');
+            const roomId = StateManager.state.selectedRoomId || 1;
+            window.open('stage.html?room=' + roomId, '_blank');
         });
 
         // Popovers - cancel buttons
@@ -291,26 +292,32 @@ const ControlDashboard = {
         const countdown = document.getElementById('preview-countdown');
         if (!countdown) return;
 
-        const totalSec = Math.max(0, Math.ceil(remainingSeconds));
+        const isNegative = remainingSeconds < 0;
+        const absSeconds = Math.abs(remainingSeconds);
+        const totalSec = Math.ceil(absSeconds);
         const hours = Math.floor(totalSec / 3600);
         const minutes = Math.floor((totalSec % 3600) / 60);
         const seconds = totalSec % 60;
+        const prefix = isNegative ? '-' : '';
 
         // Smart format: only show hours when > 0
         if (hours > 0) {
-            countdown.innerHTML = `<span class="hr">${hours}</span><span class="colon">:</span><span class="min">${String(minutes).padStart(2, '0')}</span><span class="colon">:</span><span class="sec">${String(seconds).padStart(2, '0')}</span>`;
+            countdown.innerHTML = `<span class="hr">${prefix}${hours}</span><span class="colon">:</span><span class="min">${String(minutes).padStart(2, '0')}</span><span class="colon">:</span><span class="sec">${String(seconds).padStart(2, '0')}</span>`;
         } else {
-            countdown.innerHTML = `<span class="min">${minutes}</span><span class="colon">:</span><span class="sec">${String(seconds).padStart(2, '0')}</span>`;
+            countdown.innerHTML = `<span class="min">${prefix}${minutes}</span><span class="colon">:</span><span class="sec">${String(seconds).padStart(2, '0')}</span>`;
         }
+
+        // Red color when negative (overtime)
+        countdown.style.color = isNegative ? '#ef4444' : '';
 
         // Update ON AIR time with smart format
         const onAirTime = document.getElementById('on-air-time');
         if (onAirTime) {
-            const tenths = Math.floor((remainingSeconds % 1) * 10);
+            const tenths = Math.floor((absSeconds % 1) * 10);
             if (hours > 0) {
-                onAirTime.textContent = `${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${tenths}`;
+                onAirTime.textContent = `${prefix}${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${tenths}`;
             } else {
-                onAirTime.textContent = `${minutes}:${String(seconds).padStart(2, '0')}.${tenths}`;
+                onAirTime.textContent = `${prefix}${minutes}:${String(seconds).padStart(2, '0')}.${tenths}`;
             }
         }
 
@@ -871,10 +878,12 @@ const ControlDashboard = {
 
     showOutputLinks() {
         const link = document.getElementById('stage-link');
+        const roomId = StateManager.state.selectedRoomId || 1;
         if (link) {
             const base = window.location.href.replace(/\/[^/]*$/, '/');
-            link.href = base + 'stage.html';
-            link.textContent = base + 'stage.html';
+            const stageUrl = base + 'stage.html?room=' + roomId;
+            link.href = stageUrl;
+            link.textContent = stageUrl;
         }
         document.getElementById('output-modal')?.classList.add('show');
     },

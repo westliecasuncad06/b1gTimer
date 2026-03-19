@@ -226,7 +226,6 @@ const TimerEngine = {
      */
     adjustTime(deltaSeconds) {
         let newRemaining = StateManager.state.currentTimerRemainingSeconds + deltaSeconds;
-        newRemaining = Math.max(0, newRemaining);  // Don't go below 0
         
         StateManager.state.currentTimerRemainingSeconds = newRemaining;
         
@@ -265,43 +264,19 @@ const TimerEngine = {
         const elapsed = (now - startTime) / 1000;  // seconds
         let remaining = StateManager.state.currentTimerRemainingSeconds - elapsed;
         
-        // Clamp to 0
-        if (remaining < 0) {
-            remaining = 0;
-            this.onTimerFinished();
-            return;
-        }
-        
         // Reset reference point to now so next tick doesn't double-count
         StateManager.state.currentTimerStartTime = new Date(now).toISOString();
+        
+        // Allow negative (overtime) - don't clamp to 0
         StateManager.updateTimerRemaining(remaining);
     },
     
     /**
-     * Called when timer reaches zero
+     * Called when timer reaches zero (now only used if we want to auto-stop)
      */
     onTimerFinished() {
-        StateManager.state.isRunning = false;
-        clearInterval(this.intervalId);
-        this.intervalId = null;
-        
-        console.log('[TimerEngine] Timer finished!');
-        
-        const timerIndex = StateManager.state.currentTimerIndex;
-        
-        // Broadcast finish event
-        APIClient.broadcastEvent(
-            StateManager.state.selectedRoomId,
-            'TIMER_STOP',
-            {
-                timerIndex,
-                reason: 'finished',
-                finishedAt: new Date().toISOString()
-            }
-        );
-        
-        // Optional: Auto-advance to next timer
-        // this.skipToNext();
+        // Timer continues into negative (overtime) - do not stop
+        console.log('[TimerEngine] Timer reached zero - entering overtime');
     },
     
     /**

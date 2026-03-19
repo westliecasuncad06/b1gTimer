@@ -105,8 +105,8 @@ try {
         sendDatabaseError('verify room', $e);
     }
     
-    // Build Pusher channel name
-    $channel = 'presence-room-' . $room_id;
+    // Build Pusher channel name (public channel, no auth required)
+    $channel = 'room-' . $room_id;
     
     // Prepare broadcast payload
     $broadcast_payload = [

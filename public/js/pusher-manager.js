@@ -91,9 +91,9 @@ const PusherManager = {
             }
             
             this.currentRoomId = roomId;
-            const channelName = `presence-room-${roomId}`;
+            const channelName = `room-${roomId}`;
             
-            // Subscribe to presence channel
+            // Subscribe to public channel (no auth required)
             this.currentChannel = this.pusher.subscribe(channelName);
             
             console.log(`[Pusher] Subscribed to ${channelName}`);

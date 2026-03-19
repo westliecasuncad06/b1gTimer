@@ -91,13 +91,16 @@ window.StageDisplayEnhancements = (() => {
      * Monitors if messages are being received
      */
     const setupPeriodicStatusCheck = () => {
+        // Reduced frequency check - only log once then stay silent
+        let warnedOnce = false;
         setInterval(() => {
-            // If no messages received recently and Pusher says disconnected, update status
             const timeSinceLastMessage = Date.now() - lastMessageTime;
             
             if (timeSinceLastMessage > MESSAGE_TIMEOUT && isConnected) {
-                // Haven't received messages in a while, assume we might be disconnected
-                console.warn('[StageDisplayEnhancements] No messages received for a while');
+                if (!warnedOnce) {
+                    console.log('[StageDisplayEnhancements] Waiting for timer events...');
+                    warnedOnce = true;
+                }
             }
         }, 1000);
     };

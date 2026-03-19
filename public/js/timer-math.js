@@ -14,17 +14,19 @@ const TimerMath = {
     
     /**
      * Format seconds to display format (smart: adapts to duration)
-     * 0:26 for <1min, 2:26 for <1hr, 1:02:26 for >=1hr
+     * Supports negative values for overtime: -0:26, -2:26, -1:02:26
      */
     formatTime(totalSeconds) {
-        const sec = Math.max(0, Math.ceil(totalSeconds));
+        const isNegative = totalSeconds < 0;
+        const prefix = isNegative ? '-' : '';
+        const sec = Math.ceil(Math.abs(totalSeconds));
         const h = Math.floor(sec / 3600);
         const m = Math.floor((sec % 3600) / 60);
         const s = sec % 60;
         if (h > 0) {
-            return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+            return `${prefix}${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
         }
-        return `${m}:${String(s).padStart(2, '0')}`;
+        return `${prefix}${m}:${String(s).padStart(2, '0')}`;
     },
 
     /**
