@@ -11,6 +11,10 @@ const StageDisplay = {
     updateInterval: null,
     startTime: null,
     broadcastChannel: null,
+    stageStyle: {
+        timerColor: '#ffffff',
+        clockColor: 'rgba(255,255,255,.5)'
+    },
     
     /**
      * Initialize Stage Display
@@ -26,6 +30,17 @@ const StageDisplay = {
             
             this.currentRoomId = roomId;
             
+            // Fetch and display room name
+            try {
+                const room = await APIClient.getRoom(roomId);
+                if (room && room.name) {
+                    const roomNameEl = document.getElementById('room-name');
+                    if (roomNameEl) roomNameEl.textContent = room.name;
+                }
+            } catch (e) {
+                console.warn('[StageDisplay] Could not fetch room name:', e.message);
+            }
+
             // Start time display immediately (regardless of Pusher)
             this.startTimeDisplay();
             
@@ -109,6 +124,10 @@ const StageDisplay = {
                 const persisted = JSON.parse(raw);
                 if (persisted && String(persisted.selectedRoomId) === String(roomId)) {
                     console.log('[StageDisplay] Restoring state from localStorage:', persisted);
+                    // Restore stage style if available
+                    if (persisted.stageStyle) {
+                        this.applyStageStyle(persisted.stageStyle);
+                    }
                     if (persisted.isRunning && persisted.savedAt) {
                         const elapsed = (Date.now() - new Date(persisted.savedAt).getTime()) / 1000;
                         const remaining = persisted.currentTimerRemainingSeconds - elapsed;
@@ -189,6 +208,15 @@ const StageDisplay = {
                 
             case 'MESSAGE_HIDE':
                 MessageManager.hideMessageOnStage();
+                break;
+                
+            case 'STAGE_STYLE_UPDATE':
+                this.applyStageStyle(data);
+                break;
+                
+            case 'ROOM_NAME_UPDATE':
+                const roomNameEl = document.getElementById('room-name');
+                if (roomNameEl && data.roomName) roomNameEl.textContent = data.roomName;
                 break;
         }
     },
@@ -296,17 +324,38 @@ const StageDisplay = {
     },
     
     /**
+     * Apply stage style updates (timer color, clock color)
+     */
+    applyStageStyle(data) {
+        if (data.timerColor) {
+            this.stageStyle.timerColor = data.timerColor;
+            const countdownEl = document.getElementById('countdown');
+            if (countdownEl && !countdownEl.classList.contains('negative')) {
+                countdownEl.style.color = data.timerColor;
+            }
+        }
+        if (data.clockColor) {
+            this.stageStyle.clockColor = data.clockColor;
+            const timeEl = document.getElementById('time-of-day');
+            if (timeEl) timeEl.style.color = data.clockColor;
+        }
+        console.log('[StageDisplay] Stage style updated:', data);
+    },
+
+    /**
      * Display countdown value
      */
     displayCountdown(totalSeconds) {
         const countdownEl = document.getElementById('countdown');
         if (countdownEl) {
             countdownEl.textContent = TimerMath.formatTime(totalSeconds);
-            // Show red when negative (overtime)
+            // Show red when negative (overtime), otherwise use stage style color
             if (totalSeconds < 0) {
                 countdownEl.classList.add('negative');
+                countdownEl.style.color = '';
             } else {
                 countdownEl.classList.remove('negative');
+                countdownEl.style.color = this.stageStyle.timerColor || '';
             }
         }
     },

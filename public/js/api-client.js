@@ -110,6 +110,20 @@ const APIClient = {
                                     action: state.isRunning ? 'TIMER_START' : 'TIMER_PAUSE',
                                     data: syncData
                                 });
+                                // Also send stage style
+                                if (state.stageStyle) {
+                                    this._broadcastChannels[roomId].postMessage({
+                                        action: 'STAGE_STYLE_UPDATE',
+                                        data: state.stageStyle
+                                    });
+                                }
+                                // Also send room name
+                                if (state.currentRoom && state.currentRoom.name) {
+                                    this._broadcastChannels[roomId].postMessage({
+                                        action: 'ROOM_NAME_UPDATE',
+                                        data: { roomName: state.currentRoom.name }
+                                    });
+                                }
                                 console.log('[APIClient] Responded to SYNC_REQUEST with current state');
                             } catch (e) { /* ignore */ }
                         }

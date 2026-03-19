@@ -939,6 +939,55 @@
             .panel-header { padding: 8px 10px; }
             .on-air-row { flex-wrap: wrap; padding: 4px 10px; }
         }
+
+        /* Stage Style Controls */
+        .stage-style-panel {
+            display: none;
+            padding: 10px 14px;
+            background: #151525;
+            border-bottom: 1px solid #1e1e30;
+        }
+        .stage-style-panel.show { display: block; }
+        .stage-style-panel .sty-title {
+            font-size: .75rem;
+            font-weight: 600;
+            color: #888;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+        }
+        .stage-style-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+        .stage-style-row label {
+            font-size: .75rem;
+            color: #aaa;
+            min-width: 80px;
+        }
+        .stage-style-row input[type="color"] {
+            width: 28px;
+            height: 28px;
+            border: 1px solid #3a3a50;
+            border-radius: 4px;
+            background: transparent;
+            cursor: pointer;
+            padding: 0;
+        }
+        .stage-style-row input[type="color"]::-webkit-color-swatch-wrapper { padding: 2px; }
+        .stage-style-row input[type="color"]::-webkit-color-swatch { border: none; border-radius: 2px; }
+        .stage-style-btn {
+            background: #2a2a3e;
+            color: #ccc;
+            border: 1px solid #3a3a50;
+            border-radius: 4px;
+            padding: 3px 10px;
+            font-size: .72rem;
+            cursor: pointer;
+        }
+        .stage-style-btn:hover { background: #3a3a50; color: #fff; }
     </style>
 </head>
 <body>
@@ -958,6 +1007,7 @@
                     <option value="">-- Select Room --</option>
                 </select>
                 <button class="top-btn" id="btn-create-room" title="Create Room"><i class="fas fa-plus"></i></button>
+                <button class="top-btn" id="btn-delete-room" title="Delete Room" style="color:#ef4444;"><i class="fas fa-trash"></i></button>
             </div>
             <button class="top-btn primary" id="btn-save" data-action="save-timers"><i class="fas fa-save"></i> Save</button>
         </div>
@@ -974,8 +1024,26 @@
                     <option>Viewer</option>
                     <option>Minimal</option>
                 </select>
-                <button class="icon-btn" title="Edit display"><i class="fas fa-pen"></i></button>
+                <button class="icon-btn" id="btn-toggle-stage-style" title="Stage appearance settings"><i class="fas fa-pen"></i></button>
                 <button class="icon-btn" id="btn-open-stage" title="Open stage display"><i class="fas fa-external-link-alt"></i></button>
+            </div>
+
+            <!-- Stage Style Controls (toggled by pen button) -->
+            <div class="stage-style-panel" id="stage-style-panel">
+                <div class="sty-title">Stage Appearance</div>
+                <div class="stage-style-row">
+                    <label>Timer Color</label>
+                    <input type="color" id="stage-timer-color" value="#ffffff">
+                    <button class="stage-style-btn" id="stage-timer-color-reset" title="Reset to white">Reset</button>
+                </div>
+                <div class="stage-style-row">
+                    <label>Clock Color</label>
+                    <input type="color" id="stage-clock-color" value="#808080">
+                    <button class="stage-style-btn" id="stage-clock-color-reset" title="Reset to default">Reset</button>
+                </div>
+                <div class="stage-style-row" style="margin-top:4px;">
+                    <button class="stage-style-btn" id="stage-style-apply" style="background:#3b82f6;border-color:#3b82f6;color:#fff;"><i class="fas fa-paper-plane" style="font-size:.6rem;"></i> Apply to Stage</button>
+                </div>
             </div>
 
             <div class="preview-display" id="preview-display">

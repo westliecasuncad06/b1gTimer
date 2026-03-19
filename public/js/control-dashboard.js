@@ -131,6 +131,15 @@ const ControlDashboard = {
                 }
             }
 
+            // Restore stage style from persisted state
+            if (persisted && persisted.stageStyle) {
+                StateManager.state.stageStyle = persisted.stageStyle;
+                const timerColorEl = document.getElementById('stage-timer-color');
+                const clockColorEl = document.getElementById('stage-clock-color');
+                if (timerColorEl && persisted.stageStyle.timerColor) timerColorEl.value = persisted.stageStyle.timerColor;
+                if (clockColorEl && persisted.stageStyle.clockColor) clockColorEl.value = persisted.stageStyle.clockColor;
+            }
+
             this.setupEventListeners();
             this.setupStateListeners();
             this.startTimeDisplay();
@@ -167,6 +176,7 @@ const ControlDashboard = {
 
         // Room
         this.on('#btn-create-room', 'click', () => this.createRoom());
+        this.on('#btn-delete-room', 'click', () => this.deleteRoom());
 
         // Select mode
         this.on('#btn-select-mode', 'click', () => this.toggleSelectMode());
@@ -189,6 +199,21 @@ const ControlDashboard = {
         this.on('#btn-open-stage', 'click', () => {
             const roomId = StateManager.state.selectedRoomId || 1;
             window.open('stage.html?room=' + roomId, '_blank');
+        });
+
+        // Stage style controls
+        this.on('#btn-toggle-stage-style', 'click', () => {
+            const panel = document.getElementById('stage-style-panel');
+            if (panel) panel.classList.toggle('show');
+        });
+        this.on('#stage-style-apply', 'click', () => this.applyStageStyle());
+        this.on('#stage-timer-color-reset', 'click', () => {
+            const el = document.getElementById('stage-timer-color');
+            if (el) el.value = '#ffffff';
+        });
+        this.on('#stage-clock-color-reset', 'click', () => {
+            const el = document.getElementById('stage-clock-color');
+            if (el) el.value = '#808080';
         });
 
         // Popovers - cancel buttons
@@ -490,12 +515,44 @@ const ControlDashboard = {
         ).catch(() => {});
     },
 
+    // ===== STAGE STYLE =====
+
+    async applyStageStyle() {
+        const timerColor = document.getElementById('stage-timer-color')?.value || '#ffffff';
+        const clockColor = document.getElementById('stage-clock-color')?.value || '#808080';
+        
+        StateManager.state.stageStyle = { timerColor, clockColor };
+        if (typeof StateManager.persistTimerState === 'function') {
+            StateManager.persistTimerState();
+        }
+        
+        await APIClient.broadcastEvent(
+            StateManager.state.selectedRoomId,
+            'STAGE_STYLE_UPDATE',
+            { timerColor, clockColor }
+        ).catch(() => {});
+        
+        this.showToast('Stage style applied!', 'success');
+    },
+
     // ===== CREATE ROOM =====
 
     async createRoom() {
         const name = await this.showPrompt('Create Room', 'Enter room name:', '', 'Room name');
         if (!name || !name.trim()) return;
         await RoomManager.createRoom(name.trim());
+    },
+
+    async deleteRoom() {
+        const roomId = StateManager.state.selectedRoomId;
+        if (!roomId) {
+            this.showAlert('No Room Selected', 'Please select a room first.');
+            return;
+        }
+        await RoomManager.deleteRoom(roomId);
+        // Reset preview after deletion
+        this.updatePreviewDisplay(0);
+        this.updatePlayButton(false);
     },
 
     // ===== ADD TIMER =====

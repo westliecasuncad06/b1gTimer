@@ -27,9 +27,43 @@ const RoomManager = {
      */
     async loadRoom(roomId) {
         try {
+            // Stop any running timer before switching rooms
+            if (StateManager.state.isRunning) {
+                TimerEngine.stop();
+            }
+
+            // Close old BroadcastChannel for previous room
+            const oldRoomId = StateManager.state.selectedRoomId;
+            if (oldRoomId && oldRoomId !== roomId && APIClient._broadcastChannels[oldRoomId]) {
+                try { APIClient._broadcastChannels[oldRoomId].close(); } catch(e) {}
+                delete APIClient._broadcastChannels[oldRoomId];
+            }
+
             const room = await APIClient.getRoom(roomId);
             StateManager.setCurrentRoom(room);
             StateManager.setSelectedRoom(roomId);
+
+            // Reset timer index and remaining seconds for new room
+            StateManager.state.currentTimerIndex = 0;
+            StateManager.state.currentTimerStartTime = null;
+            StateManager.state.currentTimerRemainingSeconds = 0;
+            StateManager.state.isRunning = false;
+
+            // Update preview display with first timer of new room
+            if (room.timers && room.timers.length > 0) {
+                const firstDuration = room.timers[0].duration_seconds || 0;
+                StateManager.state.currentTimerRemainingSeconds = firstDuration;
+                if (typeof ControlDashboard !== 'undefined' && ControlDashboard.updatePreviewDisplay) {
+                    ControlDashboard.updatePreviewDisplay(firstDuration);
+                    ControlDashboard.updatePlayButton(false);
+                }
+            } else {
+                if (typeof ControlDashboard !== 'undefined' && ControlDashboard.updatePreviewDisplay) {
+                    ControlDashboard.updatePreviewDisplay(0);
+                    ControlDashboard.updatePlayButton(false);
+                }
+            }
+
             if (typeof StateManager.persistTimerState === 'function') {
                 StateManager.persistTimerState();
             }
@@ -332,6 +366,19 @@ const RoomManager = {
         }
 
         StateManager.state.currentTimerIndex = timerIndex;
+
+        // Update preview display with selected timer's duration (if not running)
+        if (!StateManager.state.isRunning) {
+            const timer = StateManager.state.timers[timerIndex];
+            if (timer) {
+                StateManager.state.currentTimerRemainingSeconds = timer.duration_seconds || 0;
+                StateManager.state.currentTimerStartTime = null;
+                if (typeof ControlDashboard !== 'undefined' && ControlDashboard.updatePreviewDisplay) {
+                    ControlDashboard.updatePreviewDisplay(timer.duration_seconds || 0);
+                }
+            }
+        }
+
         this.renderTimerList(StateManager.state.timers);
     },
     

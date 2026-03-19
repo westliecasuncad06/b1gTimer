@@ -35,7 +35,13 @@ const StateManager = {
         },
         
         // Display state
-        isBlackedOut: false
+        isBlackedOut: false,
+        
+        // Stage style
+        stageStyle: {
+            timerColor: '#ffffff',
+            clockColor: 'rgba(255,255,255,.5)'
+        }
     },
     
     /**
@@ -217,6 +223,7 @@ const StateManager = {
                 currentTimerRemainingSeconds: this.state.currentTimerRemainingSeconds,
                 currentTimerStartTime: this.state.currentTimerStartTime,
                 timerTitle: (this.state.timers[this.state.currentTimerIndex] || {}).title || '',
+                stageStyle: this.state.stageStyle,
                 savedAt: new Date().toISOString()
             };
             localStorage.setItem('b1g_timer_state', JSON.stringify(data));
