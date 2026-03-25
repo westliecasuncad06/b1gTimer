@@ -1,0 +1,1 @@
+[     244ms] [WARNING] The specified value "rgba(255,255,255,.5)" does not conform to the required format.  The format is "#rrggbb" where rr, gg, bb are two-digit hexadecimal numbers. @ http://localhost/B1G_TIMER/public/js/control-dashboard.js?v=2:187

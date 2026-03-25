@@ -1,0 +1,7 @@
+[     142ms] [WARNING] The specified value "rgba(255,255,255,.5)" does not conform to the required format.  The format is "#rrggbb" where rr, gg, bb are two-digit hexadecimal numbers. @ http://localhost/B1G_TIMER/public/js/control-dashboard.js?v=2:187
+[ 1144925ms] [ERROR] Failed to load resource: the server responded with a status of 400 (Bad Request) @ http://localhost/B1G_TIMER/api/v1/broadcast:0
+[ 1144925ms] [ERROR] API Error [POST /broadcast]: Error: Request validation failed
+    at Object.request (http://localhost/B1G_TIMER/public/js/api-client.js?v=2:34:23)
+    at async Object.broadcastEvent (http://localhost/B1G_TIMER/public/js/api-client.js?v=2:179:30)
+    at async Object.applyStageStyle (http://localhost/B1G_TIMER/public/js/control-dashboard.js?v=2:636:9) @ http://localhost/B1G_TIMER/public/js/api-client.js?v=2:39
+[ 1144926ms] [WARNING] [APIClient] Broadcast API failed (Pusher likely not configured): Request validation failed @ http://localhost/B1G_TIMER/public/js/api-client.js?v=2:187

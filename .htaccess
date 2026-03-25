@@ -26,3 +26,19 @@
 
 # Prevent directory listing
 Options -Indexes
+
+# ── Cache-Control headers ──
+<IfModule mod_headers.c>
+    # HTML files: never cache (browser always gets latest with updated ?v= params)
+    <FilesMatch "\\.html$">
+        Header set Cache-Control "no-cache, must-revalidate"
+    </FilesMatch>
+    # JS/CSS files: cache 1 hour (version query string forces fresh download)
+    <FilesMatch "\\.(js|css)$">
+        Header set Cache-Control "public, max-age=3600"
+    </FilesMatch>
+    # PHP API responses: never cache
+    <FilesMatch "\\.php$">
+        Header set Cache-Control "no-store, no-cache, must-revalidate"
+    </FilesMatch>
+</IfModule>

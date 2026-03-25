@@ -1,0 +1,111 @@
+
+Running 47 tests using 1 worker
+
+  [test1] JS errors: [33m0[39m []
+  ✓   1 [chromium] › tests\all-features.spec.js:70:3 › B1G Timer – All Features › 1. Dashboard loads without JS errors (3.9s)
+  [test2] Room 6 loaded successfully
+  ✓   2 [chromium] › tests\all-features.spec.js:85:3 › B1G Timer – All Features › 2. Room selection works and loads timers (1.1s)
+  [test3] Progress bar width: 99.7607%
+  [test3] ON AIR dot class: on-air-dot green
+  [test3] ON AIR time: 19:58.1
+  ✓   3 [chromium] › tests\all-features.spec.js:99:3 › B1G Timer – All Features › 3. Timer play/pause and progress bar work (3.3s)
+  [test4] Time markers count: [33m4[39m
+  [test4] First marker (full duration): 20:00
+  ✓   4 [chromium] › tests\all-features.spec.js:136:3 › B1G Timer – All Features › 4. Time markers display quarter durations (2.6s)
+  [test5] Current dashboard name: Dashboard
+  ✓   5 [chromium] › tests\all-features.spec.js:162:3 › B1G Timer – All Features › 5. Dashboard name saves per room (1.4s)
+  [test6] All 6 reset buttons found
+  [test6] After Reset All — color: #ffffff font: 'Courier New', monospace size: 22
+  ✓   6 [chromium] › tests\all-features.spec.js:178:3 › B1G Timer – All Features › 6. Stage Appearance panel has all reset buttons (2.5s)
+  [test7] Timer Font reset works
+  ✓   7 [chromium] › tests\all-features.spec.js:217:3 › B1G Timer – All Features › 7. Timer Font Reset button works (1.8s)
+  [test8] Clock Font reset works
+  ✓   8 [chromium] › tests\all-features.spec.js:242:3 › B1G Timer – All Features › 8. Clock Font Reset button works (1.6s)
+  [test9] v=2 scripts: [33m0[39m versioned scripts: [33m11[39m
+  ✓   9 [chromium] › tests\all-features.spec.js:266:3 › B1G Timer – All Features › 9. Script tags use cache-busting versions (1.2s)
+  [test10] Stage countdown elements: [33m0[39m
+  [test10] Stage page title: B1G Timer - Stage Display
+  ✓  10 [chromium] › tests\all-features.spec.js:283:3 › B1G Timer – All Features › 10. Stage display loads (4.4s)
+  [test11] Toggle buttons found: [33m0[39m
+  ✓  11 [chromium] › tests\all-features.spec.js:303:3 › B1G Timer – All Features › 11. Toggle button removed from timer cards (2.4s)
+  [test12] Timer card structure valid
+  ✓  12 [chromium] › tests\all-features.spec.js:318:3 › B1G Timer – All Features › 12. Timer card has play button, settings, and context menu (2.2s)
+  [test13] Marker flag visible and positioned
+  ✓  13 [chromium] › tests\all-features.spec.js:339:3 › B1G Timer – All Features › 13. Marker flag position updates with timer (4.9s)
+  [helper] selected room 5
+  [test5] first card title: Timer 1
+  [test5] tc-info width: 312.6px
+  [test5] first card duration: 10:00
+  ✓  14 [chromium] › tests\feature-coverage.spec.js:94:3 › B1G Timer – Feature Coverage › Timer cards display title, type pill, start-time, and control buttons (1.1s)
+  [helper] selected room 5
+  [test6] Timer 1 started
+  [test6] active timer before switch: Timer 1
+  [test6] captured TIMER_STOP logs: [33m2[39m
+  [test6] active card after switch: Timer 2
+  [test6] preview countdown after switch: 10:00 → 600.0s
+  ✓  15 [chromium] › tests\feature-coverage.spec.js:134:3 › B1G Timer – Feature Coverage › Clicking a different timer card while running stops the current timer first (4.2s)
+  [helper] selected room 5
+  [test7] full duration: 10:00 → 600.0s
+  [test7] running at: 9:57 → 597.0s
+  [test7] TIMER_RESET logs: [33m2[39m
+  [test7] after reset: 10:00 → 600.0s
+  ✓  16 [chromium] › tests\feature-coverage.spec.js:195:3 › B1G Timer – Feature Coverage › Reset button restores timer to full duration and shows play icon (6.5s)
+  [helper] selected room 5
+  [test8] MESSAGE_SHOW logs: [33m2[39m
+  [test8] MESSAGE_HIDE logs: [33m2[39m
+  ✓  17 [chromium] › tests\feature-coverage.spec.js:246:3 › B1G Timer – Feature Coverage › Message Show toggle broadcasts MESSAGE_SHOW and MESSAGE_HIDE (4.4s)
+  [helper] selected room 5
+  [test9] FLASH_TRIGGER logs: [33m1[39m
+  ✓  18 [chromium] › tests\feature-coverage.spec.js:290:3 › B1G Timer – Feature Coverage › Focus button broadcasts FLASH_TRIGGER event (2.6s)
+  [helper] selected room 5
+  [test10] BLACKOUT_ON logs: [33m1[39m
+  [test10] BLACKOUT_OFF logs: [33m1[39m
+  ✓  19 [chromium] › tests\feature-coverage.spec.js:311:3 › B1G Timer – Feature Coverage › Blackout button broadcasts BLACKOUT_ON then BLACKOUT_OFF (5.6s)
+  [helper] selected room 5
+  [test11] Timer 2 title: Timer 2
+  [test11] TIMER_START logs after per-card click: [33m1[39m
+  [test11] preview title after per-card start: Timer 2
+  [test11] TIMER_PAUSE logs after per-card click: [33m1[39m
+  ✓  20 [chromium] › tests\feature-coverage.spec.js:351:3 › B1G Timer – Feature Coverage › Per-card toggle on Timer 2 card starts and pauses Timer 2 (5.3s)
+  [test1] clicked Next
+  [test1] stage countdown after Next: 600.0s
+  [test1] stage countdown +2.5s: 597.0s
+  ✓  21 [chromium] › tests\skip-and-refresh.spec.js:82:3 › B1G Timer – Skip & Refresh › Next button starts the new timer on the stage (not 0:00) (12.7s)
+  [test2] clicked Previous
+  [test2] stage countdown after Previous: 600.0s
+  ✓  22 [chromium] › tests\skip-and-refresh.spec.js:132:3 › B1G Timer – Skip & Refresh › Previous button starts the previous timer on the stage (13.3s)
+  [test3] before refresh: 598.0s
+  [test3] after refresh +2.5s: 595.0s
+  [test3] after refresh +5s: 592.0s
+  ✓  23 [chromium] › tests\skip-and-refresh.spec.js:180:3 › B1G Timer – Skip & Refresh › Stage refresh while timer is running resumes the countdown (12.6s)
+  [test4] dashboard paused at: 598.0s
+  [test4] stage after refresh: 597.0s
+  ✓  24 [chromium] › tests\skip-and-refresh.spec.js:241:3 › B1G Timer – Skip & Refresh › Stage refresh while paused shows the paused remaining time (12.1s)
+  [test5] TIMER_START has deadlineTimestamp: [33mtrue[39m
+  ✓  25 [chromium] › tests\skip-and-refresh.spec.js:293:3 › B1G Timer – Skip & Refresh › TIMER_START broadcast includes deadlineTimestamp in BroadcastChannel (1.5s)
+  ✘  26 [chromium] › tests\stage-fullscreen-pip.spec.js:22:3 › Stage Display – Fullscreen & PiP › 1. Fullscreen and PiP buttons exist in DOM (1.4s)
+  [test2] Titles correct: Toggle Fullscreen | Picture-in-Picture
+  ✓  27 [chromium] › tests\stage-fullscreen-pip.spec.js:36:3 › Stage Display – Fullscreen & PiP › 2. Buttons have correct titles (2.8s)
+  [test3] Utils bar opacity before: 0 after: 1
+  ✓  28 [chromium] › tests\stage-fullscreen-pip.spec.js:48:3 › Stage Display – Fullscreen & PiP › 3. Utils bar becomes visible on hover (3.6s)
+  [test4] Fullscreen icon is fa-expand
+  ✓  29 [chromium] › tests\stage-fullscreen-pip.spec.js:71:3 › Stage Display – Fullscreen & PiP › 4. Fullscreen button has expand icon initially (2.9s)
+  ✘  30 [chromium] › tests\stage-fullscreen-pip.spec.js:81:3 › Stage Display – Fullscreen & PiP › 5. PiP button has clone icon (1.7s)
+  ✘  31 [chromium] › tests\stage-fullscreen-pip.spec.js:91:3 › Stage Display – Fullscreen & PiP › 6. Fullscreen button triggers requestFullscreen (1.1s)
+  [test7] No uncaught errors from PiP click
+  ✓  32 [chromium] › tests\stage-fullscreen-pip.spec.js:119:3 › Stage Display – Fullscreen & PiP › 7. PiP button click does not throw errors (4.0s)
+  [test8] Fullscreen icon toggles: compress ↔ expand
+  ✓  33 [chromium] › tests\stage-fullscreen-pip.spec.js:141:3 › Stage Display – Fullscreen & PiP › 8. Fullscreen icon updates on fullscreenchange event (3.6s)
+  [test9] PiP content: {
+  hasPipCountdown: [33mtrue[39m,
+  hasPipClock: [33mtrue[39m,
+  hasNoPipName: [33mtrue[39m,
+  usesTimeOfDay: [33mtrue[39m,
+  whiteSpaceNowrap: [33mtrue[39m
+}
+  ✓  34 [chromium] › tests\stage-fullscreen-pip.spec.js:181:3 › Stage Display – Fullscreen & PiP › 9. PiP shows only timer and clock (no timer name) (2.9s)
+  [test10] PiP font sizes: {"small":{"countdown":40,"clock":12},"medium":{"countdown":80,"clock":24},"large":{"countdown":160,"clock":48},"wide":{"countdown":78,"clock":24},"tall":{"countdown":40,"clock":12}}
+  ✓  35 [chromium] › tests\stage-fullscreen-pip.spec.js:205:3 › Stage Display – Fullscreen & PiP › 10. PiP responsive font sizing scales with dimensions (3.0s)
+  [test11] PiP has resize event listener: [33mtrue[39m
+  ✓  36 [chromium] › tests\stage-fullscreen-pip.spec.js:246:3 › Stage Display – Fullscreen & PiP › 11. PiP togglePiP method has resize event listener (2.7s)
+  ✘  37 [chromium] › tests\stage-fullscreen-pip.spec.js:260:3 › Stage Display – Fullscreen & PiP › 12. Canvas fallback uses responsive font sizing with clock (1.6s)

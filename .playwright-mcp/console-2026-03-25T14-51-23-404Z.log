@@ -1,0 +1,41 @@
+[    1382ms] [WARNING] The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio @ https://stagetimer.io/_spa/sum-BpSGuPcx.js:10
+[    2216ms] [ERROR] Failed to load resource: the server responded with a status of 403 () @ https://api.stagetimer.io/rooms/X4RJAYPM/credentials?str=&view=CONTROLLER&deviceId=ac0f4fc8-26df-45aa-93c6-57fbd8202cf2:0
+[    2217ms] [WARNING] [Room] Attempt 1 failed, giving up. Request failed with status code 403 @ https://stagetimer.io/_spa/vendor-diagnostics-BKjaPcNm.js:29
+[    2218ms] [ERROR] [Room] AxiosError: Request failed with status code 403
+    at H0 (https://stagetimer.io/_spa/index-D3LLigOY.js:14:1094)
+    at XMLHttpRequest.C (https://stagetimer.io/_spa/index-D3LLigOY.js:14:5966)
+    at pn.<anonymous> (https://stagetimer.io/_spa/index-D3LLigOY.js:16:2120)
+    at Generator.throw (<anonymous>)
+    at s (https://stagetimer.io/_spa/index-D3LLigOY.js:12:627) @ https://stagetimer.io/_spa/vendor-diagnostics-BKjaPcNm.js:29
+[    2508ms] [ERROR] Failed to load resource: the server responded with a status of 403 () @ https://api.stagetimer.io/rooms/X4RJAYPM/credentials?str=&view=CONTROLLER&deviceId=ac0f4fc8-26df-45aa-93c6-57fbd8202cf2:0
+[    2510ms] [ERROR] [axios] Failed to get room token: AxiosError: Request failed with status code 403
+    at H0 (https://stagetimer.io/_spa/index-D3LLigOY.js:14:1094)
+    at XMLHttpRequest.C (https://stagetimer.io/_spa/index-D3LLigOY.js:14:5966)
+    at pn.<anonymous> (https://stagetimer.io/_spa/index-D3LLigOY.js:16:2120)
+    at Generator.throw (<anonymous>)
+    at s (https://stagetimer.io/_spa/index-D3LLigOY.js:12:627) @ https://stagetimer.io/_spa/vendor-diagnostics-BKjaPcNm.js:29
+[   11740ms] [ERROR] [axios] Failed to get room token: RateLimitError: Rate limited, retry in 11s
+    at https://stagetimer.io/_spa/index-D3LLigOY.js:17:10682
+    at Generator.next (<anonymous>)
+    at https://stagetimer.io/_spa/index-D3LLigOY.js:12:725
+    at new Promise (<anonymous>)
+    at ee (https://stagetimer.io/_spa/index-D3LLigOY.js:12:545)
+    at s (https://stagetimer.io/_spa/index-D3LLigOY.js:17:10612)
+    at Fe.<anonymous> (https://stagetimer.io/_spa/index-D3LLigOY.js:17:13222)
+    at Generator.next (<anonymous>)
+    at https://stagetimer.io/_spa/index-D3LLigOY.js:12:725
+    at new Promise (<anonymous>)
+    at ee (https://stagetimer.io/_spa/index-D3LLigOY.js:12:545)
+    at Fe._requestToken (https://stagetimer.io/_spa/index-D3LLigOY.js:17:13136)
+    at Fe.<anonymous> (https://stagetimer.io/_spa/index-D3LLigOY.js:17:11980)
+    at Generator.next (<anonymous>)
+    at https://stagetimer.io/_spa/index-D3LLigOY.js:12:725
+    at new Promise (<anonymous>)
+    at ee (https://stagetimer.io/_spa/index-D3LLigOY.js:12:545)
+    at Fe.getToken (https://stagetimer.io/_spa/index-D3LLigOY.js:17:11901)
+    at https://stagetimer.io/_spa/index-D3LLigOY.js:17:15001
+    at Generator.next (<anonymous>)
+    at https://stagetimer.io/_spa/index-D3LLigOY.js:12:725
+    at new Promise (<anonymous>)
+    at ee (https://stagetimer.io/_spa/index-D3LLigOY.js:12:545)
+    at u5 (https://stagetimer.io/_spa/index-D3LLigOY.js:17:14921) @ https://stagetimer.io/_spa/vendor-diagnostics-BKjaPcNm.js:29

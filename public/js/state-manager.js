@@ -24,6 +24,7 @@ const StateManager = {
         currentTimerIndex: 0,
         currentTimerStartTime: null,  // ISO8601 when current timer started
         currentTimerRemainingSeconds: 0,
+        deadlineTimestamp: null,       // Absolute Unix epoch when timer reaches 0
         
         // Message state
         activeMessage: null,
@@ -40,7 +41,7 @@ const StateManager = {
         // Stage style
         stageStyle: {
             timerColor: '#ffffff',
-            clockColor: 'rgba(255,255,255,.5)',
+            clockColor: '#808080',
             timerFont: "'Courier New', monospace",
             timerFontSize: 22,
             clockFont: "'Courier New', monospace",
@@ -227,9 +228,12 @@ const StateManager = {
                 isRunning: this.state.isRunning,
                 currentTimerRemainingSeconds: this.state.currentTimerRemainingSeconds,
                 currentTimerStartTime: this.state.currentTimerStartTime,
+                deadlineTimestamp: this.state.deadlineTimestamp,
                 timerTitle: (this.state.timers[this.state.currentTimerIndex] || {}).title || '',
                 stageStyle: this.state.stageStyle,
-                savedAt: new Date().toISOString()
+                savedAt: new Date().toISOString(),
+                // Cache timers array so we can restore without a successful API call
+                cachedTimers: this.state.timers || []
             };
             localStorage.setItem('b1g_timer_state', JSON.stringify(data));
         } catch (e) { /* ignore */ }

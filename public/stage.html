@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>B1G Timer - Stage Display</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
         *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
@@ -167,6 +168,76 @@
         .countdown-display.waiting {
             color:rgba(255,255,255,.5);
         }
+
+        /* Stage Transport Controls */
+        .stage-transport {
+            position:fixed;
+            bottom:0; left:0; right:0;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            gap:1.2vw;
+            padding:1.5vh 2vw;
+            background:linear-gradient(transparent, rgba(0,0,0,.85));
+            opacity:0;
+            transition:opacity .3s ease;
+            z-index:60;
+        }
+        .stage-transport:hover,
+        .stage-transport.visible {
+            opacity:1;
+        }
+        .stage-transport-btn {
+            width:clamp(36px, 4vw, 56px);
+            height:clamp(36px, 4vw, 56px);
+            border:1px solid rgba(255,255,255,.2);
+            border-radius:8px;
+            background:rgba(255,255,255,.08);
+            color:rgba(255,255,255,.7);
+            font-size:clamp(14px, 1.8vw, 22px);
+            cursor:pointer;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            transition:background .2s, color .2s;
+        }
+        .stage-transport-btn:hover {
+            background:rgba(255,255,255,.18);
+            color:#fff;
+        }
+        .stage-transport-btn.play {
+            background:rgba(59,130,246,.5);
+            border-color:rgba(59,130,246,.7);
+            color:#fff;
+        }
+        .stage-transport-btn.play:hover {
+            background:rgba(59,130,246,.7);
+        }
+        .stage-transport-btn.play.running {
+            background:rgba(239,68,68,.5);
+            border-color:rgba(239,68,68,.7);
+        }
+        .stage-transport-btn.play.running:hover {
+            background:rgba(239,68,68,.7);
+        }
+
+        /* Utility buttons (right-aligned group) */
+        .stage-transport-utils {
+            position:fixed;
+            bottom:0; right:0;
+            display:flex;
+            align-items:center;
+            gap:.8vw;
+            padding:1.5vh 2vw;
+            background:linear-gradient(transparent, rgba(0,0,0,.85));
+            opacity:0;
+            transition:opacity .3s ease;
+            z-index:60;
+        }
+        .stage-transport-utils:hover,
+        .stage-transport-utils.visible {
+            opacity:1;
+        }
     </style>
 </head>
 <body>
@@ -190,16 +261,29 @@
         <div class="message-ribbon-text" id="message-text"></div>
     </div>
 
+    <!-- Stage Transport Controls (visible on hover) -->
+    <div class="stage-transport" id="stage-transport">
+        <button class="stage-transport-btn" id="stage-btn-previous" title="Previous Timer"><i class="fas fa-step-backward"></i></button>
+        <button class="stage-transport-btn play" id="stage-btn-play-pause" title="Play/Pause"><i class="fas fa-play"></i></button>
+        <button class="stage-transport-btn" id="stage-btn-next" title="Next Timer"><i class="fas fa-step-forward"></i></button>
+    </div>
+
+    <!-- Utility buttons: PiP + Fullscreen -->
+    <div class="stage-transport-utils" id="stage-transport-utils">
+        <button class="stage-transport-btn" id="stage-btn-pip" title="Picture-in-Picture"><i class="fas fa-clone"></i></button>
+        <button class="stage-transport-btn" id="stage-btn-fullscreen" title="Toggle Fullscreen"><i class="fas fa-expand"></i></button>
+    </div>
+
     <!-- Pusher SDK -->
     <script src="https://js.pusher.com/8.2/pusher.min.js"></script>
     
     <!-- JS Modules -->
-    <script src="js/api-client.js?v=2"></script>
-    <script src="js/timer-math.js?v=2"></script>
-    <script src="js/state-manager.js?v=2"></script>
-    <script src="js/pusher-manager.js?v=2"></script>
-    <script src="js/message-manager.js?v=2"></script>
-    <script src="js/stage-display-enhancements.js?v=2"></script>
-    <script src="js/stage-display.js?v=2"></script>
+    <script src="js/api-client.js?v=3"></script>
+    <script src="js/timer-math.js?v=3"></script>
+    <script src="js/state-manager.js?v=3"></script>
+    <script src="js/pusher-manager.js?v=3"></script>
+    <script src="js/message-manager.js?v=3"></script>
+    <script src="js/stage-display-enhancements.js?v=3"></script>
+    <script src="js/stage-display.js?v=6"></script>
 </body>
 </html>

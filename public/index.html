@@ -169,13 +169,42 @@
         }
 
         /* Progress bar */
+        .preview-progress-outer {
+            position:relative;
+            margin:0 16px 8px;
+        }
         .preview-progress-wrap {
             position:relative;
             height:24px;
             background:#1a1a1a;
-            margin:0 16px 8px;
             border-radius:3px;
             overflow:hidden;
+            cursor:pointer;
+        }
+        .scrub-hover-line {
+            position:absolute; top:0;
+            width:2px; height:24px;
+            background:#ef4444;
+            pointer-events:none;
+            transform:translateX(-50%);
+            display:none;
+            z-index:2;
+        }
+        .scrub-tooltip {
+            position:absolute;
+            top:-24px;
+            transform:translateX(-50%);
+            background:#1a1a1a;
+            color:#fff;
+            font-family:'Courier New', monospace;
+            font-size:.7rem;
+            padding:2px 6px;
+            border-radius:3px;
+            border:1px solid #ef4444;
+            white-space:nowrap;
+            pointer-events:none;
+            display:none;
+            z-index:3;
         }
         .preview-progress-bar {
             height:100%;
@@ -343,10 +372,10 @@
         #timer-list { min-height:100px; }
         .timer-card {
             display:grid;
-            grid-template-columns: auto 100px 70px 1fr auto;
+            grid-template-columns: auto 1fr auto auto auto;
             align-items:center;
             gap:8px;
-            padding:12px 16px;
+            padding:10px 14px;
             border-bottom:1px solid #1a1a2a;
             cursor:pointer;
             transition:background .12s;
@@ -388,12 +417,22 @@
         .tc-duration {
             font-size:.95rem; font-weight:700; color:#fff;
         }
+        .tc-col1 {
+            display:flex; align-items:center; gap:5px;
+        }
         .tc-info {
             display:flex; flex-direction:column; gap:2px;
-            min-width:0;
+            min-width:0; overflow:hidden;
         }
         .tc-title-row {
-            display:flex; align-items:center; gap:6px;
+            display:flex; align-items:center; gap:4px;
+        }
+        .tc-meta {
+            display:flex; align-items:center; gap:8px; flex-wrap:nowrap;
+        }
+        .tc-speaker {
+            font-size:.7rem; color:#888; font-style:italic;
+            white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
         }
         .tc-title {
             font-size:.85rem; font-weight:600; color:#e0e0e0;
@@ -429,6 +468,29 @@
         .tc-ctrl-btn:hover { background:#2a2a3e; color:#ccc; border-color:#444; }
         .tc-ctrl-btn.play-green { color:#4ade80; }
         .tc-ctrl-btn.play-green:hover { color:#22c55e; }
+        .tc-add-time {
+            background:none; border:1px solid transparent; color:#666;
+            font-size:.65rem; cursor:pointer; padding:2px 6px;
+            border-radius:3px; white-space:nowrap;
+            transition:all .12s;
+        }
+        .tc-add-time:hover { background:#1e1e30; border-color:#3a3a50; color:#ccc; }
+        .timer-card.active .tc-add-time { color:#7ba3ff; }
+        .timer-card.active .tc-add-time:hover { background:#1e3a8a; color:#fff; }
+        .tc-add-time-wrap { position:relative; display:flex; align-items:center; }
+        .tc-add-popup {
+            display:none; position:absolute; right:0; top:100%;
+            background:#1e1e30; border:1px solid #3a3a50; border-radius:5px;
+            padding:4px; z-index:20; gap:2px;
+            flex-direction:row; white-space:nowrap;
+        }
+        .tc-add-popup.show { display:flex; }
+        .tc-add-popup button {
+            background:#252540; border:1px solid #3a3a50; color:#ccc;
+            font-size:.7rem; padding:3px 8px; border-radius:3px;
+            cursor:pointer; transition:all .12s;
+        }
+        .tc-add-popup button:hover { background:#3b82f6; color:#fff; border-color:#3b82f6; }
         .timer-card.active .tc-ctrl-btn {
             background:#1e3a8a; border-color:#2563eb;
             color:#93b5ff;
@@ -914,8 +976,8 @@
             .top-bar-left, .top-bar-right { flex-wrap: wrap; gap: 6px; }
             .room-select-wrap { flex-wrap: wrap; }
             .timer-card {
-                grid-template-columns: auto 70px 60px 1fr auto;
-                padding: 10px 12px;
+                grid-template-columns: auto 1fr auto auto auto;
+                padding: 9px 11px;
                 font-size: .8rem;
             }
             .tc-controls { gap: 2px; }
@@ -935,6 +997,7 @@
             }
             .timer-card .tc-start-time,
             .timer-card .tc-duration { display: none; }
+            .tc-add-time-wrap { display: none; }
             .top-bar-left .page-title { display: none; }
             .panel-header { padding: 8px 10px; }
             .on-air-row { flex-wrap: wrap; padding: 4px 10px; }
@@ -996,8 +1059,8 @@
     <!-- ===== TOP BAR ===== -->
     <div class="top-bar">
         <div class="top-bar-left">
-            <span class="brand">B1G</span>
-            <span class="page-title">Dashboard</span>
+            <span class="brand" id="dashboard-title" title="Double-click to rename">Dashboard</span>
+            <button class="top-btn" id="btn-edit-dashboard-name" title="Rename dashboard"><i class="fas fa-pen" style="font-size:.65rem;"></i></button>
             <button class="top-btn" title="Menu"><i class="fas fa-chevron-down"></i></button>
             <button class="top-btn" id="btn-output-links"><i class="fas fa-desktop"></i> Output Links</button>
         </div>
@@ -1051,6 +1114,7 @@
                     </select>
                     <input type="number" id="stage-timer-font-size" value="22" min="5" max="40" step="1" style="width:50px;background:#151525;color:#e0e0e0;border:1px solid #2a2a3e;border-radius:4px;padding:3px 4px;font-size:.72rem;text-align:center;" title="Font size (vw)">
                     <span style="font-size:.65rem;color:#666;">vw</span>
+                    <button class="stage-style-btn" id="stage-timer-font-reset" title="Reset to default">Reset</button>
                 </div>
                 <div class="stage-style-row">
                     <label>Clock Color</label>
@@ -1071,14 +1135,16 @@
                     </select>
                     <input type="number" id="stage-clock-font-size" value="6" min="1" max="20" step="0.5" style="width:50px;background:#151525;color:#e0e0e0;border:1px solid #2a2a3e;border-radius:4px;padding:3px 4px;font-size:.72rem;text-align:center;" title="Font size (vw)">
                     <span style="font-size:.65rem;color:#666;">vw</span>
+                    <button class="stage-style-btn" id="stage-clock-font-reset" title="Reset to default">Reset</button>
                 </div>
                 <div class="stage-style-row">
                     <label>Background</label>
                     <input type="color" id="stage-bg-color" value="#000000">
                     <button class="stage-style-btn" id="stage-bg-color-reset" title="Reset to black">Reset</button>
                 </div>
-                <div class="stage-style-row" style="margin-top:4px;">
+                <div class="stage-style-row" style="margin-top:4px;gap:6px;">
                     <button class="stage-style-btn" id="stage-style-apply" style="background:#3b82f6;border-color:#3b82f6;color:#fff;"><i class="fas fa-paper-plane" style="font-size:.6rem;"></i> Apply to Stage</button>
+                    <button class="stage-style-btn" id="stage-style-reset-all" style="background:#ef4444;border-color:#ef4444;color:#fff;" title="Reset all settings to defaults"><i class="fas fa-undo" style="font-size:.6rem;"></i> Reset All</button>
                 </div>
             </div>
 
@@ -1090,10 +1156,14 @@
             </div>
 
             <!-- Progress bar -->
-            <div class="preview-progress-wrap">
-                <div class="preview-progress-bar" id="preview-progress-bar">
-                    <div class="preview-progress-marker" id="preview-progress-marker" style="left:50%;"></div>
+            <div class="preview-progress-outer" id="preview-progress-outer">
+                <div class="scrub-tooltip" id="scrub-tooltip">0:00</div>
+                <div class="preview-progress-wrap" id="preview-progress-wrap">
+                    <div class="preview-progress-bar" id="preview-progress-bar">
+                        <div class="preview-progress-marker" id="preview-progress-marker" style="left:50%;"></div>
+                    </div>
                 </div>
+                <div class="scrub-hover-line" id="scrub-hover-line"></div>
             </div>
 
             <!-- ON AIR row -->
@@ -1117,6 +1187,7 @@
                 <button class="transport-btn" data-action="adjust-time" data-adjust="-60" title="-1 minute"><span class="transport-label">-1m</span></button>
                 <button class="transport-btn" data-action="previous-timer" title="Previous"><i class="fas fa-step-backward"></i></button>
                 <button class="transport-btn play" id="btn-play-pause" data-action="play-pause" title="Play/Pause"><i class="fas fa-play"></i></button>
+                <button class="transport-btn" data-action="reset-timer" id="btn-reset" title="Reset timer to full duration"><i class="fas fa-undo"></i></button>
                 <button class="transport-btn" data-action="next-timer" title="Next"><i class="fas fa-step-forward"></i></button>
                 <button class="transport-btn" data-action="adjust-time" data-adjust="60" title="+1 minute"><span class="transport-label">+1m</span></button>
                 <button class="transport-btn small" data-action="adjust-time" data-adjust="1" title="Fine +1s"><i class="fas fa-chevron-down" style="transform:rotate(180deg)"></i></button>
@@ -1168,7 +1239,7 @@
                     <button class="toggle-btn" id="btn-flash" data-action="flash-trigger">
                         <i class="fas fa-bolt" style="font-size:.65rem;"></i> Flash
                     </button>
-                    <button class="toggle-btn" id="btn-timers-more" title="More options">
+                    <button class="toggle-btn" id="btn-timers-more" title="More options" style="display:none;">
                         <i class="fas fa-ellipsis-h"></i>
                     </button>
                 </div>
@@ -1183,8 +1254,8 @@
                 <span class="sel-info" id="sel-info">0 of 0 selected</span>
                 <button class="sel-action-btn danger" id="sel-delete-btn"><i class="fas fa-trash"></i> Delete</button>
                 <button class="sel-action-btn" id="sel-duplicate-btn"><i class="fas fa-copy"></i> Duplicate</button>
-                <button class="sel-action-btn" id="sel-move-btn"><i class="fas fa-arrows-alt"></i> Move</button>
-                <button class="sel-action-btn" id="sel-more-btn"><i class="fas fa-ellipsis-h"></i> More</button>
+                <button class="sel-action-btn" id="sel-move-btn" style="display:none;"><i class="fas fa-arrows-alt"></i> Move</button>
+                <button class="sel-action-btn" id="sel-more-btn" style="display:none;"><i class="fas fa-ellipsis-h"></i> More</button>
             </div>
 
             <div class="panel-body">
@@ -1446,16 +1517,16 @@
     <script src="https://js.pusher.com/8.2/pusher.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 
-    <script src="js/api-client.js?v=2"></script>
-    <script src="js/timer-math.js?v=2"></script>
-    <script src="js/state-manager.js?v=2"></script>
-    <script src="js/pusher-manager.js?v=2"></script>
-    <script src="js/room-manager.js?v=2"></script>
-    <script src="js/timer-engine.js?v=2"></script>
-    <script src="js/message-manager.js?v=2"></script>
-    <script src="js/sortable-handler.js?v=2"></script>
-    <script src="js/validation-handler.js?v=2"></script>
-    <script src="js/phase-5-enhancements.js?v=2"></script>
-    <script src="js/control-dashboard.js?v=2"></script>
+    <script src="js/api-client.js?v=3"></script>
+    <script src="js/timer-math.js?v=3"></script>
+    <script src="js/state-manager.js?v=3"></script>
+    <script src="js/pusher-manager.js?v=3"></script>
+    <script src="js/room-manager.js?v=3"></script>
+    <script src="js/timer-engine.js?v=3"></script>
+    <script src="js/message-manager.js?v=3"></script>
+    <script src="js/sortable-handler.js?v=3"></script>
+    <script src="js/validation-handler.js?v=3"></script>
+    <script src="js/phase-5-enhancements.js?v=3"></script>
+    <script src="js/control-dashboard.js?v=4"></script>
 </body>
 </html>

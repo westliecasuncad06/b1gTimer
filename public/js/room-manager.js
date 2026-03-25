@@ -25,10 +25,11 @@ const RoomManager = {
     /**
      * Load specific room with timers
      */
-    async loadRoom(roomId) {
+    async loadRoom(roomId, options = {}) {
+        const restoreMode = options.restoreMode || false;
         try {
-            // Stop any running timer before switching rooms
-            if (StateManager.state.isRunning) {
+            // Stop any running timer before switching rooms (skip on page-refresh restore)
+            if (!restoreMode && StateManager.state.isRunning) {
                 TimerEngine.stop();
             }
 
@@ -43,31 +44,39 @@ const RoomManager = {
             StateManager.setCurrentRoom(room);
             StateManager.setSelectedRoom(roomId);
 
-            // Reset timer index and remaining seconds for new room
-            StateManager.state.currentTimerIndex = 0;
-            StateManager.state.currentTimerStartTime = null;
-            StateManager.state.currentTimerRemainingSeconds = 0;
-            StateManager.state.isRunning = false;
+            // Reset timer state only when user deliberately switches rooms,
+            // NOT when restoring the same room after a page refresh
+            if (!restoreMode) {
+                StateManager.state.currentTimerIndex = 0;
+                StateManager.state.currentTimerStartTime = null;
+                StateManager.state.currentTimerRemainingSeconds = 0;
+                StateManager.state.isRunning = false;
 
-            // Update preview display with first timer of new room
-            if (room.timers && room.timers.length > 0) {
-                const firstDuration = room.timers[0].duration_seconds || 0;
-                StateManager.state.currentTimerRemainingSeconds = firstDuration;
-                if (typeof ControlDashboard !== 'undefined' && ControlDashboard.updatePreviewDisplay) {
-                    ControlDashboard.updatePreviewDisplay(firstDuration);
-                    ControlDashboard.updatePlayButton(false);
+                // Update preview display with first timer of new room
+                if (room.timers && room.timers.length > 0) {
+                    const firstDuration = room.timers[0].duration_seconds || 0;
+                    StateManager.state.currentTimerRemainingSeconds = firstDuration;
+                    if (typeof ControlDashboard !== 'undefined' && ControlDashboard.updatePreviewDisplay) {
+                        ControlDashboard.updatePreviewDisplay(firstDuration);
+                        ControlDashboard.updatePlayButton(false);
+                    }
+                } else {
+                    if (typeof ControlDashboard !== 'undefined' && ControlDashboard.updatePreviewDisplay) {
+                        ControlDashboard.updatePreviewDisplay(0);
+                        ControlDashboard.updatePlayButton(false);
+                    }
                 }
-            } else {
-                if (typeof ControlDashboard !== 'undefined' && ControlDashboard.updatePreviewDisplay) {
-                    ControlDashboard.updatePreviewDisplay(0);
-                    ControlDashboard.updatePlayButton(false);
-                }
-            }
 
-            if (typeof StateManager.persistTimerState === 'function') {
-                StateManager.persistTimerState();
+                if (typeof StateManager.persistTimerState === 'function') {
+                    StateManager.persistTimerState();
+                }
             }
             this.renderTimerList(room.timers);
+            
+            // Restore dashboard name for this room
+            if (typeof ControlDashboard !== 'undefined' && ControlDashboard.restoreDashboardName) {
+                ControlDashboard.restoreDashboardName();
+            }
             
             // Subscribe to real-time updates for this room
             PusherManager.subscribeToRoom(roomId, (action, data) => {
@@ -181,13 +190,16 @@ const RoomManager = {
             selector.appendChild(option);
         });
         
-        // Add change listener
-        selector.addEventListener('change', async (e) => {
-            const roomId = e.target.value;
-            if (roomId) {
-                await this.loadRoom(roomId);
-            }
-        });
+        // Add change listener only ONCE (guard with a data attribute flag)
+        if (!selector.dataset.listenerAttached) {
+            selector.dataset.listenerAttached = '1';
+            selector.addEventListener('change', async (e) => {
+                const roomId = e.target.value;
+                if (roomId) {
+                    await this.loadRoom(roomId);
+                }
+            });
+        }
     },
     
     /**
@@ -216,30 +228,46 @@ const RoomManager = {
             const s = dur % 60;
             const durStr = h > 0 ? `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}` : `${m}:${String(s).padStart(2, '0')}`;
             const isActive = index === activeIndex;
+            const isRunning = StateManager.state.isRunning;
             const appearance = timer.appearance || 'countdown';
+            const appearanceLabel = this.escapeHtml(appearance.charAt(0).toUpperCase() + appearance.slice(1));
             const startTime = ControlDashboard.calculateStartTime(index);
             const title = this.escapeHtml(timer.title || 'Untitled');
+            const speaker = timer.speaker ? `<span class="tc-speaker">${this.escapeHtml(timer.speaker)}</span>` : '';
+            const toggleIcon = isActive ? (isRunning ? 'pause' : 'play') : 'hourglass-start';
+            const playClass = isActive && isRunning ? ' play-green' : '';
 
             return `
                 <div class="timer-card ${isActive ? 'active' : ''}" data-timer-index="${index}">
-                    <div style="display:flex;align-items:center;gap:6px;">
+                    <div class="tc-col1">
                         <input type="checkbox" class="tc-checkbox" data-sel-index="${index}">
                         <span class="tc-drag drag-handle"><i class="fas fa-grip-lines"></i></span>
-                        <span class="tc-number">${isActive ? '' : index + 1}</span>
+                        <span class="tc-number">${index + 1}</span>
                     </div>
-                    ${isActive ? '<div style="font-size:.6rem;color:#7ba3ff;text-align:center;"><div style="font-size:.55rem;color:#5580cc;">Start</div>' + this.escapeHtml(startTime) + '</div>' : '<div class="tc-start-time" data-start-click="' + index + '">' + this.escapeHtml(startTime) + '</div>'}
-                    <div class="tc-duration" data-dur-click="${index}">${durStr}</div>
                     <div class="tc-info">
                         <div class="tc-title-row">
                             <span class="tc-title">${title}</span>
+                            ${speaker}
                             <button class="tc-edit-btn" data-edit-title="${index}" title="Edit title"><i class="fas fa-pen"></i></button>
                         </div>
-                        <span class="tc-type" data-type-click="${index}">${this.escapeHtml(appearance.charAt(0).toUpperCase() + appearance.slice(1))} &#9662;</span>
+                        <div class="tc-meta">
+                            <span class="tc-type" data-type-click="${index}">${appearanceLabel} &#9662;</span>
+                            <span class="tc-start-time" data-start-click="${index}">${this.escapeHtml(startTime)}</span>
+                        </div>
+                    </div>
+                    <div class="tc-duration" data-dur-click="${index}">${durStr}</div>
+                    <div class="tc-add-time-wrap">
+                        <button class="tc-add-time" data-add-time-toggle="${index}" title="Add time to this timer">Add time</button>
+                        <div class="tc-add-popup" id="add-popup-${index}">
+                            <button data-add-time="${index}" data-delta="-60">-1m</button>
+                            <button data-add-time="${index}" data-delta="-10">-10s</button>
+                            <button data-add-time="${index}" data-delta="10">+10s</button>
+                            <button data-add-time="${index}" data-delta="60">+1m</button>
+                        </div>
                     </div>
                     <div class="tc-controls">
-                        <button class="tc-ctrl-btn" data-reset-timer="${index}" title="Reset"><i class="fas fa-${isActive ? 'step-backward' : 'hourglass-start'}"></i></button>
+                        <button class="tc-ctrl-btn${playClass}" data-toggle-timer="${index}" title="Play/Pause"><i class="fas fa-${toggleIcon}"></i></button>
                         <button class="tc-ctrl-btn" data-open-settings="${index}" title="Settings"><i class="fas fa-cog"></i></button>
-                        <button class="tc-ctrl-btn play-green" data-play-timer="${index}" title="Play"><i class="fas fa-play"></i></button>
                         <button class="tc-ctrl-btn" data-ctx="${index}" title="More"><i class="fas fa-ellipsis-h"></i></button>
                     </div>
                 </div>
@@ -272,24 +300,29 @@ const RoomManager = {
             });
         });
 
-        // Play button
-        container.querySelectorAll('[data-play-timer]').forEach(btn => {
+        // Play/Pause toggle button (per-card)
+        container.querySelectorAll('[data-toggle-timer]').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                const idx = parseInt(btn.dataset.playTimer, 10);
-                StateManager.state.currentTimerIndex = idx;
-                TimerEngine.start(idx);
-                this.renderTimerList(StateManager.state.timers);
-            });
-        });
+                const idx = parseInt(btn.dataset.toggleTimer, 10);
+                // Use same null-safe fallback as renderTimerList so that
+                // a null/undefined currentTimerIndex still matches index 0
+                const currentIdx = StateManager.state.currentTimerIndex ?? 0;
+                const isCurrentTimer = idx === currentIdx;
 
-        // Reset button
-        container.querySelectorAll('[data-reset-timer]').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const idx = parseInt(btn.dataset.resetTimer, 10);
-                StateManager.state.currentTimerIndex = idx;
-                TimerEngine.reset();
+                if (isCurrentTimer) {
+                    // Delegate to the same handler as #btn-play-pause (transport control)
+                    // so both buttons are guaranteed to have identical behaviour:
+                    //   running  → pause
+                    //   paused   → resume
+                    //   fresh    → start
+                    ControlDashboard.togglePlayPause();
+                } else {
+                    // Different timer selected — switch to it and start
+                    StateManager.state.currentTimerIndex = idx;
+                    TimerEngine.start(idx);
+                    RoomManager.renderTimerList(StateManager.state.timers);
+                }
             });
         });
 
@@ -343,6 +376,40 @@ const RoomManager = {
             });
         });
 
+        // Appearance/type pill — opens the same duration popover (which includes Appearance)
+        container.querySelectorAll('[data-type-click]').forEach(el => {
+            el.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const idx = parseInt(el.dataset.typeClick, 10);
+                ControlDashboard.showDurationPopover(e, idx);
+            });
+        });
+
+        // Add time toggle (per-card)
+        container.querySelectorAll('[data-add-time-toggle]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const idx = btn.dataset.addTimeToggle;
+                // Close all other popups first
+                container.querySelectorAll('.tc-add-popup.show').forEach(p => p.classList.remove('show'));
+                const popup = document.getElementById('add-popup-' + idx);
+                if (popup) popup.classList.toggle('show');
+            });
+        });
+
+        // Add time buttons (per-card)
+        container.querySelectorAll('[data-add-time]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const idx = parseInt(btn.dataset.addTime, 10);
+                const delta = parseInt(btn.dataset.delta, 10);
+                this._adjustTimerDuration(idx, delta);
+                // Close popup
+                const popup = btn.closest('.tc-add-popup');
+                if (popup) popup.classList.remove('show');
+            });
+        });
+
         // Checkbox for selection mode
         container.querySelectorAll('.tc-checkbox').forEach(cb => {
             cb.addEventListener('change', (e) => {
@@ -355,9 +422,17 @@ const RoomManager = {
     },
     
     /**
-     * Select timer in list
+     * Select timer in list.
+     * If a DIFFERENT timer is currently running, stop it first so state
+     * remains consistent (currentTimerIndex always matches the active deadline).
      */
     selectTimer(timerIndex) {
+        // Guard: if a different timer is running, stop it before switching.
+        // This prevents the tick deadline from running against the wrong timer index.
+        if (StateManager.state.isRunning && timerIndex !== StateManager.state.currentTimerIndex) {
+            TimerEngine.stop();
+        }
+
         const cards = document.querySelectorAll('.timer-card');
         cards.forEach(card => card.classList.remove('active'));
 
@@ -367,7 +442,7 @@ const RoomManager = {
 
         StateManager.state.currentTimerIndex = timerIndex;
 
-        // Update preview display with selected timer's duration (if not running)
+        // Always update preview to the selected timer's duration when not running
         if (!StateManager.state.isRunning) {
             const timer = StateManager.state.timers[timerIndex];
             if (timer) {
@@ -377,6 +452,25 @@ const RoomManager = {
                     ControlDashboard.updatePreviewDisplay(timer.duration_seconds || 0);
                 }
             }
+        }
+
+        this.renderTimerList(StateManager.state.timers);
+    },
+
+    /**
+     * Adjust a specific timer's duration (and remaining time if it's the active running timer).
+     * Used by per-card "Add time" buttons.
+     */
+    _adjustTimerDuration(timerIndex, deltaSeconds) {
+        const timer = StateManager.state.timers[timerIndex];
+        if (!timer) return;
+
+        // Update saved duration
+        timer.duration_seconds = Math.max(0, (timer.duration_seconds || 0) + deltaSeconds);
+
+        // If this is the currently active timer, also adjust the live countdown
+        if (timerIndex === StateManager.state.currentTimerIndex) {
+            TimerEngine.adjustTime(deltaSeconds);
         }
 
         this.renderTimerList(StateManager.state.timers);

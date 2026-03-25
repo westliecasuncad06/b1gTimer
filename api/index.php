@@ -86,6 +86,10 @@ try {
         case 'pusher-config':
             include __DIR__ . '/v1/pusher-config.php';
             break;
+
+        case 'state':
+            include __DIR__ . '/v1/state.php';
+            break;
             
         default:
             http_response_code(404);

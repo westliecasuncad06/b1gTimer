@@ -103,6 +103,11 @@ const ControlDashboard = {
             }
             await RoomManager.loadRooms();
 
+            // Setup event listeners and state listeners BEFORE restore
+            // so that timer-started / timer-updated events update the UI immediately
+            this.setupEventListeners();
+            this.setupStateListeners();
+
             // Restore last selected room and timer state from localStorage
             const persisted = typeof StateManager.getPersistedTimerState === 'function'
                 ? StateManager.getPersistedTimerState() : null;
@@ -110,24 +115,70 @@ const ControlDashboard = {
                 const selector = document.getElementById('room-selector');
                 if (selector) {
                     selector.value = persisted.selectedRoomId;
-                    await RoomManager.loadRoom(persisted.selectedRoomId);
+                    // restoreMode: true — load room data WITHOUT resetting timer state
+                    await RoomManager.loadRoom(persisted.selectedRoomId, { restoreMode: true });
                 }
-                // Restore running timer state
+                // If loadRoom failed (API error), fall back to cached timers from localStorage
+                if (StateManager.state.timers.length === 0 && persisted.cachedTimers && persisted.cachedTimers.length > 0) {
+                    console.log('[ControlDashboard] API unavailable - restoring timers from cache');
+                    StateManager.state.timers = persisted.cachedTimers;
+                    StateManager.state.selectedRoomId = persisted.selectedRoomId;
+                    RoomManager.renderTimerList(StateManager.state.timers);
+                }
+                // Restore running timer state — PREFER server deadline, fall back to localStorage
                 if (persisted.currentTimerIndex != null && StateManager.state.timers.length > persisted.currentTimerIndex) {
                     StateManager.state.currentTimerIndex = persisted.currentTimerIndex;
-                    if (persisted.isRunning && persisted.currentTimerStartTime) {
-                        // Calculate how much time elapsed since last save
+
+                    // Try to fetch authoritative state from server first
+                    let serverState = null;
+                    try {
+                        serverState = await APIClient.getState(persisted.selectedRoomId);
+                    } catch (e) { /* offline – use localStorage */ }
+
+                    if (serverState && serverState.deadlineTimestamp && serverState.isRunning) {
+                        // Server has an active deadline — use it directly.
+                        // silent=true: do NOT re-broadcast; the authoritative deadline is already in DB.
+                        const deadline = serverState.deadlineTimestamp;
+                        const remaining = deadline - Math.floor(Date.now() / 1000);
+                        const idx = serverState.timerIndex != null ? serverState.timerIndex : persisted.currentTimerIndex;
+                        TimerEngine.start(idx, remaining, deadline, true);
+                        console.log('[ControlDashboard] Restored from server deadline, remaining:', remaining.toFixed(1) + 's');
+                    } else if (serverState && !serverState.isRunning) {
+                        // Server says paused/stopped — but localStorage might have a more recent running state.
+                        // Trust localStorage if it has a valid future deadline (written every 100ms by the tick loop).
+                        if (persisted.isRunning && persisted.deadlineTimestamp && persisted.deadlineTimestamp > Math.floor(Date.now() / 1000)) {
+                            const remaining = persisted.deadlineTimestamp - Math.floor(Date.now() / 1000);
+                            TimerEngine.start(persisted.currentTimerIndex, remaining, persisted.deadlineTimestamp, true);
+                            console.log('[ControlDashboard] Server stale (!running) but localStorage has future deadline, remaining:', remaining.toFixed(1) + 's');
+                        } else if (serverState.remainingSeconds != null) {
+                            // Both agree not running — show static remaining
+                            const idx = serverState.timerIndex != null ? serverState.timerIndex : persisted.currentTimerIndex;
+                            StateManager.state.currentTimerIndex = idx;
+                            StateManager.state.currentTimerRemainingSeconds = serverState.remainingSeconds;
+                            StateManager.state.currentTimerStartTime = persisted.currentTimerStartTime;
+                            StateManager.state.deadlineTimestamp = null;
+                            this.updatePreviewDisplay(serverState.remainingSeconds);
+                        }
+                    } else if (persisted.isRunning && persisted.deadlineTimestamp) {
+                        // Offline fallback — use persisted deadline from localStorage (silent)
+                        const remaining = persisted.deadlineTimestamp - Math.floor(Date.now() / 1000);
+                        TimerEngine.start(persisted.currentTimerIndex, remaining, persisted.deadlineTimestamp, true);
+                        console.log('[ControlDashboard] Restored from localStorage deadline, remaining:', remaining.toFixed(1) + 's');
+                    } else if (persisted.isRunning && persisted.savedAt) {
+                        // Legacy fallback — compute from savedAt (pre-deadline data)
                         const elapsed = (Date.now() - new Date(persisted.savedAt).getTime()) / 1000;
                         const remaining = persisted.currentTimerRemainingSeconds - elapsed;
-                        TimerEngine.start(persisted.currentTimerIndex, remaining);
-                        console.log('[ControlDashboard] Restored running timer, remaining:', remaining.toFixed(1) + 's');
+                        TimerEngine.start(persisted.currentTimerIndex, remaining, null, true);
+                        console.log('[ControlDashboard] Restored from legacy savedAt, remaining:', remaining.toFixed(1) + 's');
                     } else if (persisted.currentTimerRemainingSeconds != null) {
                         // Paused state - restore remaining time and display
                         StateManager.state.currentTimerRemainingSeconds = persisted.currentTimerRemainingSeconds;
                         StateManager.state.currentTimerStartTime = persisted.currentTimerStartTime;
+                        StateManager.state.deadlineTimestamp = null;
                         this.updatePreviewDisplay(persisted.currentTimerRemainingSeconds);
-                        RoomManager.renderTimerList(StateManager.state.timers);
                     }
+                    // Re-render timer list with correct active timer highlighted
+                    RoomManager.renderTimerList(StateManager.state.timers);
                 }
             }
 
@@ -151,8 +202,6 @@ const ControlDashboard = {
             }
 
             this.loadMessages();
-            this.setupEventListeners();
-            this.setupStateListeners();
             this.startTimeDisplay();
             this.startHealthCheck();
             this.renderMessages();
@@ -169,6 +218,7 @@ const ControlDashboard = {
     setupEventListeners() {
         // Transport controls
         this.on('#btn-play-pause', 'click', () => this.togglePlayPause());
+        this.on('#btn-reset', 'click', () => TimerEngine.reset());
         this.onAll('[data-action="previous-timer"]', 'click', () => TimerEngine.skipToPrevious());
         this.onAll('[data-action="next-timer"]', 'click', () => TimerEngine.skipToNext());
         this.onAll('[data-action="adjust-time"]', 'click', (e) => {
@@ -176,6 +226,9 @@ const ControlDashboard = {
             const adj = parseInt(btn.dataset.adjust, 10);
             TimerEngine.adjustTime(adj);
         });
+
+        // Timeline scrubber on progress bar
+        this.setupScrubber();
 
         // Blackout / Flash
         this.on('#btn-blackout', 'click', () => this.toggleBlackout());
@@ -202,6 +255,11 @@ const ControlDashboard = {
         this.on('#settings-confirm', 'click', () => this.saveSettings());
 
         // Output links
+        // Dashboard naming
+        this.on('#btn-edit-dashboard-name', 'click', () => this.renameDashboard());
+        this.on('#dashboard-title', 'dblclick', () => this.renameDashboard());
+        this.restoreDashboardName();
+
         this.on('#btn-output-links', 'click', () => this.showOutputLinks());
         this.on('#output-modal-close', 'click', () => this.closeOutputLinks());
         this.on('#copy-stage-link', 'click', () => this.copyStageLink());
@@ -230,6 +288,34 @@ const ControlDashboard = {
             const el = document.getElementById('stage-bg-color');
             if (el) el.value = '#000000';
         });
+        this.on('#stage-timer-font-reset', 'click', () => {
+            const fontEl = document.getElementById('stage-timer-font');
+            const sizeEl = document.getElementById('stage-timer-font-size');
+            if (fontEl) fontEl.value = "'Courier New', monospace";
+            if (sizeEl) sizeEl.value = '22';
+        });
+        this.on('#stage-clock-font-reset', 'click', () => {
+            const fontEl = document.getElementById('stage-clock-font');
+            const sizeEl = document.getElementById('stage-clock-font-size');
+            if (fontEl) fontEl.value = "'Courier New', monospace";
+            if (sizeEl) sizeEl.value = '6';
+        });
+        this.on('#stage-style-reset-all', 'click', () => {
+            const defaults = {
+                'stage-timer-color': '#ffffff',
+                'stage-clock-color': '#808080',
+                'stage-bg-color': '#000000',
+                'stage-timer-font': "'Courier New', monospace",
+                'stage-timer-font-size': '22',
+                'stage-clock-font': "'Courier New', monospace",
+                'stage-clock-font-size': '6'
+            };
+            Object.entries(defaults).forEach(([id, val]) => {
+                const el = document.getElementById(id);
+                if (el) el.value = val;
+            });
+            this.showToast('All stage settings reset to defaults.', 'info');
+        });
 
         // Popovers - cancel buttons
         this.on('#pop-start-cancel', 'click', () => this.closePopovers());
@@ -251,6 +337,10 @@ const ControlDashboard = {
             // Close popovers on outside click
             if (this.activePopover && !e.target.closest('.popover') && !e.target.closest('.tc-start-time') && !e.target.closest('.tc-duration')) {
                 this.closePopovers();
+            }
+            // Close "Add time" popups on outside click
+            if (!e.target.closest('.tc-add-time-wrap')) {
+                document.querySelectorAll('.tc-add-popup.show').forEach(p => p.classList.remove('show'));
             }
         });
 
@@ -299,6 +389,7 @@ const ControlDashboard = {
         });
         StateManager.on('timer-stopped', () => {
             this.updatePlayButton(false);
+            this.updateActiveTimerCard();
         });
         StateManager.on('timer-list-changed', () => {
             // Timer list is rendered by RoomManager.renderTimerList
@@ -468,8 +559,69 @@ const ControlDashboard = {
     updateActiveTimerCard() {
         const cards = document.querySelectorAll('.timer-card');
         const activeIndex = StateManager.state.currentTimerIndex;
+        const isRunning = StateManager.state.isRunning;
         cards.forEach((card, i) => {
-            card.classList.toggle('active', i === activeIndex);
+            const isActive = i === activeIndex;
+            card.classList.toggle('active', isActive);
+            // Update play/pause toggle button icon
+            const toggleBtn = card.querySelector('[data-toggle-timer]');
+            if (toggleBtn) {
+                const icon = toggleBtn.querySelector('i');
+                if (icon) {
+                    if (isActive) {
+                        icon.className = isRunning ? 'fas fa-pause' : 'fas fa-play';
+                        toggleBtn.classList.toggle('play-green', isRunning);
+                    } else {
+                        icon.className = 'fas fa-hourglass-start';
+                        toggleBtn.classList.remove('play-green');
+                    }
+                }
+            }
+        });
+    },
+
+    // ===== TIMELINE SCRUBBER =====
+
+    setupScrubber() {
+        const wrap = document.getElementById('preview-progress-wrap');
+        const hoverLine = document.getElementById('scrub-hover-line');
+        const tooltip = document.getElementById('scrub-tooltip');
+        if (!wrap || !hoverLine || !tooltip) return;
+
+        wrap.addEventListener('mousemove', (e) => {
+            const currentTimer = StateManager.state.timers[StateManager.state.currentTimerIndex];
+            if (!currentTimer) return;
+            const rect = wrap.getBoundingClientRect();
+            const x = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
+            const pct = x / rect.width;
+            const duration = currentTimer.duration_seconds;
+            const timeAtPos = Math.round(pct * duration);
+
+            hoverLine.style.left = x + 'px';
+            hoverLine.style.display = 'block';
+            tooltip.textContent = this.formatDuration(timeAtPos);
+            tooltip.style.left = x + 'px';
+            tooltip.style.display = 'block';
+        });
+
+        wrap.addEventListener('mouseleave', () => {
+            hoverLine.style.display = 'none';
+            tooltip.style.display = 'none';
+        });
+
+        wrap.addEventListener('click', (e) => {
+            const currentTimer = StateManager.state.timers[StateManager.state.currentTimerIndex];
+            if (!currentTimer) return;
+            const rect = wrap.getBoundingClientRect();
+            const x = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
+            const pct = x / rect.width;
+            const duration = currentTimer.duration_seconds;
+            const targetRemaining = Math.round(pct * duration);
+            const current = StateManager.state.currentTimerRemainingSeconds;
+            const delta = targetRemaining - current;
+            if (delta !== 0) {
+                TimerEngine.adjustTime(delta);
+            }
         });
     },
 
@@ -488,6 +640,33 @@ const ControlDashboard = {
         }
     },
 
+    async renameDashboard() {
+        const titleEl = document.getElementById('dashboard-title');
+        const currentName = titleEl ? titleEl.textContent : 'Dashboard';
+        const newName = await this.showPrompt('Rename Dashboard', 'Enter a name for this dashboard:', currentName, 'Dashboard name');
+        if (newName !== null && newName.trim()) {
+            const name = newName.trim();
+            if (titleEl) titleEl.textContent = name;
+            const roomId = StateManager.state.selectedRoomId;
+            if (roomId) {
+                localStorage.setItem('b1g_dashboard_name_room_' + roomId, name);
+            }
+            this.showToast('Dashboard name saved!', 'success');
+        }
+    },
+
+    restoreDashboardName() {
+        const roomId = StateManager.state.selectedRoomId;
+        const titleEl = document.getElementById('dashboard-title');
+        if (!titleEl) return;
+        if (roomId) {
+            const saved = localStorage.getItem('b1g_dashboard_name_room_' + roomId);
+            titleEl.textContent = saved || 'Dashboard';
+        } else {
+            titleEl.textContent = 'Dashboard';
+        }
+    },
+
     updatePlayButton(isRunning) {
         const btn = document.getElementById('btn-play-pause');
         if (!btn) return;
@@ -498,6 +677,8 @@ const ControlDashboard = {
             btn.innerHTML = '<i class="fas fa-play"></i>';
             btn.classList.remove('running');
         }
+        // Also sync the per-card toggle button
+        this.updateActiveTimerCard();
     },
 
     // ===== BLACKOUT / FLASH =====
@@ -1059,9 +1240,15 @@ const ControlDashboard = {
         this.renderMessages();
     },
 
-    toggleMsgFocus() {
+    async toggleMsgFocus() {
         const btn = document.getElementById('btn-msg-focus');
-        if (btn) btn.classList.toggle('active');
+        const isActive = btn ? btn.classList.toggle('active') : false;
+        // Broadcast FLASH_TRIGGER to stage to grab audience attention
+        await APIClient.broadcastEvent(
+            StateManager.state.selectedRoomId,
+            'FLASH_TRIGGER',
+            {}
+        ).catch(() => {});
     },
 
     async flashMessage() {

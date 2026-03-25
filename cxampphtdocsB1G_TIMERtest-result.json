@@ -1,0 +1,2189 @@
+{
+  "config": {
+    "configFile": "C:\\xampp\\htdocs\\B1G_TIMER\\playwright.config.js",
+    "rootDir": "C:/xampp/htdocs/B1G_TIMER/tests",
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "C:/xampp/htdocs/B1G_TIMER/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "C:/xampp/htdocs/B1G_TIMER/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "runAgents": "none",
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.58.2",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "all-features.spec.js",
+      "file": "all-features.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "B1G Timer – All Features",
+          "file": "all-features.spec.js",
+          "line": 68,
+          "column": 6,
+          "specs": [
+            {
+              "title": "1. Dashboard loads without JS errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3830,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "  [test1] JS errors: \u001b[33m0\u001b[39m []\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-25T20:16:50.875Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4014eef54db418e35279-9cabaa3897c6c29397b5",
+              "file": "all-features.spec.js",
+              "line": 70,
+              "column": 3
+            },
+            {
+              "title": "2. Room selection works and loads timers",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 946,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "  [test2] Room 6 loaded successfully\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-25T20:16:55.380Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4014eef54db418e35279-765751809e1d59334847",
+              "file": "all-features.spec.js",
+              "line": 85,
+              "column": 3
+            },
+            {
+              "title": "3. Timer play/pause and progress bar work",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3047,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "  [test3] Progress bar width: 99.7501%\n"
+                        },
+                        {
+                          "text": "  [test3] ON AIR dot class: on-air-dot green\n"
+                        },
+                        {
+                          "text": "  [test3] ON AIR time: 19:58.0\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-25T20:16:56.349Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4014eef54db418e35279-612734222d7934fc9457",
+              "file": "all-features.spec.js",
+              "line": 99,
+              "column": 3
+            },
+            {
+              "title": "4. Time markers display quarter durations",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2469,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "  [test4] Time markers count: \u001b[33m4\u001b[39m\n"
+                        },
+                        {
+                          "text": "  [test4] First marker (full duration): 20:00\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-25T20:16:59.415Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4014eef54db418e35279-b8649c6dfe6a56ccf5b6",
+              "file": "all-features.spec.js",
+              "line": 136,
+              "column": 3
+            },
+            {
+              "title": "5. Dashboard name saves per room",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 861,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "  [test5] Current dashboard name: Dashboard\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-25T20:17:01.904Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4014eef54db418e35279-16564e5eed2cd9394304",
+              "file": "all-features.spec.js",
+              "line": 162,
+              "column": 3
+            },
+            {
+              "title": "6. Stage Appearance panel has all reset buttons",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1432,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "  [test6] All 6 reset buttons found\n"
+                        },
+                        {
+                          "text": "  [test6] After Reset All — color: #ffffff font: 'Courier New', monospace size: 22\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-25T20:17:02.785Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4014eef54db418e35279-2857684ce08229c6b2d4",
+              "file": "all-features.spec.js",
+              "line": 178,
+              "column": 3
+            },
+            {
+              "title": "7. Timer Font Reset button works",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1300,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "  [test7] Timer Font reset works\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-25T20:17:04.234Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4014eef54db418e35279-216d765fe62ff9f3db36",
+              "file": "all-features.spec.js",
+              "line": 217,
+              "column": 3
+            },
+            {
+              "title": "8. Clock Font Reset button works",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1193,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "  [test8] Clock Font reset works\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-25T20:17:05.555Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4014eef54db418e35279-5918b61c07c3bb5c1153",
+              "file": "all-features.spec.js",
+              "line": 242,
+              "column": 3
+            },
+            {
+              "title": "9. Script tags use cache-busting versions",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 747,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "  [test9] v=2 scripts: \u001b[33m0\u001b[39m versioned scripts: \u001b[33m11\u001b[39m\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-25T20:17:06.767Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4014eef54db418e35279-5d3ca79ff3928cbf8ae8",
+              "file": "all-features.spec.js",
+              "line": 266,
+              "column": 3
+            },
+            {
+              "title": "10. Stage display loads",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3895,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "  [test10] Stage countdown elements: \u001b[33m0\u001b[39m\n"
+                        },
+                        {
+                          "text": "  [test10] Stage page title: B1G Timer - Stage Display\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-25T20:17:07.534Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4014eef54db418e35279-9c1b424a11b712a761de",
+              "file": "all-features.spec.js",
+              "line": 283,
+              "column": 3
+            },
+            {
+              "title": "11. Toggle button removed from timer cards",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1945,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "  [test11] Toggle buttons found: \u001b[33m0\u001b[39m\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-25T20:17:11.449Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4014eef54db418e35279-0bc4a8d21220d474c9e2",
+              "file": "all-features.spec.js",
+              "line": 303,
+              "column": 3
+            },
+            {
+              "title": "12. Timer card has play button, settings, and context menu",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1964,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "  [test12] Timer card structure valid\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-25T20:17:13.415Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4014eef54db418e35279-ccc49a7a0152d4c34402",
+              "file": "all-features.spec.js",
+              "line": 318,
+              "column": 3
+            },
+            {
+              "title": "13. Marker flag position updates with timer",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3217,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "  [test13] Marker flag visible and positioned\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-25T20:17:15.401Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4014eef54db418e35279-7d10ce5b207ede598d08",
+              "file": "all-features.spec.js",
+              "line": 339,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "feature-coverage.spec.js",
+      "file": "feature-coverage.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "B1G Timer – Feature Coverage",
+          "file": "feature-coverage.spec.js",
+          "line": 91,
+          "column": 6,
+          "specs": [
+            {
+              "title": "Timer cards display title, type pill, start-time, and control buttons",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1987,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "  [helper] selected room 6\n"
+                        },
+                        {
+                          "text": "  [test5] first card title: DEVOTION\n"
+                        },
+                        {
+                          "text": "  [test5] tc-info width: 307.1px\n"
+                        },
+                        {
+                          "text": "  [test5] first card duration: 20:00\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-25T20:17:18.651Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ed0cce4f424f3b048bf4-93ce154e4baaf83e1eef",
+              "file": "feature-coverage.spec.js",
+              "line": 94,
+              "column": 3
+            },
+            {
+              "title": "Clicking a different timer card while running stops the current timer first",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3638,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "  [helper] selected room 6\n"
+                        },
+                        {
+                          "text": "  [test6] Timer 1 started\n"
+                        },
+                        {
+                          "text": "  [test6] active timer before switch: DEVOTION\n"
+                        },
+                        {
+                          "text": "  [test6] captured TIMER_STOP logs: \u001b[33m2\u001b[39m\n"
+                        },
+                        {
+                          "text": "  [test6] active card after switch: Timer 2\n"
+                        },
+                        {
+                          "text": "  [test6] preview countdown after switch: 10:00 → 600.0s\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-25T20:17:20.659Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ed0cce4f424f3b048bf4-91c246dbe3334fdaa8a7",
+              "file": "feature-coverage.spec.js",
+              "line": 134,
+              "column": 3
+            },
+            {
+              "title": "Reset button restores timer to full duration and shows play icon",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 6311,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "  [helper] selected room 6\n"
+                        },
+                        {
+                          "text": "  [test7] full duration: 20:00 → 1200.0s\n"
+                        },
+                        {
+                          "text": "  [test7] running at: 19:57 → 1197.0s\n"
+                        },
+                        {
+                          "text": "  [test7] TIMER_RESET logs: \u001b[33m2\u001b[39m\n"
+                        },
+                        {
+                          "text": "  [test7] after reset: 20:00 → 1200.0s\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-25T20:17:24.315Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ed0cce4f424f3b048bf4-621accc276cc59772816",
+              "file": "feature-coverage.spec.js",
+              "line": 195,
+              "column": 3
+            },
+            {
+              "title": "Message Show toggle broadcasts MESSAGE_SHOW and MESSAGE_HIDE",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3951,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "  [helper] selected room 6\n"
+                        },
+                        {
+                          "text": "  [test8] MESSAGE_SHOW logs: \u001b[33m2\u001b[39m\n"
+                        },
+                        {
+                          "text": "  [test8] MESSAGE_HIDE logs: \u001b[33m2\u001b[39m\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-25T20:17:30.656Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ed0cce4f424f3b048bf4-65caeb71f20887290bbc",
+              "file": "feature-coverage.spec.js",
+              "line": 246,
+              "column": 3
+            },
+            {
+              "title": "Focus button broadcasts FLASH_TRIGGER event",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2282,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "  [helper] selected room 6\n"
+                        },
+                        {
+                          "text": "  [test9] FLASH_TRIGGER logs: \u001b[33m1\u001b[39m\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-25T20:17:34.628Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ed0cce4f424f3b048bf4-e39e799a72e1581d56f1",
+              "file": "feature-coverage.spec.js",
+              "line": 290,
+              "column": 3
+            },
+            {
+              "title": "Blackout button broadcasts BLACKOUT_ON then BLACKOUT_OFF",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 5072,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "  [helper] selected room 6\n"
+                        },
+                        {
+                          "text": "  [test10] BLACKOUT_ON logs: \u001b[33m1\u001b[39m\n"
+                        },
+                        {
+                          "text": "  [test10] BLACKOUT_OFF logs: \u001b[33m1\u001b[39m\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-25T20:17:36.927Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ed0cce4f424f3b048bf4-aac7e7fe9eac56992690",
+              "file": "feature-coverage.spec.js",
+              "line": 311,
+              "column": 3
+            },
+            {
+              "title": "Per-card toggle on Timer 2 card starts and pauses Timer 2",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 5193,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "  [helper] selected room 6\n"
+                        },
+                        {
+                          "text": "  [test11] Timer 2 title: Timer 2\n"
+                        },
+                        {
+                          "text": "  [test11] TIMER_START logs after per-card click: \u001b[33m2\u001b[39m\n"
+                        },
+                        {
+                          "text": "  [test11] preview title after per-card start: Timer 2\n"
+                        },
+                        {
+                          "text": "  [test11] TIMER_PAUSE logs after per-card click: \u001b[33m1\u001b[39m\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-25T20:17:42.020Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ed0cce4f424f3b048bf4-c4ca6a1182b0e68dba99",
+              "file": "feature-coverage.spec.js",
+              "line": 351,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "skip-and-refresh.spec.js",
+      "file": "skip-and-refresh.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "B1G Timer – Skip & Refresh",
+          "file": "skip-and-refresh.spec.js",
+          "line": 79,
+          "column": 6,
+          "specs": [
+            {
+              "title": "Next button starts the new timer on the stage (not 0:00)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 11640,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "  [test1] clicked Next\n"
+                        },
+                        {
+                          "text": "  [test1] stage countdown after Next: 599.0s\n"
+                        },
+                        {
+                          "text": "  [test1] stage countdown +2.5s: 597.0s\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-25T20:17:47.251Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "fc0a8c94b9f1ee978435-21d8f3b0464e30e087c2",
+              "file": "skip-and-refresh.spec.js",
+              "line": 82,
+              "column": 3
+            },
+            {
+              "title": "Previous button starts the previous timer on the stage",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 12421,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "  [test2] clicked Previous\n"
+                        },
+                        {
+                          "text": "  [test2] stage countdown after Previous: 1200.0s\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-25T20:17:58.914Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "fc0a8c94b9f1ee978435-e20d07608c9af51089df",
+              "file": "skip-and-refresh.spec.js",
+              "line": 132,
+              "column": 3
+            },
+            {
+              "title": "Stage refresh while timer is running resumes the countdown",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 13138,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "  [test3] before refresh: 1198.0s\n"
+                        },
+                        {
+                          "text": "  [test3] after refresh +2.5s: 1195.0s\n"
+                        },
+                        {
+                          "text": "  [test3] after refresh +5s: 1193.0s\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-25T20:18:11.359Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "fc0a8c94b9f1ee978435-dea252eaa1b179b2c7ec",
+              "file": "skip-and-refresh.spec.js",
+              "line": 180,
+              "column": 3
+            },
+            {
+              "title": "Stage refresh while paused shows the paused remaining time",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 9124,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThan\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: < \u001b[32m3\u001b[39m\nReceived:   \u001b[31m599\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThan\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: < \u001b[32m3\u001b[39m\nReceived:   \u001b[31m599\u001b[39m\n    at C:\\xampp\\htdocs\\B1G_TIMER\\tests\\skip-and-refresh.spec.js:284:42",
+                        "location": {
+                          "file": "C:\\xampp\\htdocs\\B1G_TIMER\\tests\\skip-and-refresh.spec.js",
+                          "column": 42,
+                          "line": 284
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 282 |\u001b[39m\n \u001b[90m 283 |\u001b[39m     \u001b[90m// Should be close to the dashboard value (within 3 seconds tolerance)\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 284 |\u001b[39m     expect(\u001b[33mMath\u001b[39m\u001b[33m.\u001b[39mabs(stageSec \u001b[33m-\u001b[39m dashSec))\u001b[33m.\u001b[39mtoBeLessThan(\u001b[35m3\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                          \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 285 |\u001b[39m\n \u001b[90m 286 |\u001b[39m     \u001b[90m// Confirm it's NOT counting (paused) — wait 2s and check again\u001b[39m\n \u001b[90m 287 |\u001b[39m     \u001b[36mawait\u001b[39m stage\u001b[33m.\u001b[39mwaitForTimeout(\u001b[35m2\u001b[39m_000)\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\xampp\\htdocs\\B1G_TIMER\\tests\\skip-and-refresh.spec.js",
+                            "column": 42,
+                            "line": 284
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeLessThan\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: < \u001b[32m3\u001b[39m\nReceived:   \u001b[31m599\u001b[39m\n\n  282 |\n  283 |     // Should be close to the dashboard value (within 3 seconds tolerance)\n> 284 |     expect(Math.abs(stageSec - dashSec)).toBeLessThan(3);\n      |                                          ^\n  285 |\n  286 |     // Confirm it's NOT counting (paused) — wait 2s and check again\n  287 |     await stage.waitForTimeout(2_000);\n    at C:\\xampp\\htdocs\\B1G_TIMER\\tests\\skip-and-refresh.spec.js:284:42"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "  [test4] dashboard paused at: 1198.0s\n"
+                        },
+                        {
+                          "text": "  [test4] stage after refresh: 599.0s\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-25T20:18:24.524Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\xampp\\htdocs\\B1G_TIMER\\test-results\\skip-and-refresh-B1G-Timer-8ba53-s-the-paused-remaining-time-chromium\\test-failed-2.png"
+                        },
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\xampp\\htdocs\\B1G_TIMER\\test-results\\skip-and-refresh-B1G-Timer-8ba53-s-the-paused-remaining-time-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\xampp\\htdocs\\B1G_TIMER\\test-results\\skip-and-refresh-B1G-Timer-8ba53-s-the-paused-remaining-time-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\xampp\\htdocs\\B1G_TIMER\\tests\\skip-and-refresh.spec.js",
+                        "column": 42,
+                        "line": 284
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "fc0a8c94b9f1ee978435-806c6e6208c97d562d1d",
+              "file": "skip-and-refresh.spec.js",
+              "line": 241,
+              "column": 3
+            },
+            {
+              "title": "TIMER_START broadcast includes deadlineTimestamp in BroadcastChannel",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1466,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "  [test5] TIMER_START has deadlineTimestamp: \u001b[33mtrue\u001b[39m\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-25T20:18:36.350Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "fc0a8c94b9f1ee978435-b8efbc47b268ca06dfd0",
+              "file": "skip-and-refresh.spec.js",
+              "line": 293,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "stage-fullscreen-pip.spec.js",
+      "file": "stage-fullscreen-pip.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Stage Display – Fullscreen & PiP",
+          "file": "stage-fullscreen-pip.spec.js",
+          "line": 20,
+          "column": 6,
+          "specs": [
+            {
+              "title": "1. Fullscreen and PiP buttons exist in DOM",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2568,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "  [test1] Fullscreen & PiP buttons found\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-25T20:18:38.346Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "cf4221aca82e02936a78-8c2e8930253b21ce0528",
+              "file": "stage-fullscreen-pip.spec.js",
+              "line": 22,
+              "column": 3
+            },
+            {
+              "title": "2. Buttons have correct titles",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2596,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "  [test2] Titles correct: Toggle Fullscreen | Picture-in-Picture\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-25T20:18:40.945Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "cf4221aca82e02936a78-08a84fbdefb56b2d39bd",
+              "file": "stage-fullscreen-pip.spec.js",
+              "line": 36,
+              "column": 3
+            },
+            {
+              "title": "3. Utils bar becomes visible on hover",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3241,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "  [test3] Utils bar opacity before: 0 after: 1\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-25T20:18:43.564Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "cf4221aca82e02936a78-21bac899defba05024b8",
+              "file": "stage-fullscreen-pip.spec.js",
+              "line": 48,
+              "column": 3
+            },
+            {
+              "title": "4. Fullscreen button has expand icon initially",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2606,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "  [test4] Fullscreen icon is fa-expand\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-25T20:18:46.826Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "cf4221aca82e02936a78-3d81596a0b7e7390ae3e",
+              "file": "stage-fullscreen-pip.spec.js",
+              "line": 71,
+              "column": 3
+            },
+            {
+              "title": "5. PiP button has clone icon",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2663,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "  [test5] PiP icon is fa-clone\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-25T20:18:49.454Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "cf4221aca82e02936a78-13978735df64387aa812",
+              "file": "stage-fullscreen-pip.spec.js",
+              "line": 81,
+              "column": 3
+            },
+            {
+              "title": "6. Fullscreen button triggers requestFullscreen",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2829,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "  [test6] requestFullscreen was called: \u001b[33mtrue\u001b[39m\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-25T20:18:52.139Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "cf4221aca82e02936a78-5e2724fa928ddc837874",
+              "file": "stage-fullscreen-pip.spec.js",
+              "line": 91,
+              "column": 3
+            },
+            {
+              "title": "7. PiP button click does not throw errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3912,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "  [test7] No uncaught errors from PiP click\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-25T20:18:54.984Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "cf4221aca82e02936a78-f6d583332a43bd679eba",
+              "file": "stage-fullscreen-pip.spec.js",
+              "line": 119,
+              "column": 3
+            },
+            {
+              "title": "8. Fullscreen icon updates on fullscreenchange event",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3364,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "  [test8] Fullscreen icon toggles: compress ↔ expand\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-25T20:18:58.916Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "cf4221aca82e02936a78-ccfc59fec7773532e379",
+              "file": "stage-fullscreen-pip.spec.js",
+              "line": 141,
+              "column": 3
+            },
+            {
+              "title": "9. PiP shows only timer and clock (no timer name)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2607,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "  [test9] PiP content: {\n  hasPipCountdown: \u001b[33mtrue\u001b[39m,\n  hasPipClock: \u001b[33mtrue\u001b[39m,\n  hasNoPipName: \u001b[33mtrue\u001b[39m,\n  usesTimeOfDay: \u001b[33mtrue\u001b[39m,\n  whiteSpaceNowrap: \u001b[33mtrue\u001b[39m\n}\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-25T20:19:02.308Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "cf4221aca82e02936a78-f0d84b8b9235b5a2d3d3",
+              "file": "stage-fullscreen-pip.spec.js",
+              "line": 181,
+              "column": 3
+            },
+            {
+              "title": "10. PiP responsive font sizing scales with dimensions",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2750,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "  [test10] PiP font sizes: {\"small\":{\"countdown\":40,\"clock\":12},\"medium\":{\"countdown\":80,\"clock\":24},\"large\":{\"countdown\":160,\"clock\":48},\"wide\":{\"countdown\":78,\"clock\":24},\"tall\":{\"countdown\":40,\"clock\":12}}\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-25T20:19:04.950Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "cf4221aca82e02936a78-6f212a426dfcc6fa5dbb",
+              "file": "stage-fullscreen-pip.spec.js",
+              "line": 205,
+              "column": 3
+            },
+            {
+              "title": "11. PiP togglePiP method has resize event listener",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2676,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "  [test11] PiP has resize event listener: \u001b[33mtrue\u001b[39m\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-25T20:19:07.725Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "cf4221aca82e02936a78-82c6ce48508d82394a69",
+              "file": "stage-fullscreen-pip.spec.js",
+              "line": 246,
+              "column": 3
+            },
+            {
+              "title": "12. Canvas fallback uses responsive font sizing with clock",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2639,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "  [test12] Canvas fallback responsive: {\n  hasMathMin: \u001b[33mtrue\u001b[39m,\n  hasMathMax: \u001b[33mtrue\u001b[39m,\n  hasCountdownFont: \u001b[33mtrue\u001b[39m,\n  hasClockFont: \u001b[33mtrue\u001b[39m,\n  usesTimeOfDay: \u001b[33mtrue\u001b[39m,\n  noTimerName: \u001b[33mtrue\u001b[39m\n}\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-25T20:19:10.425Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "cf4221aca82e02936a78-29146aa6fda68cbc40c4",
+              "file": "stage-fullscreen-pip.spec.js",
+              "line": 260,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "timeline-scrubber.spec.js",
+      "file": "timeline-scrubber.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Timeline Scrubber",
+          "file": "timeline-scrubber.spec.js",
+          "line": 69,
+          "column": 6,
+          "specs": [
+            {
+              "title": "1. Scrubber elements exist in DOM",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2025,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-25T20:19:13.094Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "cac66673045b79abdd6a-494b127573ed763759d8",
+              "file": "timeline-scrubber.spec.js",
+              "line": 77,
+              "column": 3
+            },
+            {
+              "title": "2. Hover shows red line and tooltip",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3795,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "  [test2] Scrubber tooltip: 13:01\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-25T20:19:15.144Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "cac66673045b79abdd6a-7ecd08b7ae210949dbd6",
+              "file": "timeline-scrubber.spec.js",
+              "line": 93,
+              "column": 3
+            },
+            {
+              "title": "3. Mouse leave hides scrubber elements",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 13784,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('#scrub-hover-line')\nExpected: visible\nReceived: hidden\nTimeout:  10000ms\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('#scrub-hover-line')\u001b[22m\n\u001b[2m    13 × locator resolved to <div id=\"scrub-hover-line\" class=\"scrub-hover-line\"></div>\u001b[22m\n\u001b[2m       - unexpected value \"hidden\"\u001b[22m\n",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('#scrub-hover-line')\nExpected: visible\nReceived: hidden\nTimeout:  10000ms\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('#scrub-hover-line')\u001b[22m\n\u001b[2m    13 × locator resolved to <div id=\"scrub-hover-line\" class=\"scrub-hover-line\"></div>\u001b[22m\n\u001b[2m       - unexpected value \"hidden\"\u001b[22m\n\n    at C:\\xampp\\htdocs\\B1G_TIMER\\tests\\timeline-scrubber.spec.js:127:29",
+                        "location": {
+                          "file": "C:\\xampp\\htdocs\\B1G_TIMER\\tests\\timeline-scrubber.spec.js",
+                          "column": 29,
+                          "line": 127
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 125 |\u001b[39m     \u001b[36mawait\u001b[39m wrap\u001b[33m.\u001b[39mhover({ position\u001b[33m:\u001b[39m { x\u001b[33m:\u001b[39m \u001b[35m200\u001b[39m\u001b[33m,\u001b[39m y\u001b[33m:\u001b[39m \u001b[35m12\u001b[39m } })\u001b[33m;\u001b[39m\n \u001b[90m 126 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mwaitForTimeout(\u001b[35m200\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 127 |\u001b[39m     \u001b[36mawait\u001b[39m expect(hoverLine)\u001b[33m.\u001b[39mtoBeVisible()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 128 |\u001b[39m\n \u001b[90m 129 |\u001b[39m     \u001b[90m// Move away from the progress bar\u001b[39m\n \u001b[90m 130 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mlocator(\u001b[32m'#preview-display'\u001b[39m)\u001b[33m.\u001b[39mhover()\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\xampp\\htdocs\\B1G_TIMER\\tests\\timeline-scrubber.spec.js",
+                            "column": 29,
+                            "line": 127
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator:  locator('#scrub-hover-line')\nExpected: visible\nReceived: hidden\nTimeout:  10000ms\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('#scrub-hover-line')\u001b[22m\n\u001b[2m    13 × locator resolved to <div id=\"scrub-hover-line\" class=\"scrub-hover-line\"></div>\u001b[22m\n\u001b[2m       - unexpected value \"hidden\"\u001b[22m\n\n\n  125 |     await wrap.hover({ position: { x: 200, y: 12 } });\n  126 |     await page.waitForTimeout(200);\n> 127 |     await expect(hoverLine).toBeVisible();\n      |                             ^\n  128 |\n  129 |     // Move away from the progress bar\n  130 |     await page.locator('#preview-display').hover();\n    at C:\\xampp\\htdocs\\B1G_TIMER\\tests\\timeline-scrubber.spec.js:127:29"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-25T20:19:18.962Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\xampp\\htdocs\\B1G_TIMER\\test-results\\timeline-scrubber-Timeline-1d4df-ave-hides-scrubber-elements-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\xampp\\htdocs\\B1G_TIMER\\test-results\\timeline-scrubber-Timeline-1d4df-ave-hides-scrubber-elements-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\xampp\\htdocs\\B1G_TIMER\\tests\\timeline-scrubber.spec.js",
+                        "column": 29,
+                        "line": 127
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "cac66673045b79abdd6a-8853ad3e9cf8ed033f93",
+              "file": "timeline-scrubber.spec.js",
+              "line": 117,
+              "column": 3
+            },
+            {
+              "title": "4. Click-to-scrub adjusts timer remaining time",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 4843,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "  [test4] Before scrub: 20:00.1\n"
+                        },
+                        {
+                          "text": "  [test4] After scrub: 5:01.0\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-25T20:19:35.206Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "cac66673045b79abdd6a-7b14c523dde35b5d6393",
+              "file": "timeline-scrubber.spec.js",
+              "line": 139,
+              "column": 3
+            },
+            {
+              "title": "5. Tooltip shows correct time for position",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 4109,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "  [test5] Near 100%: 19:01\n"
+                        },
+                        {
+                          "text": "  [test5] Near 0%: 0:59\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-25T20:19:40.566Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "cac66673045b79abdd6a-488f6b630e1b82b8c03f",
+              "file": "timeline-scrubber.spec.js",
+              "line": 164,
+              "column": 3
+            },
+            {
+              "title": "6. Progress bar has cursor:pointer style",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2065,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-25T20:19:44.706Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "cac66673045b79abdd6a-4b9891ad569a339ddcc7",
+              "file": "timeline-scrubber.spec.js",
+              "line": 189,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "timer-sync.spec.js",
+      "file": "timer-sync.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "B1G Timer – Persistence & Sync",
+          "file": "timer-sync.spec.js",
+          "line": 97,
+          "column": 6,
+          "specs": [
+            {
+              "title": "Stage display shows AND continues a running countdown after dashboard starts a timer",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 8367,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "  [helper] selected room 6\n"
+                        },
+                        {
+                          "text": "  [test1] clicked #btn-play-pause\n"
+                        },
+                        {
+                          "text": "  [test1] stage countdown at T=0: 1200.0s\n"
+                        },
+                        {
+                          "text": "  [test1] stage countdown at T+2.5s: 1198.0s\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-25T20:19:46.811Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ece2b3e687d86444e3ca-9dc94f897df213c4a005",
+              "file": "timer-sync.spec.js",
+              "line": 100,
+              "column": 3
+            },
+            {
+              "title": "Dashboard refresh resumes the timer from the correct second (deadline arch.)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 9674,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "  [helper] selected room 6\n"
+                        },
+                        {
+                          "text": "  [test2] before reload: 19:57 → 1197.0 s\n"
+                        },
+                        {
+                          "text": "  [test2] after reload T=0: 19:55 → 1195.0 s\n"
+                        },
+                        {
+                          "text": "  [test2] after reload T+2.5s: 19:52 → 1192.0 s\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-25T20:19:55.213Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ece2b3e687d86444e3ca-8743e4947a894ac92278",
+              "file": "timer-sync.spec.js",
+              "line": 147,
+              "column": 3
+            },
+            {
+              "title": "data-toggle-timer card button toggles play/pause on both screens",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 6317,
+                      "errors": [],
+                      "stdout": [
+                        {
+                          "text": "  [helper] selected room 6\n"
+                        },
+                        {
+                          "text": "  [test3] clicked toggle (start)\n"
+                        },
+                        {
+                          "text": "  [test3] clicked toggle (pause)\n"
+                        },
+                        {
+                          "text": "  [test3] clicked toggle (resume)\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-25T20:20:04.913Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ece2b3e687d86444e3ca-5ceaedd135d82844fb3d",
+              "file": "timer-sync.spec.js",
+              "line": 198,
+              "column": 3
+            },
+            {
+              "title": "Stage in a different browser context syncs running timer from server API",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 5736,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThan\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: > \u001b[32m1\u001b[39m\nReceived:   \u001b[31m0\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThan\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: > \u001b[32m1\u001b[39m\nReceived:   \u001b[31m0\u001b[39m\n    at C:\\xampp\\htdocs\\B1G_TIMER\\tests\\timer-sync.spec.js:302:37",
+                        "location": {
+                          "file": "C:\\xampp\\htdocs\\B1G_TIMER\\tests\\timer-sync.spec.js",
+                          "column": 37,
+                          "line": 302
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 300 |\u001b[39m       \u001b[36mconst\u001b[39m stageSec2 \u001b[33m=\u001b[39m parseCountdownSeconds(\u001b[36mawait\u001b[39m stage\u001b[33m.\u001b[39mlocator(\u001b[32m'#countdown'\u001b[39m)\u001b[33m.\u001b[39mtextContent())\u001b[33m;\u001b[39m\n \u001b[90m 301 |\u001b[39m       console\u001b[33m.\u001b[39mlog(\u001b[32m'  [test4] stage at T+2.5s:'\u001b[39m\u001b[33m,\u001b[39m stageSec2\u001b[33m.\u001b[39mtoFixed(\u001b[35m1\u001b[39m)\u001b[33m,\u001b[39m \u001b[32m's'\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 302 |\u001b[39m       expect(stageSec0 \u001b[33m-\u001b[39m stageSec2)\u001b[33m.\u001b[39mtoBeGreaterThan(\u001b[35m1\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                                     \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 303 |\u001b[39m\n \u001b[90m 304 |\u001b[39m       \u001b[90m// ── Pause via dashboard, stage should stop ───────────────────────────\u001b[39m\n \u001b[90m 305 |\u001b[39m       \u001b[36mawait\u001b[39m dashboard\u001b[33m.\u001b[39mclick(\u001b[32m'#btn-play-pause'\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\xampp\\htdocs\\B1G_TIMER\\tests\\timer-sync.spec.js",
+                            "column": 37,
+                            "line": 302
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThan\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: > \u001b[32m1\u001b[39m\nReceived:   \u001b[31m0\u001b[39m\n\n  300 |       const stageSec2 = parseCountdownSeconds(await stage.locator('#countdown').textContent());\n  301 |       console.log('  [test4] stage at T+2.5s:', stageSec2.toFixed(1), 's');\n> 302 |       expect(stageSec0 - stageSec2).toBeGreaterThan(1);\n      |                                     ^\n  303 |\n  304 |       // ── Pause via dashboard, stage should stop ───────────────────────────\n  305 |       await dashboard.click('#btn-play-pause');\n    at C:\\xampp\\htdocs\\B1G_TIMER\\tests\\timer-sync.spec.js:302:37"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "  [helper] selected room 6\n"
+                        },
+                        {
+                          "text": "  [test4] dashboard running at: 19:59 → 1199.0 s\n"
+                        },
+                        {
+                          "text": "  [test4] stage synced at: 1199.0 s\n"
+                        },
+                        {
+                          "text": "  [test4] stage at T+2.5s: 1199.0 s\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-03-25T20:20:11.260Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\xampp\\htdocs\\B1G_TIMER\\test-results\\timer-sync-B1G-Timer-–-Per-da34e-nning-timer-from-server-API-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\xampp\\htdocs\\B1G_TIMER\\test-results\\timer-sync-B1G-Timer-–-Per-da34e-nning-timer-from-server-API-chromium\\test-failed-2.png"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\xampp\\htdocs\\B1G_TIMER\\tests\\timer-sync.spec.js",
+                        "column": 37,
+                        "line": 302
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "ece2b3e687d86444e3ca-260afb5ed60bb7e8f5d5",
+              "file": "timer-sync.spec.js",
+              "line": 255,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-03-25T20:16:48.795Z",
+    "duration": 208669.279,
+    "expected": 44,
+    "skipped": 0,
+    "unexpected": 3,
+    "flaky": 0
+  }
+}

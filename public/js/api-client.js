@@ -94,7 +94,7 @@ const APIClient = {
                 this._broadcastChannels[roomId] = new BroadcastChannel('b1g-timer-room-' + roomId);
                 // Listen for SYNC_REQUEST from stage displays
                 this._broadcastChannels[roomId].onmessage = (event) => {
-                    const { action } = event.data || {};
+                    const { action, data } = event.data || {};
                     if (action === 'SYNC_REQUEST' && typeof StateManager !== 'undefined') {
                         const state = StateManager.state;
                         if (state.selectedRoomId != null) {
@@ -102,6 +102,7 @@ const APIClient = {
                                 isRunning: state.isRunning,
                                 currentTimerIndex: state.currentTimerIndex,
                                 remainingSeconds: state.currentTimerRemainingSeconds,
+                                deadlineTimestamp: state.deadlineTimestamp || null,
                                 startedAt: state.currentTimerStartTime,
                                 timerTitle: (state.timers[state.currentTimerIndex] || {}).title || ''
                             };
@@ -126,6 +127,29 @@ const APIClient = {
                                 }
                                 console.log('[APIClient] Responded to SYNC_REQUEST with current state');
                             } catch (e) { /* ignore */ }
+                        }
+                    }
+                    // Handle commands from stage display transport controls
+                    if (action === 'STAGE_COMMAND' && data && data.command && typeof TimerEngine !== 'undefined') {
+                        console.log('[APIClient] Received STAGE_COMMAND:', data.command);
+                        switch (data.command) {
+                            case 'PREVIOUS_TIMER':
+                                TimerEngine.skipToPrevious();
+                                break;
+                            case 'NEXT_TIMER':
+                                TimerEngine.skipToNext();
+                                break;
+                            case 'PLAY_PAUSE':
+                                if (typeof ControlDashboard !== 'undefined') {
+                                    ControlDashboard.togglePlayPause();
+                                } else if (StateManager.state.isRunning) {
+                                    TimerEngine.pause();
+                                } else if (StateManager.state.currentTimerStartTime) {
+                                    TimerEngine.resume();
+                                } else {
+                                    TimerEngine.start(StateManager.state.currentTimerIndex || 0);
+                                }
+                                break;
                         }
                     }
                 };
@@ -172,6 +196,18 @@ const APIClient = {
     async getHealth() {
         const response = await this.request('GET', '/health');
         return response.data;
+    },
+
+    /**
+     * Get current live timer state for a room (used by Stage for cross-browser sync / polling fallback)
+     */
+    async getState(roomId) {
+        try {
+            const response = await this.request('GET', `/state?room=${encodeURIComponent(roomId)}`);
+            return response.data || null;
+        } catch (e) {
+            return null;
+        }
     }
 };
 
