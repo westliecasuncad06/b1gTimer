@@ -64,6 +64,12 @@ try {
             ADD COLUMN IF NOT EXISTS `stage_style_json`   TEXT         NULL     DEFAULT NULL AFTER `state_json`");
     } catch (Exception $e) { /* columns already present */ }
 
+    // Migrate: ensure message_json column exists
+    try {
+        $pdo->exec("ALTER TABLE `timer_live_state`
+            ADD COLUMN IF NOT EXISTS `message_json` TEXT NULL DEFAULT NULL AFTER `stage_style_json`");
+    } catch (Exception $e) { /* column already exists */ }
+
     $stmt = $pdo->prepare('SELECT * FROM timer_live_state WHERE room_id = ?');
     $stmt->execute([$room_id]);
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -88,6 +94,14 @@ try {
             $style = json_decode($row['stage_style_json'], true);
             if ($style) {
                 $response['stageStyle'] = $style;
+            }
+        }
+
+        // Include active message if stored
+        if (!empty($row['message_json'])) {
+            $msg = json_decode($row['message_json'], true);
+            if ($msg) {
+                $response['activeMessage'] = $msg;
             }
         }
 

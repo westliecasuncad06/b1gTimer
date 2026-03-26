@@ -109,7 +109,7 @@ const StateManager = {
      */
     setCurrentRoom(room) {
         this.state.currentRoom = room;
-        this.state.timers = room.timers || [];
+        this.state.timers = (room && room.timers) ? room.timers : [];
         this.emit('timer-list-changed', { timers: this.state.timers });
     },
     

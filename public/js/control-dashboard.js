@@ -649,7 +649,15 @@ const ControlDashboard = {
             if (titleEl) titleEl.textContent = name;
             const roomId = StateManager.state.selectedRoomId;
             if (roomId) {
-                localStorage.setItem('b1g_dashboard_name_room_' + roomId, name);
+                try {
+                    await APIClient.updateDashboardName(roomId, name);
+                    // Update local room data
+                    if (StateManager.state.currentRoom) {
+                        StateManager.state.currentRoom.dashboard_name = name;
+                    }
+                } catch (e) {
+                    console.warn('[ControlDashboard] Failed to save dashboard name to DB:', e.message);
+                }
             }
             this.showToast('Dashboard name saved!', 'success');
         }
@@ -659,9 +667,8 @@ const ControlDashboard = {
         const roomId = StateManager.state.selectedRoomId;
         const titleEl = document.getElementById('dashboard-title');
         if (!titleEl) return;
-        if (roomId) {
-            const saved = localStorage.getItem('b1g_dashboard_name_room_' + roomId);
-            titleEl.textContent = saved || 'Dashboard';
+        if (roomId && StateManager.state.currentRoom && StateManager.state.currentRoom.dashboard_name) {
+            titleEl.textContent = StateManager.state.currentRoom.dashboard_name;
         } else {
             titleEl.textContent = 'Dashboard';
         }

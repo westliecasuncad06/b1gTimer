@@ -43,6 +43,10 @@ const RoomManager = {
             const room = await APIClient.getRoom(roomId);
             StateManager.setCurrentRoom(room);
             StateManager.setSelectedRoom(roomId);
+            
+            // Keep the DOM selector in sync
+            const domSelector = document.getElementById('room-selector');
+            if (domSelector) domSelector.value = roomId;
 
             // Reset timer state only when user deliberately switches rooms,
             // NOT when restoring the same room after a page refresh
@@ -150,20 +154,39 @@ const RoomManager = {
      */
     async deleteRoom(roomId) {
         try {
-            const confirmed = await ControlDashboard.showConfirm('Delete Room', 'Are you sure you want to delete this room and all its timers?', true);
+            const confirmed = await ControlDashboard.showDialog({
+                title: 'Delete Room',
+                message: 'Are you sure you want to delete this room and all its timers? This cannot be undone.',
+                confirmText: 'Yes, Delete',
+                cancelText: 'No',
+                danger: true
+            });
             if (!confirmed) {
                 return false;
             }
             
             await APIClient.deleteRoom(roomId);
             
-            // Reload rooms list
-            await this.loadRooms();
-            
-            // Unsubscribe from room
+            // Unsubscribe from Pusher channel for deleted room
             PusherManager.unsubscribeFromRoom();
-            StateManager.setCurrentRoom(null);
-            
+
+            // Clear room state without calling setCurrentRoom(null)
+            StateManager.state.currentRoom = null;
+            StateManager.state.timers = [];
+            StateManager.state.selectedRoomId = null;
+            StateManager.state.currentTimerIndex = 0;
+            StateManager.state.currentTimerRemainingSeconds = 0;
+            StateManager.state.isRunning = false;
+            StateManager.emit('timer-list-changed', { timers: [] });
+
+            // Reload rooms list (repopulates selector)
+            await this.loadRooms();
+
+            // Clear the room selector selection
+            const selector = document.getElementById('room-selector');
+            if (selector) selector.value = '';
+
+            this.renderTimerList([]);
             this.showSuccess('Room deleted successfully.');
             return true;
         } catch (error) {

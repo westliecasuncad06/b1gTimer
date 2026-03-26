@@ -119,7 +119,7 @@ try {
     ];
     
     // ── Save live timer state to DB (enables cross-browser polling) ──────────
-    $tracked_actions = ['TIMER_START', 'TIMER_PAUSE', 'TIMER_RESUME', 'TIMER_STOP', 'TIMER_RESET', 'NEXT_TIMER', 'PREVIOUS_TIMER', 'TIME_ADJUSTMENT', 'STAGE_STYLE_UPDATE'];
+    $tracked_actions = ['TIMER_START', 'TIMER_PAUSE', 'TIMER_RESUME', 'TIMER_STOP', 'TIMER_RESET', 'NEXT_TIMER', 'PREVIOUS_TIMER', 'TIME_ADJUSTMENT', 'STAGE_STYLE_UPDATE', 'MESSAGE_SHOW', 'MESSAGE_HIDE'];
     if (in_array($action, $tracked_actions)) {
         try {
             // Guarantee the table exists (matches database/schema.sql definition)
@@ -154,6 +154,12 @@ try {
             // Use Asia/Manila timezone for human-readable timestamps stored in JSON
             date_default_timezone_set('Asia/Manila');
 
+            // Migrate: add message columns if missing
+            try {
+                $pdo->exec("ALTER TABLE `timer_live_state`
+                    ADD COLUMN IF NOT EXISTS `message_json` TEXT NULL DEFAULT NULL AFTER `stage_style_json`");
+            } catch (Exception $msg_alter) { /* column already exists */ }
+
             // STAGE_STYLE_UPDATE: persist style only (don't overwrite timer state)
             if ($action === 'STAGE_STYLE_UPDATE') {
                 $style_json = json_encode($payload);
@@ -166,6 +172,29 @@ try {
                                    updated_at       = NOW()")
                     ->execute([$room_id, $style_json]);
                 // Skip the normal timer-state insert/update below
+                goto pusher_broadcast;
+            }
+
+            // MESSAGE_SHOW / MESSAGE_HIDE: persist message state (don't overwrite timer state)
+            if ($action === 'MESSAGE_SHOW') {
+                $msg_json = json_encode($payload);
+                $pdo->prepare("INSERT INTO timer_live_state
+                                   (room_id, is_running, state_json, message_json)
+                               VALUES (?, 0, '{}', ?)
+                               ON DUPLICATE KEY UPDATE
+                                   message_json = VALUES(message_json),
+                                   updated_at   = NOW()")
+                    ->execute([$room_id, $msg_json]);
+                goto pusher_broadcast;
+            }
+            if ($action === 'MESSAGE_HIDE') {
+                $pdo->prepare("INSERT INTO timer_live_state
+                                   (room_id, is_running, state_json, message_json)
+                               VALUES (?, 0, '{}', NULL)
+                               ON DUPLICATE KEY UPDATE
+                                   message_json = NULL,
+                                   updated_at   = NOW()")
+                    ->execute([$room_id]);
                 goto pusher_broadcast;
             }
 

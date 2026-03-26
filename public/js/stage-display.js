@@ -820,10 +820,23 @@ const StageDisplay = {
     async syncFromServer(roomId) {
         try {
             const state = await APIClient.getState(roomId);
-            if (!state || !state.action) return;
+            if (!state) return;
             
             console.log('[StageDisplay] Server state:', state);
-            this.applyServerState(state);
+            
+            // Apply timer state if available
+            if (state.action) {
+                this.applyServerState(state);
+            }
+            
+            // Apply active message from server (works even without timer action)
+            if (state.activeMessage) {
+                MessageManager.displayMessageOnStage(state.activeMessage);
+            }
+            // Apply stage style from server
+            if (state.stageStyle) {
+                this.applyStageStyle(state.stageStyle);
+            }
         } catch (e) {
             console.warn('[StageDisplay] Server sync failed:', e.message);
         }
@@ -889,6 +902,14 @@ const StageDisplay = {
         if (state.stageStyle) {
             this.applyStageStyle(state.stageStyle);
         }
+
+        // Apply active message from server (cross-browser sync)
+        if (state.activeMessage) {
+            MessageManager.displayMessageOnStage(state.activeMessage);
+        } else if (state.activeMessage === null) {
+            // Explicitly null means message was hidden
+            MessageManager.hideMessageOnStage();
+        }
     },
 
     /**
@@ -945,6 +966,12 @@ const StageDisplay = {
                 }
                 // Always apply stage style on each poll if present
                 if (state.stageStyle) this.applyStageStyle(state.stageStyle);
+                // Apply active message from server poll
+                if (state.activeMessage) {
+                    MessageManager.displayMessageOnStage(state.activeMessage);
+                } else if (state.activeMessage === null) {
+                    MessageManager.hideMessageOnStage();
+                }
             } catch (e) { /* ignore poll errors */ }
         }, 4000);
     }

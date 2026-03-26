@@ -117,6 +117,22 @@ try {
 }
 
 // ============================================================================
+// HELPER FUNCTIONS
+// ============================================================================
+
+/**
+ * Ensure the dashboard_name column exists on timer_rooms table
+ */
+function ensureDashboardNameColumn($pdo) {
+    static $checked = false;
+    if ($checked) return;
+    try {
+        $pdo->exec("ALTER TABLE timer_rooms ADD COLUMN IF NOT EXISTS dashboard_name VARCHAR(100) NULL DEFAULT NULL AFTER name");
+    } catch (Exception $e) { /* column already exists */ }
+    $checked = true;
+}
+
+// ============================================================================
 // HANDLER FUNCTIONS
 // ============================================================================
 
@@ -129,7 +145,8 @@ try {
 function handleGetRooms() {
     try {
         $pdo = getPDOInstance();
-        $query = 'SELECT id, name, created_at, updated_at FROM timer_rooms ORDER BY created_at DESC';
+        ensureDashboardNameColumn($pdo);
+        $query = 'SELECT id, name, dashboard_name, created_at, updated_at FROM timer_rooms ORDER BY created_at DESC';
         
         $stmt = $pdo->prepare($query);
         $stmt->execute();
@@ -152,8 +169,9 @@ function handleGetRoomDetail($room_id) {
     try {
         $pdo = getPDOInstance();
         
+        ensureDashboardNameColumn($pdo);
         // Fetch room
-        $room_query = 'SELECT id, name, created_at, updated_at FROM timer_rooms WHERE id = ?';
+        $room_query = 'SELECT id, name, dashboard_name, created_at, updated_at FROM timer_rooms WHERE id = ?';
         $room_stmt = $pdo->prepare($room_query);
         $room_stmt->execute([$room_id]);
         $room = $room_stmt->fetch(PDO::FETCH_ASSOC);
@@ -203,16 +221,19 @@ function handleCreateRoom() {
         }
         
         $pdo = getPDOInstance();
+        ensureDashboardNameColumn($pdo);
+        
+        $dashboard_name = isset($body['dashboard_name']) ? trim($body['dashboard_name']) : null;
         
         // Insert room
-        $insert_query = 'INSERT INTO timer_rooms (name, created_at, updated_at) VALUES (?, NOW(), NOW())';
+        $insert_query = 'INSERT INTO timer_rooms (name, dashboard_name, created_at, updated_at) VALUES (?, ?, NOW(), NOW())';
         $insert_stmt = $pdo->prepare($insert_query);
-        $insert_stmt->execute([$name]);
+        $insert_stmt->execute([$name, $dashboard_name]);
         
         $new_room_id = $pdo->lastInsertId();
         
         // Fetch and return newly created room
-        $room_query = 'SELECT id, name, created_at, updated_at FROM timer_rooms WHERE id = ?';
+        $room_query = 'SELECT id, name, dashboard_name, created_at, updated_at FROM timer_rooms WHERE id = ?';
         $room_stmt = $pdo->prepare($room_query);
         $room_stmt->execute([$new_room_id]);
         $room = $room_stmt->fetch(PDO::FETCH_ASSOC);
@@ -250,6 +271,7 @@ function handleUpdateRoom($room_id) {
         }
         
         $pdo = getPDOInstance();
+        ensureDashboardNameColumn($pdo);
         
         // Check if room exists
         $room_check = $pdo->prepare('SELECT id FROM timer_rooms WHERE id = ?');
@@ -276,6 +298,13 @@ function handleUpdateRoom($room_id) {
                 $update_query = 'UPDATE timer_rooms SET name = ?, updated_at = NOW() WHERE id = ?';
                 $update_stmt = $pdo->prepare($update_query);
                 $update_stmt->execute([$name, $room_id]);
+            }
+            
+            // Update dashboard_name if provided
+            if (array_key_exists('dashboard_name', $body)) {
+                $dashboard_name = $body['dashboard_name'] !== null ? trim($body['dashboard_name']) : null;
+                $dn_stmt = $pdo->prepare('UPDATE timer_rooms SET dashboard_name = ?, updated_at = NOW() WHERE id = ?');
+                $dn_stmt->execute([$dashboard_name, $room_id]);
             }
             
             // Update timers if provided
@@ -333,7 +362,7 @@ function handleUpdateRoom($room_id) {
             $pdo->commit();
             
             // Fetch and return updated room
-            $room_query = 'SELECT id, name, created_at, updated_at FROM timer_rooms WHERE id = ?';
+            $room_query = 'SELECT id, name, dashboard_name, created_at, updated_at FROM timer_rooms WHERE id = ?';
             $room_stmt = $pdo->prepare($room_query);
             $room_stmt->execute([$room_id]);
             $room = $room_stmt->fetch(PDO::FETCH_ASSOC);

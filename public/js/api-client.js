@@ -125,6 +125,13 @@ const APIClient = {
                                         data: { roomName: state.currentRoom.name }
                                     });
                                 }
+                                // Also send active message if any
+                                if (state.activeMessage) {
+                                    this._broadcastChannels[roomId].postMessage({
+                                        action: 'MESSAGE_SHOW',
+                                        data: state.activeMessage
+                                    });
+                                }
                                 console.log('[APIClient] Responded to SYNC_REQUEST with current state');
                             } catch (e) { /* ignore */ }
                         }
@@ -158,6 +165,14 @@ const APIClient = {
             }
         }
         return this._broadcastChannels[roomId];
+    },
+
+    /**
+     * Update only the dashboard name for a room
+     */
+    async updateDashboardName(roomId, dashboardName) {
+        const response = await this.request('PUT', `/rooms/${roomId}`, { dashboard_name: dashboardName });
+        return response.data;
     },
 
     /**
