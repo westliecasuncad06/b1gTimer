@@ -1,0 +1,12 @@
+[      95ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost/B1G_TIMER/api/v1/rooms/2:0
+[      95ms] [ERROR] API Error [GET /rooms/2]: Error: Room with ID '2' not found
+    at Object.request (http://localhost/B1G_TIMER/public/js/api-client.js?v=3:34:23)
+    at async Object.getRoom (http://localhost/B1G_TIMER/public/js/api-client.js?v=3:57:26)
+    at async Object.loadRoom (http://localhost/B1G_TIMER/public/js/room-manager.js?v=3:43:26)
+    at async Object.init (http://localhost/B1G_TIMER/public/js/control-dashboard.js?v=7:117:21) @ http://localhost/B1G_TIMER/public/js/api-client.js?v=3:39
+[      96ms] [ERROR] [RoomManager] Error loading room: Error: Room with ID '2' not found
+    at Object.request (http://localhost/B1G_TIMER/public/js/api-client.js?v=3:34:23)
+    at async Object.getRoom (http://localhost/B1G_TIMER/public/js/api-client.js?v=3:57:26)
+    at async Object.loadRoom (http://localhost/B1G_TIMER/public/js/room-manager.js?v=3:43:26)
+    at async Object.init (http://localhost/B1G_TIMER/public/js/control-dashboard.js?v=7:117:21) @ http://localhost/B1G_TIMER/public/js/room-manager.js?v=3:98
+[      96ms] [ERROR] [RoomManager] Failed to load room details. @ http://localhost/B1G_TIMER/public/js/room-manager.js?v=3:535

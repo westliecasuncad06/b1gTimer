@@ -1,0 +1,256 @@
+/**
+ * B1G Timer - Bible Data Loader & Search Engine
+ * Loads Bible JSON data and provides search/navigation APIs
+ * Supports: ESV, NLT, KJV, NASB, AMP, TL (Tagalog)
+ */
+
+const BibleData = {
+    _data: null,
+    _loading: false,
+    _loadPromise: null,
+    _version: 'ESV',
+
+    // Canonical book order
+    BOOK_ORDER: [
+        'Genesis','Exodus','Leviticus','Numbers','Deuteronomy','Joshua','Judges','Ruth',
+        '1 Samuel','2 Samuel','1 Kings','2 Kings','1 Chronicles','2 Chronicles',
+        'Ezra','Nehemiah','Esther','Job','Psalms','Proverbs','Ecclesiastes',
+        'Song of Solomon','Isaiah','Jeremiah','Lamentations','Ezekiel','Daniel',
+        'Hosea','Joel','Amos','Obadiah','Jonah','Micah','Nahum','Habakkuk',
+        'Zephaniah','Haggai','Zechariah','Malachi',
+        'Matthew','Mark','Luke','John','Acts','Romans',
+        '1 Corinthians','2 Corinthians','Galatians','Ephesians','Philippians',
+        'Colossians','1 Thessalonians','2 Thessalonians','1 Timothy','2 Timothy',
+        'Titus','Philemon','Hebrews','James','1 Peter','2 Peter',
+        '1 John','2 John','3 John','Jude','Revelation'
+    ],
+
+    OT_COUNT: 39,
+
+    ABBREVIATIONS: {
+        'gen': 'Genesis', 'ex': 'Exodus', 'exod': 'Exodus', 'lev': 'Leviticus',
+        'num': 'Numbers', 'deut': 'Deuteronomy', 'josh': 'Joshua', 'judg': 'Judges',
+        'ru': 'Ruth', '1sam': '1 Samuel', '2sam': '2 Samuel', '1ki': '1 Kings',
+        '1kgs': '1 Kings', '2ki': '2 Kings', '2kgs': '2 Kings',
+        '1chr': '1 Chronicles', '1chron': '1 Chronicles',
+        '2chr': '2 Chronicles', '2chron': '2 Chronicles',
+        'neh': 'Nehemiah', 'est': 'Esther', 'ps': 'Psalms', 'psa': 'Psalms',
+        'psalm': 'Psalms', 'prov': 'Proverbs', 'pro': 'Proverbs',
+        'eccl': 'Ecclesiastes', 'ecc': 'Ecclesiastes',
+        'song': 'Song of Solomon', 'sos': 'Song of Solomon',
+        'isa': 'Isaiah', 'jer': 'Jeremiah', 'lam': 'Lamentations',
+        'ezek': 'Ezekiel', 'eze': 'Ezekiel', 'dan': 'Daniel',
+        'hos': 'Hosea', 'ob': 'Obadiah', 'obad': 'Obadiah',
+        'jon': 'Jonah', 'mic': 'Micah', 'nah': 'Nahum', 'hab': 'Habakkuk',
+        'zeph': 'Zephaniah', 'hag': 'Haggai', 'zech': 'Zechariah', 'mal': 'Malachi',
+        'matt': 'Matthew', 'mat': 'Matthew', 'mk': 'Mark', 'lk': 'Luke',
+        'jn': 'John', 'joh': 'John', 'rom': 'Romans',
+        '1cor': '1 Corinthians', '2cor': '2 Corinthians',
+        'gal': 'Galatians', 'eph': 'Ephesians', 'phil': 'Philippians',
+        'php': 'Philippians', 'col': 'Colossians',
+        '1thess': '1 Thessalonians', '1th': '1 Thessalonians',
+        '2thess': '2 Thessalonians', '2th': '2 Thessalonians',
+        '1tim': '1 Timothy', '1ti': '1 Timothy',
+        '2tim': '2 Timothy', '2ti': '2 Timothy',
+        'tit': 'Titus', 'phm': 'Philemon', 'phlm': 'Philemon',
+        'heb': 'Hebrews', 'jas': 'James', 'jam': 'James',
+        '1pet': '1 Peter', '1pe': '1 Peter',
+        '2pet': '2 Peter', '2pe': '2 Peter',
+        '1jn': '1 John', '2jn': '2 John', '3jn': '3 John',
+        'rev': 'Revelation', 'reve': 'Revelation'
+    },
+
+    async load() {
+        if (this._data) return this._data;
+        if (this._loadPromise) return this._loadPromise;
+
+        this._loading = true;
+        this._loadPromise = (async () => {
+            try {
+                const response = await fetch(`../BIBLE/${this._version}/${this._version}_bible.json`);
+                if (!response.ok) throw new Error(`Failed to load Bible data: ${response.status}`);
+                this._data = await response.json();
+                console.log('[BibleData] Loaded', this._version, 'Bible data');
+                return this._data;
+            } catch (e) {
+                console.error('[BibleData] Load error:', e);
+                this._loadPromise = null;
+                throw e;
+            } finally {
+                this._loading = false;
+            }
+        })();
+        return this._loadPromise;
+    },
+
+    async getBooks() {
+        const data = await this.load();
+        return this.BOOK_ORDER.filter(b => data[b]);
+    },
+
+    async getChapters(book) {
+        const data = await this.load();
+        const bookData = data[book];
+        if (!bookData) return [];
+        return Object.keys(bookData).map(Number).sort((a, b) => a - b);
+    },
+
+    async getVerses(book, chapter) {
+        const data = await this.load();
+        const ch = data[book] && data[book][String(chapter)];
+        if (!ch) return [];
+        return Object.keys(ch).map(Number).sort((a, b) => a - b);
+    },
+
+    async getVerse(book, chapter, verse) {
+        const data = await this.load();
+        return (data[book] && data[book][String(chapter)] && data[book][String(chapter)][String(verse)]) || null;
+    },
+
+    async getVerseRange(book, chapter, verseStart, verseEnd) {
+        const data = await this.load();
+        const ch = data[book] && data[book][String(chapter)];
+        if (!ch) return null;
+        const texts = [];
+        for (let v = verseStart; v <= verseEnd; v++) {
+            const text = ch[String(v)];
+            if (text) texts.push({ verse: v, text });
+        }
+        return texts.length > 0 ? texts : null;
+    },
+
+    resolveBookName(input) {
+        if (!input) return null;
+        const trimmed = input.trim();
+        const exact = this.BOOK_ORDER.find(b => b.toLowerCase() === trimmed.toLowerCase());
+        if (exact) return exact;
+        const abbr = this.ABBREVIATIONS[trimmed.toLowerCase().replace(/[\s.]+/g, '')];
+        if (abbr) return abbr;
+        const lower = trimmed.toLowerCase();
+        const partial = this.BOOK_ORDER.find(b => b.toLowerCase().startsWith(lower));
+        if (partial) return partial;
+        const numMatch = trimmed.match(/^([123iIII]+)\s*(.+)$/);
+        if (numMatch) {
+            let num = numMatch[1].replace(/i/gi, '').length || numMatch[1].replace(/[^123]/g, '');
+            if (/^i+$/i.test(numMatch[1])) num = numMatch[1].length;
+            const rest = numMatch[2].toLowerCase();
+            const candidate = this.BOOK_ORDER.find(b => {
+                const bLower = b.toLowerCase();
+                return bLower.startsWith(num + ' ') && bLower.includes(rest);
+            });
+            if (candidate) return candidate;
+        }
+        return null;
+    },
+
+    parseReference(query) {
+        if (!query) return null;
+        const trimmed = query.trim();
+        const refRegex = /^(\d?\s?[a-zA-Z][a-zA-Z\s]*?)\s+(\d+)(?::(\d+)(?:\s*-\s*(\d+))?)?$/;
+        const match = trimmed.match(refRegex);
+        if (!match) return null;
+        const bookInput = match[1].trim();
+        const chapter = parseInt(match[2], 10);
+        const verse = match[3] ? parseInt(match[3], 10) : null;
+        const verseEnd = match[4] ? parseInt(match[4], 10) : null;
+        const book = this.resolveBookName(bookInput);
+        if (!book) return null;
+        return { book, chapter, verse, verseEnd };
+    },
+
+    async searchByReference(query) {
+        const ref = this.parseReference(query);
+        if (!ref) return null;
+        if (ref.verse && ref.verseEnd) {
+            const verses = await this.getVerseRange(ref.book, ref.chapter, ref.verse, ref.verseEnd);
+            if (!verses) return null;
+            return { book: ref.book, chapter: ref.chapter, verse: String(ref.verse), verseEnd: String(ref.verseEnd), text: verses.map(v => v.text).join(' '), verses, version: this._version };
+        } else if (ref.verse) {
+            const text = await this.getVerse(ref.book, ref.chapter, ref.verse);
+            if (!text) return null;
+            return { book: ref.book, chapter: ref.chapter, verse: String(ref.verse), verseEnd: null, text, version: this._version };
+        } else {
+            const verses = await this.getVerses(ref.book, ref.chapter);
+            if (verses.length === 0) return null;
+            const firstVerse = await this.getVerse(ref.book, ref.chapter, verses[0]);
+            return { book: ref.book, chapter: ref.chapter, verse: null, verseEnd: null, text: firstVerse, isChapter: true, totalVerses: verses.length, version: this._version };
+        }
+    },
+
+    async searchByKeyword(keyword, limit = 50) {
+        if (!keyword || keyword.length < 2) return [];
+        const data = await this.load();
+        const results = [];
+        const lower = keyword.toLowerCase();
+        for (const book of this.BOOK_ORDER) {
+            if (!data[book]) continue;
+            const chapters = data[book];
+            for (const ch of Object.keys(chapters)) {
+                const verses = chapters[ch];
+                for (const v of Object.keys(verses)) {
+                    const text = verses[v];
+                    if (text.toLowerCase().includes(lower)) {
+                        results.push({ book, chapter: parseInt(ch, 10), verse: v, text, snippet: this._makeSnippet(text, lower), version: this._version });
+                        if (results.length >= limit) return results;
+                    }
+                }
+            }
+        }
+        return results;
+    },
+
+    _makeSnippet(text, keyword) {
+        const idx = text.toLowerCase().indexOf(keyword);
+        if (idx === -1) return text.substring(0, 100);
+        const start = Math.max(0, idx - 40);
+        const end = Math.min(text.length, idx + keyword.length + 40);
+        let snippet = '';
+        if (start > 0) snippet += '...';
+        snippet += text.substring(start, end);
+        if (end < text.length) snippet += '...';
+        return snippet;
+    },
+
+    formatReference(book, chapter, verse, verseEnd, version) {
+        let ref = `${book} ${chapter}`;
+        if (verse) {
+            ref += `:${verse}`;
+            if (verseEnd && verseEnd !== verse) ref += `-${verseEnd}`;
+        }
+        if (version) ref += ` (${version})`;
+        return ref;
+    },
+
+    getVersion() {
+        return this._version;
+    },
+
+    async setVersion(version) {
+        const valid = ['ESV', 'NLT', 'KJV', 'NASB', 'AMP', 'TL'];
+        if (!valid.includes(version)) return;
+        if (version === this._version && this._data) return;
+        this._version = version;
+        this._data = null;
+        this._loadPromise = null;
+        this._loading = false;
+        await this.load();
+        console.log('[BibleData] Switched to', version);
+    },
+
+    getAvailableVersions() {
+        return [
+            { code: 'ESV', name: 'ESV' },
+            { code: 'NLT', name: 'NLT' },
+            { code: 'KJV', name: 'KJV' },
+            { code: 'NASB', name: 'NASB' },
+            { code: 'AMP', name: 'AMP' },
+            { code: 'TL', name: 'Tagalog' }
+        ];
+    },
+
+    isLoaded() {
+        return !!this._data;
+    }
+};
+
+window.BibleData = BibleData;

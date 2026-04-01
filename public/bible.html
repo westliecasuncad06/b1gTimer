@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scripture View — Bible Controller</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+        :root {
+            --bg-primary: #0f0f1a;
+            --bg-secondary: #1a1a2e;
+            --bg-card: #16213e;
+            --bg-input: #1e2a45;
+            --text-primary: #e0e0e0;
+            --text-secondary: #888;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --danger: #ef4444;
+            --success: #4ade80;
+            --border: rgba(255,255,255,.1);
+            --sidebar-width: 380px;
+        }
+        html {
+            height:100%;
+        }
+        body {
+            width:100%; height:100vh;
+            background:var(--bg-primary); color:var(--text-primary);
+            font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+            font-size:14px;
+            display:flex; flex-direction:column;
+            overflow:hidden;
+        }
+        a { color:var(--accent); text-decoration:none; }
+        button { cursor:pointer; font-family:inherit; }
+        input, select, textarea { font-family:inherit; }
+
+        /* ===== HEADER ===== */
+        .header {
+            display:flex; align-items:center; gap:12px;
+            padding:10px 20px;
+            background:var(--bg-secondary);
+            border-bottom:1px solid var(--border);
+            position:sticky; top:0; z-index:100;
+        }
+        .header-brand {
+            font-size:1rem; font-weight:700; color:var(--accent);
+            display:flex; align-items:center; gap:6px;
+            white-space:nowrap;
+        }
+        .header-brand i { font-size:.9rem; }
+        .header-room-name {
+            font-size:.85rem; color:var(--text-secondary);
+            margin-left:4px;
+        }
+        .header-controls {
+            display:flex; align-items:center; gap:8px; margin-left:auto;
+        }
+        .version-select {
+            background:var(--bg-input); color:var(--text-primary);
+            border:1px solid var(--border); border-radius:6px;
+            padding:6px 10px; font-size:.8rem; outline:none;
+        }
+        .header-icon-btn {
+            display:inline-flex; align-items:center; gap:5px;
+            background:var(--bg-input); color:var(--text-secondary);
+            border:1px solid var(--border); border-radius:6px;
+            padding:6px 10px; font-size:.78rem;
+            transition:all .15s; cursor:pointer; white-space:nowrap;
+        }
+        .header-icon-btn:hover { border-color:var(--accent); color:var(--accent); }
+        .header-icon-btn.active { background:rgba(255,255,255,.15); border-color:#fff; color:#fff; }
+        .header-icon-btn.danger:hover { border-color:var(--danger); color:var(--danger); }
+        .header-icon-btn.present-btn { background:var(--accent); color:#fff; border-color:var(--accent); }
+        .header-icon-btn.present-btn:hover { background:var(--accent-hover); }
+        .connection-dot {
+            width:10px; height:10px; border-radius:50%;
+            background:var(--danger);
+        }
+        .connection-dot.connected { background:var(--success); }
+        .header-sep {
+            width:1px; height:20px; background:var(--border);
+        }
+
+        /* ===== SAVE VERSE BAR ===== */
+        .save-verse-bar {
+            display:flex; align-items:center; gap:8px;
+            padding:6px 20px;
+            background:var(--bg-secondary);
+            border-bottom:1px solid var(--border);
+        }
+        .save-verse-btn {
+            display:inline-flex; align-items:center; gap:5px;
+            background:var(--bg-input); color:var(--success);
+            border:1px solid rgba(74,222,128,.3); border-radius:6px;
+            padding:5px 12px; font-size:.78rem;
+            transition:all .15s; cursor:pointer;
+        }
+        .save-verse-btn:hover { background:rgba(74,222,128,.15); border-color:var(--success); }
+        .save-verse-info {
+            font-size:.75rem; color:var(--text-secondary);
+            flex:1;
+        }
+
+        /* ===== LAYOUT ===== */
+        .main-layout {
+            display:flex; flex:1;
+            overflow:hidden; min-height:0;
+        }
+
+        /* ===== READER PANEL ===== */
+        .reader-panel {
+            flex:1; display:flex; flex-direction:column;
+            min-width:0; min-height:0; overflow:hidden;
+        }
+        .reader-nav {
+            display:flex; align-items:center; gap:8px;
+            padding:10px 20px;
+            background:var(--bg-secondary);
+            border-bottom:1px solid var(--border);
+            flex-wrap:wrap;
+        }
+        .nav-btn {
+            background:var(--bg-input); border:1px solid var(--border);
+            border-radius:6px; padding:6px 10px; color:var(--text-primary);
+            font-size:.8rem; transition:background .15s;
+        }
+        .nav-btn:hover { background:var(--accent); color:#fff; }
+        .nav-btn:disabled { opacity:.4; cursor:default; }
+        .nav-btn:disabled:hover { background:var(--bg-input); color:var(--text-primary); }
+        .breadcrumb {
+            display:flex; align-items:center; gap:4px;
+            font-size:.82rem; color:var(--text-secondary);
+            flex:1;
+        }
+        .breadcrumb span { cursor:pointer; }
+        .breadcrumb span:hover { color:var(--accent); }
+        .breadcrumb .sep { cursor:default; color:var(--text-secondary); }
+        .breadcrumb .active { color:var(--text-primary); font-weight:600; }
+        .chapter-jump {
+            background:var(--bg-input); color:var(--text-primary);
+            border:1px solid var(--border); border-radius:6px;
+            padding:4px 8px; font-size:.78rem; width:60px; outline:none;
+        }
+
+        /* Reader Content */
+        .reader-content {
+            flex:1; overflow-y:auto; padding:16px 20px;
+        }
+        .books-section-header {
+            font-size:.7rem; font-weight:700; text-transform:uppercase;
+            color:var(--accent); letter-spacing:.08em;
+            margin:16px 0 8px; padding-bottom:4px;
+            border-bottom:1px solid var(--border);
+        }
+        .books-section-header:first-child { margin-top:0; }
+        .books-grid {
+            display:grid;
+            grid-template-columns:repeat(auto-fill, minmax(90px, 1fr));
+            gap:6px; margin-bottom:12px;
+        }
+        .book-btn {
+            background:var(--bg-card); border:1px solid var(--border);
+            border-radius:6px; padding:8px 4px; text-align:center;
+            font-size:.75rem; color:var(--text-primary);
+            transition:background .15s, border-color .15s;
+            white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+        }
+        .book-btn:hover { background:var(--accent); border-color:var(--accent); color:#fff; }
+        .chapters-grid {
+            display:grid;
+            grid-template-columns:repeat(auto-fill, minmax(48px, 1fr));
+            gap:6px;
+        }
+        .chapter-btn {
+            background:var(--bg-card); border:1px solid var(--border);
+            border-radius:6px; padding:10px 4px; text-align:center;
+            font-size:.85rem; color:var(--text-primary);
+            transition:background .15s;
+        }
+        .chapter-btn:hover { background:var(--accent); color:#fff; }
+
+        /* Verse Reader */
+        .verse-reader { max-width:800px; margin:0 auto; }
+        .verse-reader-header {
+            font-size:1.1rem; font-weight:700; color:var(--text-primary);
+            margin-bottom:16px; padding-bottom:8px;
+            border-bottom:1px solid var(--border);
+        }
+        .verse-line {
+            display:flex; gap:8px; padding:8px 10px;
+            border-radius:6px; cursor:pointer;
+            transition:background .15s; line-height:1.6;
+        }
+        .verse-line:hover { background:rgba(59,130,246,.08); }
+        .verse-line.highlighted {
+            background:rgba(59,130,246,.15);
+            border-left:3px solid var(--accent);
+        }
+        .verse-line.live-sent {
+            background:rgba(239,68,68,.1);
+            border-left:3px solid var(--danger);
+        }
+        .verse-num {
+            font-size:.7rem; font-weight:700; color:var(--accent);
+            min-width:24px; padding-top:3px;
+            flex-shrink:0; text-align:right;
+        }
+        .verse-text { font-size:.92rem; color:var(--text-primary); }
+        .verse-parallel {
+            font-size:.8rem; color:var(--text-secondary);
+            margin-top:4px; font-style:italic; padding-left:32px;
+        }
+
+        /* Search Results */
+        .search-results { display:none; }
+        .search-results.visible { display:block; }
+        .search-result-item {
+            padding:10px 12px; border-radius:6px;
+            border:1px solid var(--border); margin-bottom:6px;
+            cursor:pointer; transition:background .15s;
+        }
+        .search-result-item:hover { background:rgba(59,130,246,.08); }
+        .search-result-ref {
+            font-size:.8rem; font-weight:600; color:var(--accent); margin-bottom:2px;
+        }
+        .search-result-text { font-size:.8rem; color:var(--text-secondary); }
+        .search-empty {
+            padding:20px; text-align:center; color:var(--text-secondary); font-size:.85rem;
+        }
+
+        /* ===== SIDEBAR ===== */
+        .sidebar {
+            width:var(--sidebar-width);
+            background:var(--bg-secondary);
+            border-left:1px solid var(--border);
+            display:flex; flex-direction:column;
+            overflow:hidden; min-height:0;
+        }
+        .sidebar-tabs {
+            display:flex; border-bottom:1px solid var(--border);
+        }
+        .sidebar-tab {
+            flex:1; padding:10px 8px;
+            background:transparent; border:none;
+            font-size:.78rem; color:var(--text-secondary);
+            border-bottom:2px solid transparent;
+            transition:color .15s, border-color .15s;
+        }
+        .sidebar-tab:hover { color:var(--text-primary); }
+        .sidebar-tab.active {
+            color:var(--text-primary);
+            border-bottom-color:var(--accent);
+        }
+        .sidebar-panel { display:none; flex:1; overflow-y:auto; min-height:0; }
+        .sidebar-panel.active { display:flex; flex-direction:column; min-height:0; }
+
+        /* Search Panel */
+        .search-wrap { padding:12px; border-bottom:1px solid var(--border); }
+        .search-input-row { display:flex; gap:6px; }
+        .search-input {
+            flex:1; background:var(--bg-input); color:var(--text-primary);
+            border:1px solid var(--border); border-radius:6px;
+            padding:8px 10px; font-size:.82rem; outline:none;
+        }
+        .search-input:focus { border-color:var(--accent); }
+        .search-btn {
+            background:var(--accent); color:#fff; border:none;
+            border-radius:6px; padding:8px 12px; font-size:.82rem;
+        }
+        .search-btn:hover { background:var(--accent-hover); }
+        .sidebar-search-results { padding:8px; flex:1; overflow-y:auto; }
+
+        /* Saved Verses (Presets) Panel */
+        .presets-panel-inner { padding:12px; flex:1; overflow-y:auto; }
+        .preset-add-row { display:flex; gap:6px; margin-bottom:12px; }
+        .preset-add-btn {
+            flex:1; background:var(--bg-input); border:1px solid var(--border);
+            border-radius:6px; padding:8px; font-size:.8rem;
+            color:var(--accent); display:flex; align-items:center;
+            justify-content:center; gap:6px; transition:background .15s;
+        }
+        .preset-add-btn:hover { background:var(--accent); color:#fff; }
+        .preset-list { list-style:none; }
+        .preset-item {
+            display:flex; align-items:center; gap:8px;
+            padding:8px 10px; border-radius:6px;
+            border:1px solid var(--border); margin-bottom:6px;
+            cursor:pointer; transition:background .15s;
+            user-select:none;
+        }
+        .preset-item:hover { background:rgba(59,130,246,.08); }
+        .preset-item .label { flex:1; font-size:.82rem; }
+        .preset-item .ref { font-size:.7rem; color:var(--text-secondary); }
+        .preset-item .delete-btn {
+            background:none; border:none; color:var(--text-secondary);
+            padding:4px; font-size:.75rem; transition:color .15s;
+        }
+        .preset-item .delete-btn:hover { color:var(--danger); }
+
+        /* ===== STYLE PANEL ===== */
+        .style-panel-inner { padding:12px; overflow-y:auto; }
+        .style-section-title {
+            font-size:.72rem; font-weight:700; text-transform:uppercase;
+            color:var(--text-secondary); letter-spacing:.06em;
+            margin:14px 0 8px;
+        }
+        .style-section-title:first-child { margin-top:0; }
+
+        /* Stage Preview */
+        .stage-preview-wrap {
+            border-radius:8px; overflow:hidden;
+            border:1px solid var(--border); margin-bottom:14px;
+        }
+        .stage-preview {
+            aspect-ratio:16/9; background:#000;
+            display:flex; flex-direction:column;
+            align-items:center; justify-content:center;
+            padding:8% 10%;
+            position:relative; overflow:hidden;
+        }
+        .stage-preview .preview-verse {
+            font-size:1.1em; color:#fff;
+            line-height:1.4; text-align:center;
+            word-break:break-word; z-index:1; position:relative;
+        }
+        .stage-preview .preview-ref {
+            margin-top:6px; font-size:.7em;
+            color:rgba(255,255,255,.6); text-align:center;
+            z-index:1; position:relative;
+        }
+        .stage-preview .preview-empty {
+            font-size:.75em; color:rgba(255,255,255,.25);
+        }
+        .stage-preview.has-overlay::after {
+            content:''; position:absolute; inset:0;
+            background:rgba(0,0,0,.45); pointer-events:none;
+        }
+
+        /* Design Gallery (sidebar) */
+        .design-gallery {
+            display:grid; grid-template-columns:repeat(2, 1fr); gap:8px;
+            margin-bottom:10px;
+        }
+        .design-card {
+            border-radius:8px; overflow:hidden;
+            border:2px solid var(--border);
+            cursor:pointer; transition:all .2s; position:relative;
+        }
+        .design-card:hover { border-color:var(--accent); transform:translateY(-1px); }
+        .design-card.active { border-color:var(--accent); box-shadow:0 0 0 1px var(--accent); }
+        .design-card .design-thumb {
+            aspect-ratio:16/9;
+            display:flex; flex-direction:column;
+            align-items:center; justify-content:center;
+            padding:10% 8%; position:relative; overflow:hidden;
+        }
+        .design-card .design-thumb .thumb-verse {
+            font-size:.55em; line-height:1.3; text-align:center;
+            z-index:1; position:relative;
+        }
+        .design-card .design-thumb .thumb-ref {
+            font-size:.38em; opacity:.6; margin-top:3px;
+            z-index:1; position:relative;
+        }
+        .design-card .design-thumb.has-overlay::after {
+            content:''; position:absolute; inset:0;
+            background:rgba(0,0,0,.45); pointer-events:none;
+        }
+        .design-card .design-label {
+            padding:5px 8px; font-size:.68rem;
+            color:var(--text-primary); text-align:center;
+            background:var(--bg-card);
+            border-top:1px solid var(--border);
+        }
+
+        /* Transition Gallery (sidebar) */
+        .transition-gallery {
+            display:grid; grid-template-columns:repeat(2,1fr); gap:8px;
+            margin-bottom:10px;
+        }
+        .transition-card {
+            border-radius:8px; overflow:hidden;
+            border:2px solid var(--border);
+            cursor:pointer; transition:all .2s;
+            background:var(--bg-card);
+            text-align:center; padding:10px 6px;
+        }
+        .transition-card:hover { border-color:var(--accent); }
+        .transition-card.active { border-color:var(--accent); box-shadow:0 0 0 1px var(--accent); }
+        .transition-card .transition-icon { font-size:1.2rem; margin-bottom:4px; }
+        .transition-card .transition-label { font-size:.68rem; color:var(--text-primary); }
+
+        /* Browse more buttons */
+        .browse-more-btn {
+            width:100%; padding:8px;
+            background:var(--bg-input); border:1px solid var(--border);
+            border-radius:6px; font-size:.78rem;
+            color:var(--accent); cursor:pointer;
+            transition:all .15s; margin-bottom:12px;
+            text-align:center;
+        }
+        .browse-more-btn:hover { background:var(--accent); color:#fff; }
+
+        /* Apply button */
+        .apply-design-btn, .apply-transition-btn {
+            width:100%; padding:10px;
+            background:var(--accent); color:#fff;
+            border:none; border-radius:6px;
+            font-size:.82rem; font-weight:600;
+            transition:background .15s; margin-bottom:12px;
+        }
+        .apply-design-btn:hover, .apply-transition-btn:hover { background:var(--accent-hover); }
+
+        /* Style rows */
+        .style-row {
+            display:flex; align-items:center; gap:8px; margin-bottom:8px;
+        }
+        .style-row label {
+            font-size:.75rem; color:var(--text-secondary); min-width:65px;
+        }
+        .style-row select, .style-row input[type="color"] {
+            flex:1; background:var(--bg-input); color:var(--text-primary);
+            border:1px solid var(--border); border-radius:4px;
+            padding:4px 6px; font-size:.78rem; outline:none;
+        }
+        .style-row input[type="color"] {
+            height:30px; padding:2px; cursor:pointer;
+        }
+
+        /* Background images */
+        .bg-images-grid {
+            display:grid; grid-template-columns:repeat(3, 1fr); gap:6px;
+            margin-bottom:8px;
+        }
+        .bg-image-thumb {
+            aspect-ratio:16/9; border-radius:6px;
+            background-size:cover; background-position:center;
+            border:2px solid transparent; cursor:pointer;
+            transition:border-color .15s; position:relative;
+        }
+        .bg-image-thumb:hover { border-color:var(--accent); }
+        .bg-image-thumb.selected { border-color:var(--accent); }
+        .bg-image-thumb .remove-bg {
+            position:absolute; top:2px; right:2px;
+            width:18px; height:18px; border-radius:50%;
+            background:rgba(0,0,0,.7); border:none;
+            color:#fff; font-size:.6rem;
+            display:none; align-items:center; justify-content:center; cursor:pointer;
+        }
+        .bg-image-thumb:hover .remove-bg { display:flex; }
+        .bg-upload-btn {
+            background:var(--bg-input); border:1px solid dashed;
+            border-color:var(--border); border-radius:6px;
+            padding:8px; text-align:center; font-size:.75rem;
+            color:var(--text-secondary); cursor:pointer;
+            transition:border-color .15s, color .15s;
+        }
+        .bg-upload-btn:hover { border-color:var(--accent); color:var(--accent); }
+
+        /* ===== BOTTOM ACTION BAR ===== */
+        .action-bar {
+            display:flex; align-items:center; gap:8px;
+            padding:8px 16px;
+            background:var(--bg-secondary);
+            border-top:1px solid var(--border);
+        }
+        .action-bar .copy-btn {
+            background:var(--bg-input); color:var(--text-secondary);
+            border:1px solid var(--border); border-radius:6px;
+            padding:8px 12px; font-size:.82rem; transition:all .15s;
+        }
+        .action-bar .copy-btn:hover { border-color:var(--accent); color:var(--accent); }
+        .action-bar .verse-nav-btn {
+            background:var(--bg-input); color:var(--text-secondary);
+            border:1px solid var(--border); border-radius:6px;
+            padding:8px 12px; font-size:.82rem; transition:all .15s;
+        }
+        .action-bar .verse-nav-btn:hover { background:var(--accent); color:#fff; }
+        .action-bar .verse-nav-btn:disabled { opacity:.4; cursor:default; }
+        .action-bar .verse-nav-btn:disabled:hover { background:var(--bg-input); color:var(--text-secondary); }
+
+        /* Open Stage Button */
+        .open-stage-btn {
+            display:inline-flex; align-items:center; gap:6px;
+            background:var(--bg-input); color:var(--text-secondary);
+            border:1px solid var(--border); border-radius:6px;
+            padding:6px 12px; font-size:.8rem;
+            transition:all .15s; cursor:pointer;
+        }
+        .open-stage-btn:hover { border-color:var(--accent); color:var(--accent); }
+
+        /* ===== SHORTCUTS HINT ===== */
+        .shortcuts-hint {
+            font-size:.65rem; color:var(--text-secondary);
+            padding:4px 20px; text-align:center;
+            border-top:1px solid var(--border);
+            background:var(--bg-secondary);
+        }
+        .shortcuts-hint kbd {
+            background:var(--bg-input); border:1px solid var(--border);
+            border-radius:3px; padding:1px 4px; font-size:.6rem;
+        }
+
+        /* ===== RECENT VERSES ===== */
+        .recent-section { padding:12px; border-top:1px solid var(--border); }
+        .recent-title {
+            font-size:.7rem; font-weight:700; color:var(--text-secondary);
+            text-transform:uppercase; margin-bottom:6px;
+        }
+        .recent-item {
+            font-size:.78rem; color:var(--accent); cursor:pointer;
+            padding:3px 0; transition:color .15s;
+        }
+        .recent-item:hover { color:#fff; }
+
+        /* ===== FLASH VERSE ANIMATION ===== */
+        @keyframes verseFlash {
+            0%   { background:rgba(59,130,246,.0); box-shadow:none; }
+            20%  { background:rgba(59,130,246,.35); box-shadow:0 0 0 2px var(--accent); }
+            50%  { background:rgba(59,130,246,.25); box-shadow:0 0 0 2px rgba(59,130,246,.6); }
+            80%  { background:rgba(59,130,246,.15); box-shadow:0 0 0 1px rgba(59,130,246,.4); }
+            100% { background:rgba(59,130,246,.15); box-shadow:none; }
+        }
+        .verse-line.flash-highlight {
+            animation:verseFlash 1.4s ease forwards;
+            border-left:3px solid var(--accent);
+        }
+
+        /* ===== DRAG HANDLE (saved verses) ===== */
+        .preset-item .drag-handle {
+            color:var(--text-secondary); cursor:grab; padding:0 4px;
+            font-size:.85rem; flex-shrink:0;
+            opacity:.5; transition:opacity .15s;
+        }
+        .preset-item:hover .drag-handle { opacity:1; }
+        .preset-item.sortable-ghost { opacity:.4; background:rgba(59,130,246,.1); }
+        .preset-item.sortable-drag  { opacity:.9; box-shadow:0 4px 12px rgba(0,0,0,.4); }
+
+        /* ===== READER FONT SIZE ===== */
+        .reader-font-size-select {
+            background:var(--bg-input); color:var(--text-primary);
+            border:1px solid var(--border); border-radius:6px;
+            padding:4px 6px; font-size:.75rem; width:54px;
+            outline:none; text-align:center;
+        }
+        .reader-font-size-select:focus { border-color:var(--accent); }
+        .reader-font-label {
+            font-size:.7rem; color:var(--text-secondary);
+            white-space:nowrap;
+        }
+
+        /* ===== TOAST ===== */
+        .toast-container {
+            position:fixed; top:60px; right:20px; z-index:9999;
+            display:flex; flex-direction:column; gap:8px;
+        }
+        .toast {
+            background:var(--bg-card); border:1px solid var(--border);
+            border-radius:8px; padding:10px 16px;
+            font-size:.82rem; color:var(--text-primary);
+            display:flex; align-items:center; gap:8px;
+            animation:toastIn .3s ease;
+            box-shadow:0 4px 12px rgba(0,0,0,.3);
+        }
+        .toast.removing { animation:toastOut .3s ease forwards; }
+        .toast.success { border-left:3px solid var(--success); }
+        .toast.error { border-left:3px solid var(--danger); }
+        .toast.info { border-left:3px solid var(--accent); }
+        @keyframes toastIn { from { opacity:0; transform:translateX(30px); } }
+        @keyframes toastOut { to { opacity:0; transform:translateX(30px); } }
+
+        /* ===== MODAL OVERLAY ===== */
+        .modal-overlay {
+            position:fixed; inset:0;
+            background:rgba(0,0,0,.7);
+            z-index:500;
+            display:none;
+            align-items:center; justify-content:center;
+        }
+        .modal-overlay.open { display:flex; }
+        .modal-dialog {
+            background:var(--bg-secondary);
+            border:1px solid var(--border);
+            border-radius:12px;
+            width:90vw; max-width:900px;
+            max-height:85vh;
+            display:flex; flex-direction:column;
+            overflow:hidden;
+        }
+        .modal-header {
+            display:flex; align-items:center; gap:12px;
+            padding:16px 20px;
+            border-bottom:1px solid var(--border);
+        }
+        .modal-header h2 {
+            font-size:1rem; font-weight:700; flex:1;
+        }
+        .modal-close-btn {
+            background:none; border:none;
+            color:var(--text-secondary); font-size:1.2rem;
+            cursor:pointer; padding:4px;
+        }
+        .modal-close-btn:hover { color:#fff; }
+        .modal-body {
+            display:flex; flex:1; overflow:hidden;
+        }
+        .modal-grid-panel {
+            flex:1; overflow-y:auto; padding:16px;
+        }
+        .modal-grid {
+            display:grid; grid-template-columns:repeat(auto-fill, minmax(140px, 1fr));
+            gap:10px;
+        }
+        .modal-tile {
+            border-radius:8px; overflow:hidden;
+            border:2px solid var(--border);
+            cursor:pointer; transition:all .2s;
+        }
+        .modal-tile:hover { border-color:var(--accent); }
+        .modal-tile.active { border-color:var(--accent); box-shadow:0 0 0 2px rgba(59,130,246,.3); }
+        .modal-tile .tile-thumb {
+            aspect-ratio:16/9;
+            display:flex; flex-direction:column;
+            align-items:center; justify-content:center;
+            padding:10% 8%; position:relative; overflow:hidden;
+        }
+        .modal-tile .tile-thumb .tile-verse {
+            font-size:.5em; line-height:1.3; text-align:center;
+            z-index:1; position:relative;
+        }
+        .modal-tile .tile-thumb .tile-ref {
+            font-size:.35em; opacity:.6; margin-top:2px;
+            z-index:1; position:relative;
+        }
+        .modal-tile .tile-thumb.has-overlay::after {
+            content:''; position:absolute; inset:0;
+            background:rgba(0,0,0,.45); pointer-events:none;
+        }
+        .modal-tile .tile-label {
+            padding:5px 8px; font-size:.68rem;
+            color:var(--text-primary); text-align:center;
+            background:var(--bg-card);
+            border-top:1px solid var(--border);
+        }
+
+        /* Modal Preview Panel */
+        .modal-preview-panel {
+            width:320px; border-left:1px solid var(--border);
+            padding:16px; display:flex; flex-direction:column;
+            gap:12px; overflow-y:auto;
+        }
+        .modal-preview-box {
+            aspect-ratio:16/9; border-radius:8px;
+            overflow:hidden; border:1px solid var(--border);
+            display:flex; flex-direction:column;
+            align-items:center; justify-content:center;
+            padding:10% 8%; position:relative;
+            background:#000;
+        }
+        .modal-preview-box .preview-verse {
+            font-size:1em; color:#fff; line-height:1.4;
+            text-align:center; z-index:1; position:relative;
+        }
+        .modal-preview-box .preview-ref {
+            font-size:.6em; color:rgba(255,255,255,.6);
+            margin-top:4px; text-align:center;
+            z-index:1; position:relative;
+        }
+        .modal-preview-box .anim-text {
+            font-size:.9em; color:#fff;
+            z-index:1; position:relative;
+        }
+        .modal-preview-box.has-overlay::after {
+            content:''; position:absolute; inset:0;
+            background:rgba(0,0,0,.45); pointer-events:none;
+        }
+        .modal-detail-name {
+            font-size:.9rem; font-weight:700; color:var(--text-primary);
+        }
+        .modal-detail-desc {
+            font-size:.78rem; color:var(--text-secondary); line-height:1.4;
+        }
+        .modal-apply-btn {
+            width:100%; padding:10px;
+            background:var(--accent); color:#fff;
+            border:none; border-radius:6px;
+            font-size:.85rem; font-weight:600;
+            cursor:pointer; transition:background .15s;
+        }
+        .modal-apply-btn:hover { background:var(--accent-hover); }
+        .modal-preview-play-btn {
+            width:100%; padding:8px;
+            background:var(--bg-input); color:var(--text-primary);
+            border:1px solid var(--border); border-radius:6px;
+            font-size:.8rem; cursor:pointer;
+            transition:background .15s;
+        }
+        .modal-preview-play-btn:hover { background:rgba(255,255,255,.1); }
+
+        /* ===== MODAL MOBILE FOOTER ===== */
+        .modal-mobile-footer {
+            display:none;
+            padding:12px 16px;
+            border-top:1px solid var(--border);
+            background:var(--bg-secondary);
+        }
+        .modal-mobile-footer .modal-apply-btn { width:100%; }
+        @media (max-width:768px) {
+            .modal-mobile-footer { display:block; }
+        }
+
+        /* ===== TRANSITION KEYFRAMES (for modal preview) ===== */
+        @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+        @keyframes slideUpIn { from { opacity:0; transform:translateY(30px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes slideDownIn { from { opacity:0; transform:translateY(-30px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes slideLeftIn { from { opacity:0; transform:translateX(40px); } to { opacity:1; transform:translateX(0); } }
+        @keyframes slideRightIn { from { opacity:0; transform:translateX(-40px); } to { opacity:1; transform:translateX(0); } }
+        @keyframes zoomInAnim { from { opacity:0; transform:scale(0.8); } to { opacity:1; transform:scale(1); } }
+        @keyframes zoomOutAnim { from { opacity:0; transform:scale(1.2); } to { opacity:1; transform:scale(1); } }
+        @keyframes flipAnim { from { opacity:0; transform:rotateY(90deg); } to { opacity:1; transform:rotateY(0); } }
+        @keyframes blurAnim { from { opacity:0; filter:blur(10px); } to { opacity:1; filter:blur(0); } }
+        @keyframes scaleFadeIn { from { opacity:0; transform:scale(0.9); } to { opacity:1; transform:scale(1); } }
+
+        /* ===== MOBILE BOTTOM NAV ===== */
+        .mobile-bottom-nav {
+            display:none;
+            position:fixed; bottom:0; left:0; right:0;
+            background:var(--bg-secondary);
+            border-top:1px solid var(--border);
+            z-index:200;
+            padding:4px 0 env(safe-area-inset-bottom, 4px);
+        }
+        .mobile-bottom-nav .nav-items {
+            display:flex; justify-content:space-around;
+        }
+        .mobile-nav-item {
+            display:flex; flex-direction:column;
+            align-items:center; gap:2px;
+            padding:6px 8px;
+            background:none; border:none;
+            color:var(--text-secondary);
+            font-size:.62rem; cursor:pointer;
+            transition:color .15s;
+        }
+        .mobile-nav-item i { font-size:1rem; }
+        .mobile-nav-item:hover, .mobile-nav-item.active { color:var(--accent); }
+
+        /* ===== MOBILE SIDEBAR TOGGLE (legacy) ===== */
+        .sidebar-toggle {
+            display:none;
+            background:var(--accent); color:#fff; border:none;
+            border-radius:6px; padding:6px 12px; font-size:.8rem;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width:1024px) {
+            :root { --sidebar-width: 320px; }
+            .books-grid { grid-template-columns:repeat(auto-fill, minmax(75px, 1fr)); }
+            .design-gallery { grid-template-columns:repeat(2, 1fr); }
+            .modal-preview-panel { width:260px; }
+        }
+        @media (max-width:768px) {
+            .mobile-bottom-nav { display:block; }
+            .save-verse-bar { display:none; }
+            .main-layout { flex-direction:column; padding-bottom:56px; }
+            .sidebar {
+                width:100%; border-left:none;
+                border-top:1px solid var(--border);
+                max-height:50vh; display:none;
+            }
+            .sidebar.mobile-open { display:flex; }
+            .reader-content { padding:12px; }
+            .header { flex-wrap:wrap; gap:8px; padding:8px 12px; }
+            .header-controls { width:100%; justify-content:space-between; }
+            .header .header-sep { display:none; }
+            .header-icon-btn.desktop-only { display:none; }
+            .verse-line { padding:10px 8px; }
+            .books-grid { grid-template-columns:repeat(auto-fill, minmax(70px, 1fr)); }
+            .action-bar { position:sticky; bottom:56px; z-index:50; }
+            .shortcuts-hint { display:none; }
+            .modal-preview-panel { display:none; }
+            .modal-grid { grid-template-columns:repeat(auto-fill, minmax(110px, 1fr)); }
+        }
+        @media (max-width:480px) {
+            .header-brand span.brand-text { display:none; }
+            .books-grid { grid-template-columns:repeat(auto-fill, minmax(60px, 1fr)); }
+            .chapters-grid { grid-template-columns:repeat(auto-fill, minmax(40px, 1fr)); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- ===== DESIGN MODAL ===== -->
+    <div class="modal-overlay" id="design-modal">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h2><i class="fas fa-palette"></i> Choose Design</h2>
+                <button class="modal-close-btn" data-close-modal="design-modal"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-grid-panel">
+                    <div class="modal-grid" id="design-modal-grid">
+                        <!-- Filled by JS: all 40 design tiles -->
+                    </div>
+                </div>
+                <div class="modal-preview-panel">
+                    <div class="modal-preview-box" id="design-modal-preview">
+                        <span class="preview-verse">For God so loved the world...</span>
+                        <span class="preview-ref">John 3:16</span>
+                    </div>
+                    <div class="modal-detail-name" id="design-modal-name">Select a design</div>
+                    <div class="modal-detail-desc" id="design-modal-desc">Click a design tile to preview it.</div>
+                    <button class="modal-apply-btn" id="design-modal-apply"><i class="fas fa-check"></i> Apply Design</button>
+                </div>
+            </div>
+            <div class="modal-mobile-footer">
+                <button class="modal-apply-btn" id="design-modal-apply-mobile"><i class="fas fa-check"></i> Apply Design</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== TRANSITION MODAL ===== -->
+    <div class="modal-overlay" id="transition-modal">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h2><i class="fas fa-wand-magic-sparkles"></i> Choose Transition</h2>
+                <button class="modal-close-btn" data-close-modal="transition-modal"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-grid-panel">
+                    <div class="modal-grid" id="transition-modal-grid">
+                        <!-- Filled by JS: all transition tiles -->
+                    </div>
+                </div>
+                <div class="modal-preview-panel">
+                    <div class="modal-preview-box" id="transition-modal-preview" style="background:#111;">
+                        <span class="anim-text" style="font-family:Georgia,serif;">Blessed are the peacemakers</span>
+                    </div>
+                    <div class="modal-detail-name" id="transition-modal-name">Select a transition</div>
+                    <div class="modal-detail-desc" id="transition-modal-desc">Click a transition to preview it.</div>
+                    <button class="modal-preview-play-btn" id="transition-preview-play"><i class="fas fa-play"></i> Preview Animation</button>
+                    <button class="modal-apply-btn" id="transition-modal-apply"><i class="fas fa-check"></i> Apply Transition</button>
+                </div>
+            </div>
+            <div class="modal-mobile-footer">
+                <button class="modal-apply-btn" id="transition-modal-apply-mobile"><i class="fas fa-check"></i> Apply Transition</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== HEADER ===== -->
+    <div class="header">
+        <div class="header-brand">
+            <i class="fas fa-book-bible"></i>
+            <span class="brand-text">Scripture View</span>
+        </div>
+        <span class="header-room-name" id="room-name">Loading...</span>
+        <div class="header-controls">
+            <select class="version-select" id="version-select">
+                <option value="ESV">ESV</option>
+                <option value="NLT">NLT</option>
+                <option value="KJV">KJV</option>
+                <option value="NASB">NASB</option>
+                <option value="AMP">AMP</option>
+                <option value="TL">Tagalog</option>
+            </select>
+            <div class="header-sep"></div>
+            <button class="header-icon-btn" id="btn-open-stage" title="Open Bible Stage view">
+                <i class="fas fa-tv"></i> Stage
+            </button>
+            <button class="header-icon-btn present-btn" id="btn-present" title="Present fullscreen (like PowerPoint F5)">
+                <i class="fas fa-display"></i> Present
+            </button>
+            <div class="header-sep"></div>
+            <button class="header-icon-btn danger desktop-only" id="btn-clear" title="Clear verse text from stage (Esc)">
+                <i class="fas fa-eraser"></i> Clear
+            </button>
+            <button class="header-icon-btn desktop-only" id="btn-blackout" title="Toggle black screen">
+                <i class="fas fa-moon"></i> Black
+            </button>
+            <div class="header-sep"></div>
+            <button class="sidebar-toggle" id="sidebar-toggle">
+                <i class="fas fa-bars"></i> Panel
+            </button>
+            <div class="connection-dot" id="connection-dot" title="Disconnected"></div>
+        </div>
+    </div>
+
+    <!-- ===== SAVE VERSE BAR ===== -->
+    <div class="save-verse-bar">
+        <button class="save-verse-btn" id="btn-save-verse" title="Save currently selected verse">
+            <i class="fas fa-plus"></i> Save Current Verse
+        </button>
+        <span class="save-verse-info" id="save-verse-info">Select a verse to save</span>
+    </div>
+
+    <!-- ===== MAIN LAYOUT ===== -->
+    <div class="main-layout">
+        <!-- Reader Panel -->
+        <div class="reader-panel">
+            <div class="reader-nav">
+                <button class="nav-btn" id="btn-back" title="Back"><i class="fas fa-arrow-left"></i></button>
+                <div class="breadcrumb" id="breadcrumb">
+                    <span class="active">Books</span>
+                </div>
+                <button class="nav-btn" id="btn-prev-ch" title="Previous Chapter" disabled><i class="fas fa-chevron-left"></i></button>
+                <button class="nav-btn" id="btn-next-ch" title="Next Chapter" disabled><i class="fas fa-chevron-right"></i></button>
+                <select class="chapter-jump" id="chapter-jump" title="Jump to chapter" style="display:none;"></select>
+                <span class="reader-font-label"><i class="fas fa-text-height" style="margin-right:3px;"></i>Size</span>
+                <select class="reader-font-size-select" id="reader-font-size" title="Reader font size">
+                    <option value="11">11</option>
+                    <option value="12">12</option>
+                    <option value="13">13</option>
+                    <option value="14" selected>14</option>
+                    <option value="16">16</option>
+                    <option value="18">18</option>
+                    <option value="20">20</option>
+                    <option value="24">24</option>
+                    <option value="28">28</option>
+                    <option value="32">32</option>
+                </select>
+            </div>
+
+            <div class="reader-content" id="reader-content">
+                <!-- Filled by JS: books grid, chapters grid, or verse reader -->
+            </div>
+
+            <!-- Search Results -->
+            <div class="search-results" id="main-search-results"></div>
+
+            <!-- Action Bar -->
+            <div class="action-bar">
+                <button class="verse-nav-btn" id="btn-prev-verse" title="Previous Verse" disabled><i class="fas fa-chevron-up"></i> Prev</button>
+                <button class="verse-nav-btn" id="btn-next-verse" title="Next Verse" disabled><i class="fas fa-chevron-down"></i> Next</button>
+                <span style="flex:1;"></span>
+                <button class="copy-btn" id="btn-copy" title="Copy verse to clipboard"><i class="fas fa-copy"></i></button>
+            </div>
+            <div class="shortcuts-hint">
+                <kbd>&larr;</kbd><kbd>&rarr;</kbd> Chapter &nbsp;
+                <kbd>&uarr;</kbd><kbd>&darr;</kbd> Verse &nbsp;
+                <kbd>Esc</kbd> Clear
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-tabs">
+                <button class="sidebar-tab active" data-tab="search"><i class="fas fa-search"></i> Search</button>
+                <button class="sidebar-tab" data-tab="saved"><i class="fas fa-bookmark"></i> Saved Verses</button>
+                <button class="sidebar-tab" data-tab="style"><i class="fas fa-palette"></i> Style</button>
+            </div>
+
+            <!-- Search Tab -->
+            <div class="sidebar-panel active" id="panel-search">
+                <div class="search-wrap">
+                    <div class="search-input-row">
+                        <input class="search-input" id="search-input" type="text" placeholder='Search "John 3:16" or "love"' autocomplete="off">
+                        <button class="search-btn" id="search-btn"><i class="fas fa-search"></i></button>
+                    </div>
+                </div>
+                <div class="sidebar-search-results" id="sidebar-search-results"></div>
+                <div class="recent-section" id="recent-section">
+                    <div class="recent-title">Recently Displayed</div>
+                    <div id="recent-list"></div>
+                </div>
+            </div>
+
+            <!-- Saved Verses Tab (was Presets) -->
+            <div class="sidebar-panel" id="panel-saved">
+                <div class="presets-panel-inner">
+                    <div class="preset-add-row">
+                        <button class="preset-add-btn" id="btn-add-preset">
+                            <i class="fas fa-plus"></i> Save Current Verse
+                        </button>
+                    </div>
+                    <ul class="preset-list" id="preset-list"></ul>
+                </div>
+            </div>
+
+            <!-- Style Tab -->
+            <div class="sidebar-panel" id="panel-style">
+                <div class="style-panel-inner">
+                    <div class="style-section-title">Stage Preview</div>
+                    <div class="stage-preview-wrap">
+                        <div class="stage-preview" id="stage-preview">
+                            <span class="preview-empty">Select a verse to preview</span>
+                        </div>
+                    </div>
+
+                    <div class="style-section-title">Designs</div>
+                    <div class="design-gallery" id="design-gallery">
+                        <!-- Filled by JS: first 6 designs -->
+                    </div>
+                    <button class="browse-more-btn" id="btn-browse-designs">
+                        <i class="fas fa-th"></i> Browse All 40 Designs
+                    </button>
+                    <button class="apply-design-btn" id="btn-apply-design"><i class="fas fa-check"></i> Apply Design</button>
+
+                    <div class="style-section-title">Transitions</div>
+                    <div class="transition-gallery" id="transition-gallery">
+                        <!-- Filled by JS: first 4 transitions -->
+                    </div>
+                    <button class="browse-more-btn" id="btn-browse-transitions">
+                        <i class="fas fa-wand-magic-sparkles"></i> Browse All Transitions
+                    </button>
+                    <button class="apply-transition-btn" id="btn-apply-transition"><i class="fas fa-check"></i> Apply Transition</button>
+
+                    <div class="style-section-title">Custom</div>
+                    <div class="style-row">
+                        <label>Font</label>
+                        <select id="style-font-family">
+                            <option value="'Georgia', serif">Georgia (Serif)</option>
+                            <option value="'Segoe UI', -apple-system, sans-serif">Segoe UI (Sans)</option>
+                            <option value="'Courier New', monospace">Courier (Mono)</option>
+                            <option value="'Playfair Display', Georgia, serif">Playfair Display</option>
+                            <option value="'Arial Black', sans-serif">Arial Black</option>
+                            <option value="'Palatino Linotype', 'Book Antiqua', serif">Palatino</option>
+                        </select>
+                    </div>
+                    <div class="style-row">
+                        <label>Size</label>
+                        <select id="style-font-size">
+                            <option value="small">Small</option>
+                            <option value="normal">Normal</option>
+                            <option value="large" selected>Large</option>
+                            <option value="xlarge">Extra Large</option>
+                        </select>
+                    </div>
+                    <div class="style-row">
+                        <label>Color</label>
+                        <input type="color" id="style-text-color" value="#ffffff">
+                    </div>
+                    <div class="style-row">
+                        <label>BG Type</label>
+                        <select id="style-bg-type">
+                            <option value="solid">Solid</option>
+                            <option value="gradient">Gradient</option>
+                            <option value="image">Image</option>
+                        </select>
+                    </div>
+                    <div class="style-row" id="bg-color-row">
+                        <label>BG Color</label>
+                        <input type="color" id="style-bg-color" value="#000000">
+                    </div>
+                    <div class="style-row">
+                        <label>Align</label>
+                        <select id="style-text-align">
+                            <option value="center">Center</option>
+                            <option value="left">Left</option>
+                            <option value="right">Right</option>
+                        </select>
+                    </div>
+                    <div class="style-row">
+                        <label>Ref Pos</label>
+                        <select id="style-ref-position">
+                            <option value="bottom-center">Bottom Center</option>
+                            <option value="bottom-right">Bottom Right</option>
+                            <option value="top-right">Top Right</option>
+                            <option value="inline-right">Inline Right</option>
+                        </select>
+                    </div>
+
+                    <div class="style-section-title">Background Images</div>
+                    <div class="bg-images-grid" id="bg-images-grid"></div>
+                    <label class="bg-upload-btn" id="bg-upload-btn">
+                        <i class="fas fa-upload"></i> Upload Image
+                        <input type="file" id="bg-upload-input" accept="image/jpeg,image/png,image/webp" style="display:none">
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== MOBILE BOTTOM NAV ===== -->
+    <div class="mobile-bottom-nav" id="mobile-bottom-nav">
+        <div class="nav-items">
+            <button class="mobile-nav-item active" data-mobile-tab="reader">
+                <i class="fas fa-book-open"></i>
+                Reader
+            </button>
+            <button class="mobile-nav-item" data-mobile-tab="search">
+                <i class="fas fa-search"></i>
+                Search
+            </button>
+            <button class="mobile-nav-item" data-mobile-tab="saved">
+                <i class="fas fa-bookmark"></i>
+                Saved
+            </button>
+            <button class="mobile-nav-item" data-mobile-tab="style">
+                <i class="fas fa-palette"></i>
+                Style
+            </button>
+            <button class="mobile-nav-item" data-mobile-tab="clear">
+                <i class="fas fa-eraser"></i>
+                Clear
+            </button>
+            <button class="mobile-nav-item" data-mobile-tab="black">
+                <i class="fas fa-moon"></i>
+                Black
+            </button>
+            <button class="mobile-nav-item" data-mobile-tab="more">
+                <i class="fas fa-ellipsis-h"></i>
+                More
+            </button>
+        </div>
+    </div>
+
+    <!-- Pusher SDK -->
+    <script src="https://js.pusher.com/8.2/pusher.min.js"></script>
+    <!-- SortableJS for drag-to-reorder saved verses -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+
+    <!-- JS Modules -->
+    <script src="js/api-client.js?v=4"></script>
+    <script src="js/timer-math.js?v=3"></script>
+    <script src="js/state-manager.js?v=3"></script>
+    <script src="js/pusher-manager.js?v=3"></script>
+    <script src="js/room-picker.js?v=1"></script>
+    <script src="js/bible-data.js?v=4"></script>
+    <script src="js/bible-display.js?v=4"></script>
+    <script src="js/bible-controller.js?v=4"></script>
+</body>
+</html>

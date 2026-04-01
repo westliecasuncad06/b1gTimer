@@ -50,19 +50,34 @@
         .top-btn:hover { background:#3a3a50; color:#fff; }
         .top-btn.primary { background:#3b82f6; border-color:#3b82f6; color:#fff; }
         .top-btn.primary:hover { background:#2563eb; }
+        /* Autosave indicator */
+        #autosave-indicator {
+            font-size:.72rem; color:#4ade80; opacity:0;
+            transition:opacity .4s; white-space:nowrap; pointer-events:none;
+        }
+        #autosave-indicator.saving { color:#94a3b8; }
+        #autosave-indicator.visible { opacity:1; }
         .room-select-wrap {
             display:flex; align-items:center; gap:6px;
         }
-        .room-select-wrap label { color:#888; font-size:.8rem; }
-        #room-selector {
-            background: #1e1e30;
-            color: #e0e0e0;
-            border: 1px solid #3a3a50;
-            border-radius: 5px;
-            padding: 4px 8px;
+        /* Hidden select kept for JS / test compatibility */
+        #room-selector { display:none !important; }
+        /* Visible room picker button */
+        #btn-room-picker {
+            background: #1a1a2e;
+            color: #94a3b8;
+            border: 1px solid #2e2e48;
+            border-radius: 6px;
+            padding: 5px 12px;
             font-size: .8rem;
-            min-width: 140px;
+            cursor: pointer;
+            display: flex; align-items: center; gap: 7px;
+            max-width: 180px; overflow: hidden;
+            transition: background .15s, border-color .15s, color .15s;
         }
+        #btn-room-picker:hover { background:#252545; border-color:#3b82f6; color:#c0cfff; }
+        #btn-room-picker i { color:#3b82f6; flex-shrink:0; }
+        #room-picker-label { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 
         /* ===== MAIN LAYOUT ===== */
         .main-layout {
@@ -606,6 +621,47 @@
             font-size:.75rem; color:#555;
         }
 
+        /* ===== PANEL TABS (Messages / Bible) ===== */
+        .panel-tabs {
+            display:flex;
+            border-bottom:1px solid #2a2a3e;
+            background:#151525;
+        }
+        .panel-tab {
+            flex:1;
+            padding:8px 0;
+            text-align:center;
+            font-size:.78rem;
+            font-weight:600;
+            color:#666;
+            cursor:pointer;
+            border:none;
+            background:none;
+            border-bottom:2px solid transparent;
+            transition:all .15s;
+        }
+        .panel-tab:hover { color:#aaa; }
+        .panel-tab.active { color:#e0e0e0; border-bottom-color:#3b82f6; }
+        .panel-tab-content { display:none; }
+        .panel-tab-content.active { display:block; }
+
+        /* ===== BIBLE PANEL ===== */
+        .bible-open-controller {
+            display:flex; flex-direction:column; align-items:center; justify-content:center;
+            padding:40px 20px; text-align:center;
+        }
+        .bible-open-controller p {
+            font-size:.8rem; color:#888; margin-bottom:16px; line-height:1.5;
+        }
+        .bible-open-btn {
+            display:inline-flex; align-items:center; gap:8px;
+            padding:12px 24px;
+            background:#3b82f6; color:#fff; border:none; border-radius:8px;
+            font-size:.85rem; font-weight:600; cursor:pointer;
+            transition:background .15s;
+        }
+        .bible-open-btn:hover { background:#2563eb; }
+
         /* ===== CONTEXT MENU (3-dot) ===== */
         .ctx-menu {
             display:none;
@@ -1066,13 +1122,19 @@
         </div>
         <div class="top-bar-right">
             <div class="room-select-wrap">
-                <label>Room</label>
+                <!-- Hidden select kept for JS / backward-compat -->
                 <select id="room-selector">
                     <option value="">-- Select Room --</option>
                 </select>
+                <!-- Visible room-picker button -->
+                <button id="btn-room-picker" title="Switch room">
+                    <i class="fas fa-door-open"></i>
+                    <span id="room-picker-label">Select Room</span>
+                </button>
                 <button class="top-btn" id="btn-create-room" title="Create Room"><i class="fas fa-plus"></i></button>
                 <button class="top-btn" id="btn-delete-room" title="Delete Room" style="color:#ef4444;"><i class="fas fa-trash"></i></button>
             </div>
+            <span id="autosave-indicator"></span>
             <button class="top-btn primary" id="btn-save" data-action="save-timers"><i class="fas fa-save"></i> Save</button>
         </div>
     </div>
@@ -1271,27 +1333,46 @@
             </div>
         </div>
 
-        <!-- ===== RIGHT: MESSAGES PANEL ===== -->
+        <!-- ===== RIGHT: MESSAGES & BIBLE PANEL ===== -->
         <div class="panel messages-panel">
-            <div class="panel-header">
-                <div class="panel-header-title">Messages</div>
-                <div class="panel-header-actions">
-                    <button class="toggle-btn" id="btn-msg-focus">
-                        <span class="dot"></span> Focus
+            <div class="panel-tabs">
+                <button class="panel-tab active" data-panel="messages"><i class="fas fa-comment-dots" style="margin-right:4px;"></i>Messages</button>
+                <button class="panel-tab" data-panel="bible"><i class="fas fa-book" style="margin-right:4px;"></i>Bible</button>
+            </div>
+
+            <!-- Messages Tab Content -->
+            <div class="panel-tab-content active" id="tab-messages">
+                <div class="panel-header">
+                    <div class="panel-header-title">Messages</div>
+                    <div class="panel-header-actions">
+                        <button class="toggle-btn" id="btn-msg-focus">
+                            <span class="dot"></span> Focus
+                        </button>
+                        <button class="toggle-btn" id="btn-msg-flash">
+                            <i class="fas fa-bolt" style="font-size:.65rem;"></i> Flash
+                        </button>
+                    </div>
+                </div>
+                <div class="panel-body" id="messages-body">
+                    <div id="messages-list">
+                        <!-- Messages rendered by JS -->
+                    </div>
+                    <button class="add-message-btn" id="btn-add-message">
+                        <i class="fas fa-plus"></i> Add Message
                     </button>
-                    <button class="toggle-btn" id="btn-msg-flash">
-                        <i class="fas fa-bolt" style="font-size:.65rem;"></i> Flash
-                    </button>
+                    <div class="submit-link">Submit questions link</div>
                 </div>
             </div>
-            <div class="panel-body" id="messages-body">
-                <div id="messages-list">
-                    <!-- Messages rendered by JS -->
+
+            <!-- Bible Tab Content -->
+            <div class="panel-tab-content" id="tab-bible">
+                <div class="bible-open-controller">
+                    <p><i class="fas fa-book-open" style="font-size:2rem;color:#3b82f6;margin-bottom:12px;display:block;"></i>
+                    The Bible module has been moved to its own full-page controller with multi-translation support, live mode, presets, and more.</p>
+                    <button class="bible-open-btn" id="btn-open-bible">
+                        <i class="fas fa-external-link-alt"></i> Open Bible Controller
+                    </button>
                 </div>
-                <button class="add-message-btn" id="btn-add-message">
-                    <i class="fas fa-plus"></i> Add Message
-                </button>
-                <div class="submit-link">Submit questions link</div>
             </div>
         </div>
     </div>
@@ -1521,12 +1602,15 @@
     <script src="js/timer-math.js?v=3"></script>
     <script src="js/state-manager.js?v=3"></script>
     <script src="js/pusher-manager.js?v=3"></script>
+    <script src="js/room-picker.js?v=2"></script>
     <script src="js/room-manager.js?v=3"></script>
     <script src="js/timer-engine.js?v=3"></script>
     <script src="js/message-manager.js?v=3"></script>
     <script src="js/sortable-handler.js?v=3"></script>
     <script src="js/validation-handler.js?v=3"></script>
     <script src="js/phase-5-enhancements.js?v=3"></script>
-    <script src="js/control-dashboard.js?v=4"></script>
+    <script src="js/bible-data.js?v=2"></script>
+    <script src="js/bible-display.js?v=2"></script>
+    <script src="js/control-dashboard.js?v=7"></script>
 </body>
 </html>

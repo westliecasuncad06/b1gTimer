@@ -48,6 +48,10 @@ const RoomManager = {
             const domSelector = document.getElementById('room-selector');
             if (domSelector) domSelector.value = roomId;
 
+            // Keep the visible room-picker button in sync
+            const pickerLabel = document.getElementById('room-picker-label');
+            if (pickerLabel) pickerLabel.textContent = room.name || ('Room ' + roomId);
+
             // Reset timer state only when user deliberately switches rooms,
             // NOT when restoring the same room after a page refresh
             if (!restoreMode) {
@@ -219,6 +223,13 @@ const RoomManager = {
             selector.addEventListener('change', async (e) => {
                 const roomId = e.target.value;
                 if (roomId) {
+                    // Close any lingering room-picker overlay that was opened
+                    // by the auto-open in init() before programmatic selection
+                    const ov = document.getElementById('rp-overlay');
+                    if (ov && !ov.classList.contains('rp-closing')) {
+                        ov.classList.add('rp-closing');
+                        setTimeout(() => ov.remove(), 250);
+                    }
                     await this.loadRoom(roomId);
                 }
             });
@@ -306,6 +317,7 @@ const RoomManager = {
                 const moved = StateManager.state.timers.splice(oldIdx, 1)[0];
                 StateManager.state.timers.splice(newIdx, 0, moved);
                 this.renderTimerList(StateManager.state.timers);
+                if (typeof ControlDashboard !== 'undefined') ControlDashboard.autoSaveTimers();
             });
         }
     },
@@ -377,6 +389,7 @@ const RoomManager = {
                 if (newTitle !== null && newTitle.trim()) {
                     timer.title = newTitle.trim();
                     this.renderTimerList(StateManager.state.timers);
+                    ControlDashboard.autoSaveTimers();
                 }
             });
         });
@@ -497,6 +510,7 @@ const RoomManager = {
         }
 
         this.renderTimerList(StateManager.state.timers);
+        if (typeof ControlDashboard !== 'undefined') ControlDashboard.autoSaveTimers();
     },
     
     /**

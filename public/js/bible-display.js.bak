@@ -1,0 +1,201 @@
+/**
+ * B1G Timer - Bible Display (Stage-side renderer)
+ * Shows Bible verses on the Stage Display with styling presets and transitions
+ */
+
+const BibleDisplay = {
+    PRESETS: {
+        classic: {
+            name: 'Classic', fontFamily: "'Georgia', serif", fontSize: '5vw', refFontSize: '2.5vw',
+            textColor: '#ffffff', bgType: 'solid', bgColor: '#000000', textAlign: 'center', refPosition: 'bottom-center'
+        },
+        modern: {
+            name: 'Modern', fontFamily: "'Segoe UI', -apple-system, sans-serif", fontSize: '4.5vw', refFontSize: '2vw',
+            textColor: '#e0e0e0', bgType: 'gradient', bgColor: 'linear-gradient(135deg, #1a1a2e, #16213e)',
+            textAlign: 'center', refPosition: 'bottom-center'
+        },
+        elegant: {
+            name: 'Elegant', fontFamily: "'Playfair Display', Georgia, serif", fontSize: '4.5vw', refFontSize: '2vw',
+            textColor: '#f5e6d3', bgType: 'solid', bgColor: '#1a1410', textAlign: 'center', refPosition: 'bottom-center'
+        },
+        warm: {
+            name: 'Warm', fontFamily: "'Georgia', serif", fontSize: '5vw', refFontSize: '2.5vw',
+            textColor: '#fff8f0', bgType: 'gradient', bgColor: 'linear-gradient(135deg, #3d1f00, #5c2d00)',
+            textAlign: 'center', refPosition: 'bottom-center'
+        },
+        cinematic: {
+            name: 'Cinematic', fontFamily: "'Segoe UI', -apple-system, sans-serif", fontSize: '5.5vw', refFontSize: '2vw',
+            textColor: '#ffffff', bgType: 'solid', bgColor: '#0a0a0a', textAlign: 'center', refPosition: 'bottom-right'
+        },
+        minimal: {
+            name: 'Minimal', fontFamily: "'Segoe UI', -apple-system, sans-serif", fontSize: '3.5vw', refFontSize: '1.8vw',
+            textColor: '#cccccc', bgType: 'solid', bgColor: '#111111', textAlign: 'center', refPosition: 'bottom-center'
+        },
+        bold: {
+            name: 'Bold', fontFamily: "'Arial Black', 'Impact', sans-serif", fontSize: '6vw', refFontSize: '2.5vw',
+            textColor: '#ffd700', bgType: 'solid', bgColor: '#1a0a2e', textAlign: 'center', refPosition: 'bottom-center'
+        },
+        nature: {
+            name: 'Nature', fontFamily: "'Georgia', serif", fontSize: '4.5vw', refFontSize: '2vw',
+            textColor: '#e8f5e9', bgType: 'gradient', bgColor: 'linear-gradient(135deg, #0d1f0d, #1a3a1a)',
+            textAlign: 'center', refPosition: 'bottom-center'
+        },
+        ocean: {
+            name: 'Ocean', fontFamily: "'Segoe UI', -apple-system, sans-serif", fontSize: '4.5vw', refFontSize: '2vw',
+            textColor: '#b3e5fc', bgType: 'gradient', bgColor: 'linear-gradient(135deg, #001f3f, #003366)',
+            textAlign: 'center', refPosition: 'bottom-center'
+        },
+        sunset: {
+            name: 'Sunset', fontFamily: "'Georgia', serif", fontSize: '5vw', refFontSize: '2.5vw',
+            textColor: '#fff5e1', bgType: 'gradient', bgColor: 'linear-gradient(135deg, #4a1942, #c84b31)',
+            textAlign: 'center', refPosition: 'bottom-center'
+        }
+    },
+
+    _currentTransition: 'fade',
+
+    /**
+     * Display a Bible verse on the stage with optional transition
+     */
+    displayVerseOnStage(data) {
+        const container = document.getElementById('bible-display');
+        const verseText = document.getElementById('bible-verse-text');
+        const referenceEl = document.getElementById('bible-reference');
+
+        if (!container || !verseText || !referenceEl) return;
+
+        // Determine transition
+        const style = data.style || {};
+        const transition = style.transition || this._currentTransition || 'fade';
+        this._currentTransition = transition;
+
+        const isCurrentlyVisible = container.classList.contains('visible');
+
+        const applyNewContent = () => {
+            // Set verse text
+            verseText.textContent = data.text || '';
+
+            // Set reference
+            const ref = this._formatRef(data);
+            referenceEl.textContent = ref;
+
+            // Apply style
+            const preset = style.preset ? this.PRESETS[style.preset] : null;
+            const effective = preset ? { ...preset, ...style } : { ...this.PRESETS.classic, ...style };
+            this._applyStyle(container, verseText, referenceEl, effective);
+
+            // Apply transition entrance class
+            container.classList.remove('transition-fade-in', 'transition-slide-up-in', 'transition-slide-left-in');
+            if (transition === 'fade') {
+                container.classList.add('transition-fade-in');
+            } else if (transition === 'slide-up') {
+                container.classList.add('transition-slide-up-in');
+            } else if (transition === 'slide-left') {
+                container.classList.add('transition-slide-left-in');
+            }
+
+            // Show
+            container.classList.add('visible');
+            console.log('[BibleDisplay] Verse displayed:', ref, '(transition:', transition + ')');
+        };
+
+        if (isCurrentlyVisible && transition !== 'none') {
+            // Transition out then in
+            container.classList.add('transition-out');
+            setTimeout(() => {
+                container.classList.remove('transition-out');
+                applyNewContent();
+            }, 250);
+        } else {
+            applyNewContent();
+        }
+    },
+
+    /**
+     * Clear verse from stage
+     */
+    clearVerseOnStage() {
+        const container = document.getElementById('bible-display');
+        if (!container) return;
+
+        container.classList.add('transition-out');
+        setTimeout(() => {
+            container.classList.remove('visible', 'transition-out');
+            container.className = 'bible-display';
+            container.style.cssText = '';
+
+            const verseText = document.getElementById('bible-verse-text');
+            const referenceEl = document.getElementById('bible-reference');
+            if (verseText) { verseText.textContent = ''; verseText.style.cssText = ''; }
+            if (referenceEl) { referenceEl.textContent = ''; referenceEl.style.cssText = ''; }
+
+            console.log('[BibleDisplay] Verse cleared');
+        }, 250);
+    },
+
+    /**
+     * Apply visual style to the display elements
+     */
+    _applyStyle(container, verseText, referenceEl, style) {
+        // Reset classes (keep visible and transition classes)
+        const wasVisible = container.classList.contains('visible');
+        const transClasses = [];
+        container.classList.forEach(c => { if (c.startsWith('transition-')) transClasses.push(c); });
+        container.className = 'bible-display';
+        if (wasVisible) container.classList.add('visible');
+        transClasses.forEach(c => container.classList.add(c));
+
+        // Font
+        verseText.style.fontFamily = style.fontFamily || "'Georgia', serif";
+        verseText.style.fontSize = style.fontSize || '5vw';
+        verseText.style.color = style.textColor || '#ffffff';
+        verseText.style.textAlign = style.textAlign || 'center';
+
+        // Reference styling
+        referenceEl.style.fontFamily = style.fontFamily || "'Georgia', serif";
+        referenceEl.style.fontSize = style.refFontSize || '2.5vw';
+        referenceEl.style.color = style.textColor || '#ffffff';
+        referenceEl.style.opacity = '0.75';
+
+        // Background
+        const bgType = style.bgType || 'solid';
+        if (bgType === 'image' && style.bgImage) {
+            container.classList.add('bible-bg-image');
+            container.style.backgroundImage = `url(${style.bgImage})`;
+            container.style.backgroundSize = 'cover';
+            container.style.backgroundPosition = 'center';
+        } else if (bgType === 'gradient') {
+            container.style.background = style.bgColor || 'linear-gradient(135deg, #1a1a2e, #16213e)';
+            container.classList.add('bible-bg-gradient');
+        } else {
+            container.style.backgroundColor = style.bgColor || '#000000';
+        }
+
+        // Reference position
+        const refPos = style.refPosition || 'bottom-center';
+        container.classList.add('bible-ref-' + refPos);
+
+        // Text alignment
+        if (style.textAlign === 'left') {
+            container.classList.add('bible-align-left');
+        } else if (style.textAlign === 'right') {
+            container.classList.add('bible-align-right');
+        }
+    },
+
+    /**
+     * Format the reference line
+     */
+    _formatRef(data) {
+        let ref = data.book || '';
+        if (data.chapter) ref += ' ' + data.chapter;
+        if (data.verse) {
+            ref += ':' + data.verse;
+            if (data.verseEnd && data.verseEnd !== data.verse) ref += '-' + data.verseEnd;
+        }
+        if (data.version) ref += ' (' + data.version + ')';
+        return ref;
+    }
+};
+
+window.BibleDisplay = BibleDisplay;

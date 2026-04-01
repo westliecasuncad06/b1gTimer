@@ -273,6 +273,10 @@ const StageDisplay = {
                 const roomNameEl = document.getElementById('room-name');
                 if (roomNameEl && data.roomName) roomNameEl.textContent = data.roomName;
                 break;
+
+            // NOTE: BIBLE_VERSE_UPDATE and BIBLE_VERSE_CLEAR are intentionally NOT handled here.
+            // The timer stage (stage.html) only shows timer/clock content.
+            // Bible verses go exclusively to bible-stage.html via its own channel.
         }
     },
     
@@ -431,11 +435,23 @@ const StageDisplay = {
             if (countdownEl && !countdownEl.classList.contains('negative')) {
                 countdownEl.style.color = data.timerColor;
             }
+            // Mirror timer color in PiP
+            if (this._pipWindow) {
+                const pipCountdown = this._pipWindow.document.getElementById('pip-countdown');
+                if (pipCountdown && !pipCountdown.classList.contains('negative')) {
+                    pipCountdown.style.color = data.timerColor;
+                }
+            }
         }
         if (data.clockColor) {
             this.stageStyle.clockColor = data.clockColor;
             const timeEl = document.getElementById('time-of-day');
             if (timeEl) timeEl.style.color = data.clockColor;
+            // Mirror clock color in PiP
+            if (this._pipWindow) {
+                const pipClock = this._pipWindow.document.getElementById('pip-clock');
+                if (pipClock) pipClock.style.color = data.clockColor;
+            }
         }
         if (data.timerFont) {
             this.stageStyle.timerFont = data.timerFont;
@@ -460,6 +476,10 @@ const StageDisplay = {
         if (data.bgColor) {
             this.stageStyle.bgColor = data.bgColor;
             document.body.style.backgroundColor = data.bgColor;
+            // Mirror background in Document PiP
+            if (this._pipWindow) {
+                this._pipWindow.document.body.style.background = data.bgColor;
+            }
         }
         console.log('[StageDisplay] Stage style updated:', data);
     },
@@ -517,6 +537,13 @@ const StageDisplay = {
             overlay.classList.remove('active');
             console.log('[StageDisplay] Blackout OFF');
         }
+
+        // Mirror blackout in Document PiP window
+        if (this._pipWindow) {
+            const pipBlackout = this._pipWindow.document.getElementById('pip-blackout');
+            if (pipBlackout) pipBlackout.style.display = isBlackedOut ? 'block' : 'none';
+        }
+        // Canvas PiP: next updatePiP tick will draw full-black when overlay is active
     },
     
     /**
@@ -536,6 +563,19 @@ const StageDisplay = {
                 countdown.style.opacity = '1';
             }
         }, 150);
+
+        // Mirror flash in Document PiP window
+        if (this._pipWindow) {
+            const pipEl = this._pipWindow.document.getElementById('pip-countdown');
+            if (pipEl) {
+                let pf = 0;
+                const pi = setInterval(() => {
+                    pipEl.style.opacity = pipEl.style.opacity === '0' ? '1' : '0';
+                    pf++;
+                    if (pf >= maxFlashes) { clearInterval(pi); pipEl.style.opacity = '1'; }
+                }, 150);
+            }
+        }
         
         console.log('[StageDisplay] Flash');
     },
@@ -692,6 +732,8 @@ const StageDisplay = {
                     .pip-countdown.negative { color:#ef4444; }
                     .pip-clock { color:rgba(255,255,255,.5); white-space:nowrap;
                                  text-align:center; line-height:1; }
+                    #pip-blackout { position:fixed; inset:0; background:#000;
+                                    display:none; z-index:999; }
                 `;
                 pipWindow.document.head.appendChild(style);
 
@@ -707,6 +749,22 @@ const StageDisplay = {
 
                 pipWindow.document.body.appendChild(countdownEl);
                 pipWindow.document.body.appendChild(clockEl);
+
+                // Add blackout overlay (mirrors setBlackout)
+                const pipBlackout = pipWindow.document.createElement('div');
+                pipBlackout.id = 'pip-blackout';
+                pipWindow.document.body.appendChild(pipBlackout);
+
+                // Apply current stage style immediately
+                pipWindow.document.body.style.background = this.stageStyle.bgColor || '#000';
+                if (this.stageStyle.timerColor) countdownEl.style.color = this.stageStyle.timerColor;
+                if (this.stageStyle.clockColor) clockEl.style.color = this.stageStyle.clockColor;
+                if (this.stageStyle.timerFont) countdownEl.style.fontFamily = this.stageStyle.timerFont;
+                if (this.stageStyle.clockFont) clockEl.style.fontFamily = this.stageStyle.clockFont;
+
+                // Mirror current blackout state into PiP
+                const isCurrentlyBlackedOut = document.getElementById('blackout-overlay')?.classList.contains('active');
+                if (isCurrentlyBlackedOut) pipBlackout.style.display = 'block';
 
                 // Responsive font sizing based on PiP window dimensions
                 const resizeFonts = () => {
@@ -767,6 +825,10 @@ const StageDisplay = {
             if (el && srcCountdown) {
                 el.textContent = srcCountdown.textContent;
                 el.className = 'pip-countdown' + (srcCountdown.classList.contains('negative') ? ' negative' : '');
+                // Restore color when not negative
+                if (!srcCountdown.classList.contains('negative') && this.stageStyle.timerColor) {
+                    el.style.color = this.stageStyle.timerColor;
+                }
             }
             if (clockEl && srcClock) clockEl.textContent = srcClock.textContent;
         }
@@ -776,12 +838,23 @@ const StageDisplay = {
             const ch = this._pipCanvas.height;
             const countdown = document.getElementById('countdown');
             const srcClock = document.getElementById('time-of-day');
-            ctx.fillStyle = '#000';
+
+            // Use stage background color
+            ctx.fillStyle = this.stageStyle.bgColor || '#000';
             ctx.fillRect(0, 0, cw, ch);
+
+            // Blackout: render solid black when active
+            if (document.getElementById('blackout-overlay')?.classList.contains('active')) {
+                ctx.fillStyle = '#000';
+                ctx.fillRect(0, 0, cw, ch);
+                return;
+            }
 
             // Responsive countdown font
             const countdownFontSize = Math.max(16, Math.min(cw * 0.2, ch * 0.52));
-            ctx.fillStyle = countdown && countdown.classList.contains('negative') ? '#ef4444' : '#fff';
+            ctx.fillStyle = countdown && countdown.classList.contains('negative')
+                ? '#ef4444'
+                : (this.stageStyle.timerColor || '#fff');
             ctx.font = `bold ${Math.round(countdownFontSize)}px Courier New`;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
@@ -789,7 +862,7 @@ const StageDisplay = {
 
             // Responsive clock font
             const clockFontSize = Math.max(10, Math.min(cw * 0.06, ch * 0.16));
-            ctx.fillStyle = 'rgba(255,255,255,0.5)';
+            ctx.fillStyle = this.stageStyle.clockColor || 'rgba(255,255,255,0.5)';
             ctx.font = `${Math.round(clockFontSize)}px Courier New`;
             const clockText = srcClock ? srcClock.textContent : '';
             if (clockText) {
@@ -910,6 +983,8 @@ const StageDisplay = {
             // Explicitly null means message was hidden
             MessageManager.hideMessageOnStage();
         }
+
+        // NOTE: Bible verse sync is handled by bible-stage.html independently.
     },
 
     /**
@@ -972,30 +1047,31 @@ const StageDisplay = {
                 } else if (state.activeMessage === null) {
                     MessageManager.hideMessageOnStage();
                 }
+                // NOTE: Bible verse polling is handled by bible-stage.html independently.
             } catch (e) { /* ignore poll errors */ }
         }, 4000);
     }
 };
 
 /**
- * Get room ID from URL parameter, or fetch first available room from API
+ * Get room ID: URL param takes priority; otherwise show the room-picker overlay.
  */
 async function getStageRoomId() {
+    // RoomPicker handles the URL-param fast-path and the interactive picker UI.
+    if (typeof RoomPicker !== 'undefined') {
+        return RoomPicker.pick();
+    }
+    // Fallback (RoomPicker not loaded)
     const params = new URLSearchParams(window.location.search);
     const urlRoom = params.get('room');
     if (urlRoom) return urlRoom;
-    
-    // No room specified — try to get the first available room
     try {
         const rooms = await APIClient.getRooms();
-        if (rooms && rooms.length > 0) {
-            console.log('[StageDisplay] No room param — using first room:', rooms[0].id, rooms[0].name);
-            return rooms[0].id;
-        }
+        if (rooms && rooms.length > 0) return rooms[0].id;
     } catch (e) {
         console.warn('[StageDisplay] Could not fetch rooms:', e.message);
     }
-    return 1;  // Final fallback
+    return 1;
 }
 
 // Auto-initialize when DOM is ready

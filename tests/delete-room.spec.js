@@ -24,6 +24,34 @@ async function waitForRooms(page) {
   }, { timeout: 15_000 });
 }
 
+/**
+ * Navigate to the dashboard, seed localStorage so the auto-open room picker
+ * does NOT block the UI. Dismisses any picker that appears regardless.
+ */
+async function gotoDash(page) {
+  await page.addInitScript(() => {
+    try {
+      const existing = JSON.parse(localStorage.getItem('b1g_timer_state') || '{}');
+      if (!existing.selectedRoomId) {
+        existing.selectedRoomId = '__placeholder__';
+        localStorage.setItem('b1g_timer_state', JSON.stringify(existing));
+      }
+    } catch (e) { /* ignore */ }
+  });
+  await page.goto(DASHBOARD_URL, { waitUntil: 'domcontentloaded' });
+  await page.waitForFunction(() => typeof RoomPicker !== 'undefined', { timeout: 10_000 });
+
+  // Dismiss any auto-open picker that may have appeared
+  const overlayUp = await page.locator('#rp-overlay').isVisible();
+  if (overlayUp) {
+    const hasCard = await page.locator('.rp-card').count();
+    if (hasCard > 0) {
+      await page.locator('.rp-card').first().click();
+      await page.waitForFunction(() => document.querySelector('#rp-overlay') === null, { timeout: 3_000 }).catch(() => {});
+    }
+  }
+}
+
 /** Create a room via the UI and return the new room's ID */
 async function createTestRoom(page, roomName) {
   await page.click('#btn-create-room');
@@ -64,7 +92,7 @@ test.describe('Delete Room', () => {
     const errors = [];
     page.on('pageerror', err => errors.push(err.message));
 
-    await page.goto(DASHBOARD_URL);
+    await gotoDash(page);
     await waitForRooms(page);
 
     // Create a temp room to test with
@@ -116,7 +144,7 @@ test.describe('Delete Room', () => {
   });
 
   test('2. Clicking "No" cancels deletion — room still in list', async ({ page }) => {
-    await page.goto(DASHBOARD_URL);
+    await gotoDash(page);
     await waitForRooms(page);
 
     const roomName = 'DeleteTest-Cancel-' + Date.now();
@@ -150,7 +178,7 @@ test.describe('Delete Room', () => {
     const errors = [];
     page.on('pageerror', err => errors.push(err.message));
 
-    await page.goto(DASHBOARD_URL);
+    await gotoDash(page);
     await waitForRooms(page);
 
     const roomName = 'DeleteTest-Confirm-' + Date.now();
@@ -193,7 +221,7 @@ test.describe('Delete Room', () => {
   });
 
   test('4. After deletion selector is cleared and has no invalid selection', async ({ page }) => {
-    await page.goto(DASHBOARD_URL);
+    await gotoDash(page);
     await waitForRooms(page);
 
     const roomName = 'DeleteTest-Selector-' + Date.now();

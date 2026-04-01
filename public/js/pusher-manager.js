@@ -98,13 +98,17 @@ const PusherManager = {
             
             console.log(`[Pusher] Subscribed to ${channelName}`);
             
-            // Bind to all timer events (15 action types)
+            // Bind to all timer + bible events
+            // BIBLE_VERSE_UPDATE / BIBLE_VERSE_CLEAR are included so that bible-stage.html
+            // can receive cross-browser verse updates via Pusher.
+            // STAGE_STYLE_UPDATE is included for cross-browser style sync.
             const actions = [
                 'TIMER_START', 'TIMER_PAUSE', 'TIMER_RESUME', 'TIMER_STOP', 'TIMER_RESET',
                 'TIMER_SKIP', 'NEXT_TIMER', 'PREVIOUS_TIMER',
                 'BLACKOUT_ON', 'BLACKOUT_OFF', 'FLASH_TRIGGER',
                 'MESSAGE_SHOW', 'MESSAGE_HIDE',
-                'ROOM_UPDATED', 'TIME_ADJUSTMENT'
+                'ROOM_UPDATED', 'TIME_ADJUSTMENT', 'STAGE_STYLE_UPDATE',
+                'BIBLE_VERSE_UPDATE', 'BIBLE_VERSE_CLEAR'
             ];
             
             actions.forEach(action => {

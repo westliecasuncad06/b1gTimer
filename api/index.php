@@ -90,6 +90,14 @@ try {
         case 'state':
             include __DIR__ . '/v1/state.php';
             break;
+
+        case 'bible-presets':
+            include __DIR__ . '/v1/bible-presets.php';
+            break;
+
+        case 'bible-bg':
+            include __DIR__ . '/v1/bible-bg.php';
+            break;
             
         default:
             http_response_code(404);

@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>B1G Timer - Bible Stage</title>
+    <style>
+        *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+        html, body {
+            width:100vw; height:100vh; overflow:hidden;
+            background:#000; color:#fff;
+            font-family: 'Georgia', serif;
+        }
+
+        /* Blackout overlay */
+        .blackout-overlay {
+            position:fixed; inset:0;
+            background:#000;
+            display:none;
+            z-index:100;
+        }
+        .blackout-overlay.active { display:block; }
+
+        /* Connection status dot */
+        .connection-status {
+            position:fixed;
+            top:1.5vh; right:1.5vw;
+            width:12px; height:12px;
+            border-radius:50%;
+            background:#ef4444;
+            z-index:50;
+            transition:background .3s;
+        }
+        .connection-status.connected { background:#4ade80; }
+
+        /* Waiting message */
+        .waiting-message {
+            position:fixed; inset:0;
+            display:flex; flex-direction:column;
+            align-items:center; justify-content:center;
+            color:rgba(255,255,255,.3);
+            font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+            font-size:2vw;
+            z-index:1;
+        }
+        .waiting-message i { font-size:4vw; margin-bottom:2vh; }
+        .waiting-message.hidden { display:none; }
+
+        /* Bible Display */
+        .bible-display {
+            position:fixed; inset:0;
+            display:none;
+            flex-direction:column;
+            align-items:center;
+            justify-content:center;
+            z-index:40;
+            padding:5vh 6vw;
+            background:#000;
+        }
+        .bible-display.visible { display:flex; }
+        .bible-display .bible-verse-text {
+            font-family:'Georgia', serif;
+            font-size:5vw;
+            color:#fff;
+            line-height:1.5;
+            text-align:center;
+            word-break:break-word;
+            max-width:90vw;
+        }
+        .bible-display .bible-reference {
+            margin-top:3vh;
+            font-family:'Georgia', serif;
+            font-size:2.5vw;
+            color:rgba(255,255,255,.75);
+            text-align:center;
+        }
+
+        /* Reference positions */
+        .bible-display.bible-ref-bottom-center .bible-reference { text-align:center; }
+        .bible-display.bible-ref-bottom-right .bible-reference { text-align:right; align-self:flex-end; }
+        .bible-display.bible-ref-top-right .bible-reference { position:absolute; top:3vh; right:4vw; }
+        .bible-display.bible-ref-inline-right .bible-reference { align-self:flex-end; margin-right:6vw; }
+        /* Text alignment */
+        .bible-display.bible-align-left .bible-verse-text { text-align:left; }
+        .bible-display.bible-align-right .bible-verse-text { text-align:right; }
+        /* Gradient background */
+        .bible-display.bible-bg-gradient { background:linear-gradient(135deg, #1a1a2e, #16213e); }
+        /* Image background */
+        .bible-display.bible-bg-image {
+            background-size:cover;
+            background-position:center;
+            background-repeat:no-repeat;
+        }
+        .bible-display.bible-bg-image::after {
+            content:'';
+            position:absolute;
+            inset:0;
+            background:rgba(0,0,0,.45);
+            pointer-events:none;
+        }
+        .bible-display.bible-bg-image .bible-verse-text,
+        .bible-display.bible-bg-image .bible-reference {
+            position:relative;
+            z-index:1;
+            text-shadow:0 2px 8px rgba(0,0,0,.8);
+        }
+
+        /* ===== TRANSITIONS ===== */
+        /* Transition out (used when switching verses) */
+        .bible-display.transition-out {
+            animation: transitionOut 0.25s ease forwards;
+        }
+        @keyframes transitionOut {
+            to { opacity:0; transform:scale(0.98); }
+        }
+
+        /* Fade in */
+        .bible-display.transition-fade-in {
+            animation: fadeIn 0.4s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity:0; }
+            to { opacity:1; }
+        }
+
+        /* Slide up in */
+        .bible-display.transition-slide-up-in {
+            animation: slideUpIn 0.4s ease;
+        }
+        @keyframes slideUpIn {
+            from { opacity:0; transform:translateY(30px); }
+            to { opacity:1; transform:translateY(0); }
+        }
+
+        /* Slide left in */
+        .bible-display.transition-slide-left-in {
+            animation: slideLeftIn 0.4s ease;
+        }
+        @keyframes slideLeftIn {
+            from { opacity:0; transform:translateX(40px); }
+            to { opacity:1; transform:translateX(0); }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Blackout Overlay -->
+    <div class="blackout-overlay" id="blackout-overlay"></div>
+
+    <!-- Connection Status -->
+    <div class="connection-status" id="connection-status"></div>
+
+    <!-- Waiting Message (shown when no verse is displayed) -->
+    <div class="waiting-message" id="waiting-message">
+        <i class="fas fa-book-bible"></i>
+        Bible Stage — Waiting for verse...
+    </div>
+
+    <!-- Bible Display -->
+    <div class="bible-display" id="bible-display">
+        <div class="bible-verse-text" id="bible-verse-text"></div>
+        <div class="bible-reference" id="bible-reference"></div>
+    </div>
+
+    <!-- Pusher SDK -->
+    <script src="https://js.pusher.com/8.2/pusher.min.js"></script>
+
+    <!-- JS Modules -->
+    <script src="js/api-client.js?v=4"></script>
+    <script src="js/timer-math.js?v=3"></script>
+    <script src="js/state-manager.js?v=3"></script>
+    <script src="js/pusher-manager.js?v=3"></script>
+    <script src="js/bible-display.js?v=2"></script>
+
+    <script>
+    /**
+     * B1G Bible Stage - Dedicated Bible-only stage display
+     * Receives Bible verse events via Pusher/BroadcastChannel and displays them fullscreen.
+     * Also reads the current verse from localStorage when first opened.
+     */
+    const BibleStage = {
+        roomId: null,
+        broadcastChannel: null,
+        blackout: false,
+
+        async init() {
+            const params = new URLSearchParams(window.location.search);
+            this.roomId = params.get('room') || '1';
+
+            console.log('[BibleStage] Initializing for room', this.roomId);
+
+            // Setup BroadcastChannel (same-origin fallback)
+            this.setupBroadcastChannel();
+
+            // Initialize Pusher
+            let pusherReady = false;
+            try {
+                pusherReady = await PusherManager.initialize();
+            } catch (e) {
+                console.warn('[BibleStage] Pusher init error:', e.message);
+            }
+
+            if (pusherReady) {
+                PusherManager.subscribeToRoom(this.roomId, (action, data) => {
+                    this.handleEvent(action, data);
+                });
+                const statusEl = document.getElementById('connection-status');
+                if (statusEl) statusEl.classList.add('connected');
+            }
+
+            // Try to restore the current verse from controller's localStorage
+            this.restoreCurrentVerse();
+
+            console.log('[BibleStage] Ready for room', this.roomId);
+        },
+
+        setupBroadcastChannel() {
+            try {
+                this.broadcastChannel = new BroadcastChannel('b1g-timer-room-' + this.roomId);
+                this.broadcastChannel.onmessage = (event) => {
+                    const { action, data } = event.data || {};
+                    if (action) {
+                        console.log('[BibleStage] BroadcastChannel event:', action);
+                        this.handleEvent(action, data);
+                        const statusEl = document.getElementById('connection-status');
+                        if (statusEl) statusEl.classList.add('connected');
+                    }
+                };
+                console.log('[BibleStage] BroadcastChannel ready');
+            } catch (e) {
+                console.warn('[BibleStage] BroadcastChannel not supported:', e.message);
+            }
+        },
+
+        handleEvent(action, rawData) {
+            const data = rawData.payload || rawData;
+
+            switch (action) {
+                case 'BIBLE_VERSE_UPDATE':
+                    if (typeof BibleDisplay !== 'undefined') {
+                        BibleDisplay.displayVerseOnStage(data);
+                        const waiting = document.getElementById('waiting-message');
+                        if (waiting) waiting.classList.add('hidden');
+                    }
+                    break;
+
+                case 'BIBLE_VERSE_CLEAR':
+                    if (typeof BibleDisplay !== 'undefined') {
+                        BibleDisplay.clearVerseOnStage();
+                        const waiting2 = document.getElementById('waiting-message');
+                        if (waiting2) waiting2.classList.remove('hidden');
+                    }
+                    break;
+
+                case 'BLACKOUT_ON':
+                    this.setBlackout(true);
+                    break;
+
+                case 'BLACKOUT_OFF':
+                    this.setBlackout(false);
+                    break;
+            }
+        },
+
+        setBlackout(on) {
+            this.blackout = on;
+            const overlay = document.getElementById('blackout-overlay');
+            if (overlay) overlay.classList.toggle('active', on);
+        },
+
+        /**
+         * Restore the current verse from the controller's localStorage.
+         * This allows the stage to immediately show the selected verse when opened.
+         */
+        restoreCurrentVerse() {
+            try {
+                // First try controller's current verse (most accurate)
+                const currentRaw = localStorage.getItem('b1g_bible_current_verse');
+                if (currentRaw) {
+                    const current = JSON.parse(currentRaw);
+                    if (current && current.text && String(current.roomId) === String(this.roomId)) {
+                        console.log('[BibleStage] Restoring current verse from controller');
+                        BibleDisplay.displayVerseOnStage(current);
+                        const waiting = document.getElementById('waiting-message');
+                        if (waiting) waiting.classList.add('hidden');
+                        return;
+                    }
+                }
+
+                // Fallback: try b1g_timer_state
+                const raw = localStorage.getItem('b1g_timer_state');
+                if (!raw) return;
+                const state = JSON.parse(raw);
+                if (state && state.activeBible && String(state.selectedRoomId) === String(this.roomId)) {
+                    BibleDisplay.displayVerseOnStage(state.activeBible);
+                    const waiting = document.getElementById('waiting-message');
+                    if (waiting) waiting.classList.add('hidden');
+                }
+            } catch (e) {
+                console.warn('[BibleStage] Could not restore state:', e.message);
+            }
+        }
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+        BibleStage.init();
+    });
+    </script>
+</body>
+</html>

@@ -1,0 +1,202 @@
+
+Running 10 tests using 1 worker
+
+[1A[2K[1/10] [chromium] GÇ¦ tests\bible-view.spec.js:120:3 GÇ¦ Bible View Module GÇ¦ 1. Bible panel toggle - Messages and Bible tabs switch correctly
+[1A[2K[2/10] [chromium] GÇ¦ tests\bible-view.spec.js:153:3 GÇ¦ Bible View Module GÇ¦ 2. Book navigation - Books GåÆ Chapters GåÆ Verses with breadcrumb
+[1A[2K[3/10] [chromium] GÇ¦ tests\bible-view.spec.js:199:3 GÇ¦ Bible View Module GÇ¦ 3. Direct reference search - "John 3:16" returns correct verse
+[1A[2K  1) [chromium] GÇ¦ tests\bible-view.spec.js:199:3 GÇ¦ Bible View Module GÇ¦ 3. Direct reference search - "John 3:16" returns correct verse 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator:  locator('#bible-preview-card')
+    Expected: visible
+    Received: hidden
+    Timeout:  10000ms
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for locator('#bible-preview-card')[22m
+    [2m    13 +ù locator resolved to <div id="bible-preview-card" class="bible-preview-card">GÇª</div>[22m
+    [2m       - unexpected value "hidden"[22m
+
+
+      225 |     // Preview card should appear
+      226 |     const previewCard = page.locator('#bible-preview-card');
+    > 227 |     await expect(previewCard).toBeVisible();
+          |                               ^
+      228 |     const previewText = await page.locator('#bible-preview-text').textContent();
+      229 |     expect(previewText.toLowerCase()).toContain('god so loved');
+      230 |     await expect(page.locator('#bible-preview-ref')).toContainText('John 3:16');
+        at C:\xampp\htdocs\B1G_TIMER\tests\bible-view.spec.js:227:31
+
+    attachment #1: screenshot (image/png) GöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇ
+    test-results\bible-view-Bible-View-Modu-cf712--3-16-returns-correct-verse-chromium\test-failed-1.png
+    GöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇ
+
+    Error Context: test-results\bible-view-Bible-View-Modu-cf712--3-16-returns-correct-verse-chromium\error-context.md
+
+
+[1A[2K[4/10] [chromium] GÇ¦ tests\bible-view.spec.js:233:3 GÇ¦ Bible View Module GÇ¦ 4. Keyword search - "love" returns relevant results
+[1A[2K[chromium] GÇ¦ tests\bible-view.spec.js:233:3 GÇ¦ Bible View Module GÇ¦ 4. Keyword search - "love" returns relevant results
+  [test4] Keyword "love" returned 50 results
+
+[1A[2K[5/10] [chromium] GÇ¦ tests\bible-view.spec.js:257:3 GÇ¦ Bible View Module GÇ¦ 5. Display verse on stage (same context - BroadcastChannel)
+[1A[2K[6/10] [chromium] GÇ¦ tests\bible-view.spec.js:293:3 GÇ¦ Bible View Module GÇ¦ 6. Cross-browser sync - verse appears in separate browser context
+[1A[2K[chromium] GÇ¦ tests\bible-view.spec.js:293:3 GÇ¦ Bible View Module GÇ¦ 6. Cross-browser sync - verse appears in separate browser context
+  [test6] Cross-browser stage bible visible: true
+
+[1A[2K  [test6] Cross-browser verse text: "GÇ£For God so loved the world, that he gave his only Son, that..."
+
+[1A[2K[7/10] [chromium] GÇ¦ tests\bible-view.spec.js:335:3 GÇ¦ Bible View Module GÇ¦ 7. Style presets - Modern preset changes appearance
+[1A[2K[chromium] GÇ¦ tests\bible-view.spec.js:335:3 GÇ¦ Bible View Module GÇ¦ 7. Style presets - Modern preset changes appearance
+  [test7] Stage has gradient background: true
+
+[1A[2K[8/10] [chromium] GÇ¦ tests\bible-view.spec.js:378:3 GÇ¦ Bible View Module GÇ¦ 8. Clear verse - stage hides Bible display
+[1A[2K  2) [chromium] GÇ¦ tests\bible-view.spec.js:378:3 GÇ¦ Bible View Module GÇ¦ 8. Clear verse - stage hides Bible display 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: page.click: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('#bible-clear-btn')[22m
+    [2m    - locator resolved to <button id="bible-clear-btn" class="bible-clear-btn">GÇª</button>[22m
+    [2m  - attempting click action[22m
+    [2m    2 +ù waiting for element to be visible, enabled and stable[22m
+    [2m      - element is not visible[22m
+    [2m    - retrying click action[22m
+    [2m    - waiting 20ms[22m
+    [2m    2 +ù waiting for element to be visible, enabled and stable[22m
+    [2m      - element is not visible[22m
+    [2m    - retrying click action[22m
+    [2m      - waiting 100ms[22m
+    [2m    7 +ù waiting for element to be visible, enabled and stable[22m
+    [2m      - element is not visible[22m
+    [2m    - retrying click action[22m
+    [2m      - waiting 500ms[22m
+
+
+      110 |
+      111 | async function clearVerseFromStage(page) {
+    > 112 |   await page.click('#bible-clear-btn');
+          |              ^
+      113 |   await page.waitForTimeout(500);
+      114 | }
+      115 |
+        at clearVerseFromStage (C:\xampp\htdocs\B1G_TIMER\tests\bible-view.spec.js:112:14)
+        at C:\xampp\htdocs\B1G_TIMER\tests\bible-view.spec.js:404:11
+
+    attachment #1: screenshot (image/png) GöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇ
+    test-results\bible-view-Bible-View-Modu-ca8ce---stage-hides-Bible-display-chromium\test-failed-2.png
+    GöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇ
+
+    attachment #2: screenshot (image/png) GöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇ
+    test-results\bible-view-Bible-View-Modu-ca8ce---stage-hides-Bible-display-chromium\test-failed-1.png
+    GöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇ
+
+    Error Context: test-results\bible-view-Bible-View-Modu-ca8ce---stage-hides-Bible-display-chromium\error-context.md
+
+
+[1A[2K[9/10] [chromium] GÇ¦ tests\bible-view.spec.js:414:3 GÇ¦ Bible View Module GÇ¦ 9. Refresh persistence - verse survives stage page reload
+[1A[2K[chromium] GÇ¦ tests\bible-view.spec.js:414:3 GÇ¦ Bible View Module GÇ¦ 9. Refresh persistence - verse survives stage page reload
+  [test9] After reload - visible: true, text: "GÇ£For God so loved the world, that he gave his only..."
+
+[1A[2K  3) [chromium] GÇ¦ tests\bible-view.spec.js:414:3 GÇ¦ Bible View Module GÇ¦ 9. Refresh persistence - verse survives stage page reload 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: page.click: Test ended.
+    Call log:
+    [2m  - waiting for locator('#bible-clear-btn')[22m
+    [2m    - locator resolved to <button id="bible-clear-btn" class="bible-clear-btn">GÇª</button>[22m
+    [2m  - attempting click action[22m
+    [2m    2 +ù waiting for element to be visible, enabled and stable[22m
+    [2m      - element is not visible[22m
+    [2m    - retrying click action[22m
+    [2m    - waiting 20ms[22m
+    [2m    2 +ù waiting for element to be visible, enabled and stable[22m
+    [2m      - element is not visible[22m
+    [2m    - retrying click action[22m
+    [2m      - waiting 100ms[22m
+    [2m    10 +ù waiting for element to be visible, enabled and stable[22m
+    [2m       - element is not visible[22m
+    [2m     - retrying click action[22m
+    [2m       - waiting 500ms[22m
+
+
+      457 |
+      458 |     // Cleanup: clear the verse
+    > 459 |     await dashboardPage.click('#bible-clear-btn');
+          |                         ^
+      460 |     await dashboardPage.waitForTimeout(1000);
+      461 |
+      462 |     await dashboardCtx.close();
+        at C:\xampp\htdocs\B1G_TIMER\tests\bible-view.spec.js:459:25
+
+    attachment #1: screenshot (image/png) GöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇ
+    test-results\bible-view-Bible-View-Modu-34a32--survives-stage-page-reload-chromium\test-failed-2.png
+    GöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇ
+
+    attachment #2: screenshot (image/png) GöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇ
+    test-results\bible-view-Bible-View-Modu-34a32--survives-stage-page-reload-chromium\test-failed-1.png
+    GöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇ
+
+    Error Context: test-results\bible-view-Bible-View-Modu-34a32--survives-stage-page-reload-chromium\error-context.md
+
+
+[1A[2K[10/10] [chromium] GÇ¦ tests\bible-view.spec.js:466:3 GÇ¦ Bible View Module GÇ¦ 10. Bible + Timer coexistence - timer runs underneath verse overlay
+[1A[2K[chromium] GÇ¦ tests\bible-view.spec.js:466:3 GÇ¦ Bible View Module GÇ¦ 10. Bible + Timer coexistence - timer runs underneath verse overlay
+  [test10] Timer countdown before Bible: 9:59
+
+[1A[2K  [test10] Timer during Bible overlay: 9:59 GåÆ 9:59
+
+[1A[2K  4) [chromium] GÇ¦ tests\bible-view.spec.js:466:3 GÇ¦ Bible View Module GÇ¦ 10. Bible + Timer coexistence - timer runs underneath verse overlay 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: page.click: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('#bible-clear-btn')[22m
+    [2m    - locator resolved to <button id="bible-clear-btn" class="bible-clear-btn">GÇª</button>[22m
+    [2m  - attempting click action[22m
+    [2m    2 +ù waiting for element to be visible, enabled and stable[22m
+    [2m      - element is not visible[22m
+    [2m    - retrying click action[22m
+    [2m    - waiting 20ms[22m
+    [2m    2 +ù waiting for element to be visible, enabled and stable[22m
+    [2m      - element is not visible[22m
+    [2m    - retrying click action[22m
+    [2m      - waiting 100ms[22m
+    [2m    - waiting for element to be visible, enabled and stable[22m
+    [2m    - element is not visible[22m
+    [2m  - retrying click action[22m
+    [2m    - waiting 500ms[22m
+
+
+      110 |
+      111 | async function clearVerseFromStage(page) {
+    > 112 |   await page.click('#bible-clear-btn');
+          |              ^
+      113 |   await page.waitForTimeout(500);
+      114 | }
+      115 |
+        at clearVerseFromStage (C:\xampp\htdocs\B1G_TIMER\tests\bible-view.spec.js:112:14)
+        at C:\xampp\htdocs\B1G_TIMER\tests\bible-view.spec.js:509:11
+
+    attachment #1: screenshot (image/png) GöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇ
+    test-results\bible-view-Bible-View-Modu-60eaa-ns-underneath-verse-overlay-chromium\test-failed-2.png
+    GöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇ
+
+    attachment #2: screenshot (image/png) GöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇ
+    test-results\bible-view-Bible-View-Modu-60eaa-ns-underneath-verse-overlay-chromium\test-failed-1.png
+    GöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇ
+
+    Error Context: test-results\bible-view-Bible-View-Modu-60eaa-ns-underneath-verse-overlay-chromium\error-context.md
+
+
+[1A[2K  4 failed
+    [chromium] GÇ¦ tests\bible-view.spec.js:199:3 GÇ¦ Bible View Module GÇ¦ 3. Direct reference search - "John 3:16" returns correct verse 
+    [chromium] GÇ¦ tests\bible-view.spec.js:378:3 GÇ¦ Bible View Module GÇ¦ 8. Clear verse - stage hides Bible display 
+    [chromium] GÇ¦ tests\bible-view.spec.js:414:3 GÇ¦ Bible View Module GÇ¦ 9. Refresh persistence - verse survives stage page reload 
+    [chromium] GÇ¦ tests\bible-view.spec.js:466:3 GÇ¦ Bible View Module GÇ¦ 10. Bible + Timer coexistence - timer runs underneath verse overlay 
+  6 passed (3.3m)
+

@@ -153,16 +153,8 @@
         .color-red { color:#ff0000; }
         .color-yellow { color:#ffff00; }
 
-        /* Connection status dot */
-        .connection-status {
-            position:fixed;
-            top:1.5vh; right:1.5vw;
-            width:12px; height:12px;
-            border-radius:50%;
-            background:#ef4444;
-            z-index:50;
-        }
-        .connection-status.connected { background:#4ade80; }
+        /* Connection status dot - hidden */
+        .connection-status { display:none; }
 
         /* Waiting state */
         .countdown-display.waiting {
@@ -234,9 +226,93 @@
             transition:opacity .3s ease;
             z-index:60;
         }
+        body:hover .stage-transport-utils,
         .stage-transport-utils:hover,
         .stage-transport-utils.visible {
             opacity:1;
+        }
+
+        /* Bible Display Overlay */
+        .bible-display {
+            position:fixed; inset:0;
+            display:none;
+            flex-direction:column;
+            align-items:center;
+            justify-content:center;
+            z-index:40;
+            padding:5vh 6vw;
+            background:#000;
+        }
+        .bible-display.visible { display:flex; }
+        .bible-display .bible-verse-text {
+            font-family:'Georgia', serif;
+            font-size:5vw;
+            color:#fff;
+            line-height:1.5;
+            text-align:center;
+            word-break:break-word;
+            max-width:90vw;
+        }
+        .bible-display .bible-reference {
+            margin-top:3vh;
+            font-family:'Georgia', serif;
+            font-size:2.5vw;
+            color:rgba(255,255,255,.75);
+            text-align:center;
+        }
+        /* Lower Third layout */
+        .bible-display.bible-lower-third {
+            justify-content:flex-end;
+            padding-bottom:5vh;
+            background:transparent;
+        }
+        .bible-display.bible-lower-third::before {
+            content:'';
+            position:absolute;
+            left:0; right:0; bottom:0;
+            height:35%;
+            background:linear-gradient(transparent, rgba(0,0,0,.85));
+            pointer-events:none;
+        }
+        .bible-display.bible-lower-third .bible-verse-text {
+            text-align:left;
+            max-width:80vw;
+            z-index:1;
+        }
+        .bible-display.bible-lower-third .bible-reference {
+            text-align:left;
+            align-self:flex-start;
+            margin-left:6vw;
+            z-index:1;
+        }
+        /* Reference positions */
+        .bible-display.bible-ref-bottom-center .bible-reference { text-align:center; }
+        .bible-display.bible-ref-bottom-right .bible-reference { text-align:right; align-self:flex-end; }
+        .bible-display.bible-ref-top-right .bible-reference { position:absolute; top:3vh; right:4vw; }
+        .bible-display.bible-ref-inline-right .bible-reference { align-self:flex-end; margin-right:6vw; }
+        /* Text alignment */
+        .bible-display.bible-align-left .bible-verse-text { text-align:left; }
+        .bible-display.bible-align-right .bible-verse-text { text-align:right; }
+        /* Gradient background */
+        .bible-display.bible-bg-gradient { background:linear-gradient(135deg, #1a1a2e, #16213e); }
+        /* Image background */
+        .bible-display.bible-bg-image {
+            background-size:cover;
+            background-position:center;
+            background-repeat:no-repeat;
+        }
+        .bible-display.bible-bg-image::after {
+            content:'';
+            position:absolute;
+            inset:0;
+            background:rgba(0,0,0,.45);
+            pointer-events:none;
+        }
+        .bible-display.bible-bg-image .bible-verse-text,
+        .bible-display.bible-bg-image .bible-reference {
+            position:relative;
+            z-index:1;
+            text-shadow:0 2px 8px rgba(0,0,0,.8);
         }
     </style>
 </head>
@@ -261,6 +337,12 @@
         <div class="message-ribbon-text" id="message-text"></div>
     </div>
 
+    <!-- Bible Display Overlay -->
+    <div class="bible-display" id="bible-display">
+        <div class="bible-verse-text" id="bible-verse-text"></div>
+        <div class="bible-reference" id="bible-reference"></div>
+    </div>
+
     <!-- Stage Transport Controls (visible on hover) -->
     <div class="stage-transport" id="stage-transport">
         <button class="stage-transport-btn" id="stage-btn-previous" title="Previous Timer"><i class="fas fa-step-backward"></i></button>
@@ -282,8 +364,10 @@
     <script src="js/timer-math.js?v=3"></script>
     <script src="js/state-manager.js?v=3"></script>
     <script src="js/pusher-manager.js?v=3"></script>
+    <script src="js/room-picker.js?v=1"></script>
     <script src="js/message-manager.js?v=3"></script>
+    <script src="js/bible-display.js?v=1"></script>
     <script src="js/stage-display-enhancements.js?v=3"></script>
-    <script src="js/stage-display.js?v=6"></script>
+    <script src="js/stage-display.js?v=7"></script>
 </body>
 </html>

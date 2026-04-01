@@ -1,0 +1,2 @@
+[     118ms] [WARNING] [ControlDashboard] Failed to restore room: TypeError: RoomManager.selectRoom is not a function
+    at Object.init (http://localhost/B1G_TIMER/public/js/control-dashboard.js?v=6:121:39) @ http://localhost/B1G_TIMER/public/js/control-dashboard.js?v=6:122

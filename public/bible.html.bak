@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>B1G Timer - Bible Controller</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+        :root {
+            --bg-primary: #0f0f1a;
+            --bg-secondary: #1a1a2e;
+            --bg-card: #16213e;
+            --bg-input: #1e2a45;
+            --text-primary: #e0e0e0;
+            --text-secondary: #888;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --danger: #ef4444;
+            --success: #4ade80;
+            --border: rgba(255,255,255,.1);
+            --sidebar-width: 380px;
+        }
+        html, body {
+            width:100%; min-height:100vh;
+            background:var(--bg-primary); color:var(--text-primary);
+            font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+            font-size:14px;
+        }
+        a { color:var(--accent); text-decoration:none; }
+        button { cursor:pointer; font-family:inherit; }
+        input, select, textarea { font-family:inherit; }
+
+        /* ===== HEADER ===== */
+        .header {
+            display:flex; align-items:center; gap:12px;
+            padding:10px 20px;
+            background:var(--bg-secondary);
+            border-bottom:1px solid var(--border);
+            position:sticky; top:0; z-index:100;
+        }
+        .header-brand {
+            font-size:1rem; font-weight:700; color:var(--accent);
+            display:flex; align-items:center; gap:6px;
+            white-space:nowrap;
+        }
+        .header-brand i { font-size:.9rem; }
+        .header-room-name {
+            font-size:.85rem; color:var(--text-secondary);
+            margin-left:4px;
+        }
+        .header-controls {
+            display:flex; align-items:center; gap:8px; margin-left:auto;
+        }
+        .version-select {
+            background:var(--bg-input); color:var(--text-primary);
+            border:1px solid var(--border); border-radius:6px;
+            padding:6px 10px; font-size:.8rem; outline:none;
+        }
+        .header-icon-btn {
+            display:inline-flex; align-items:center; gap:5px;
+            background:var(--bg-input); color:var(--text-secondary);
+            border:1px solid var(--border); border-radius:6px;
+            padding:6px 10px; font-size:.78rem;
+            transition:all .15s; cursor:pointer; white-space:nowrap;
+        }
+        .header-icon-btn:hover { border-color:var(--accent); color:var(--accent); }
+        .header-icon-btn.active { background:rgba(255,255,255,.15); border-color:#fff; color:#fff; }
+        .header-icon-btn.danger:hover { border-color:var(--danger); color:var(--danger); }
+        .connection-dot {
+            width:10px; height:10px; border-radius:50%;
+            background:var(--danger);
+        }
+        .connection-dot.connected { background:var(--success); }
+        .header-sep {
+            width:1px; height:20px; background:var(--border);
+        }
+
+        /* ===== LAYOUT ===== */
+        .main-layout {
+            display:flex; min-height:calc(100vh - 49px);
+        }
+
+        /* ===== READER PANEL ===== */
+        .reader-panel {
+            flex:1; display:flex; flex-direction:column;
+            min-width:0;
+        }
+        .reader-nav {
+            display:flex; align-items:center; gap:8px;
+            padding:10px 20px;
+            background:var(--bg-secondary);
+            border-bottom:1px solid var(--border);
+            flex-wrap:wrap;
+        }
+        .nav-btn {
+            background:var(--bg-input); border:1px solid var(--border);
+            border-radius:6px; padding:6px 10px; color:var(--text-primary);
+            font-size:.8rem; transition:background .15s;
+        }
+        .nav-btn:hover { background:var(--accent); color:#fff; }
+        .nav-btn:disabled { opacity:.4; cursor:default; }
+        .nav-btn:disabled:hover { background:var(--bg-input); color:var(--text-primary); }
+        .nav-sep {
+            width:1px; height:22px; background:var(--border); margin:0 2px;
+        }
+        .breadcrumb {
+            display:flex; align-items:center; gap:4px;
+            font-size:.82rem; color:var(--text-secondary);
+            flex:1;
+        }
+        .breadcrumb span { cursor:pointer; }
+        .breadcrumb span:hover { color:var(--accent); }
+        .breadcrumb .sep { cursor:default; color:var(--text-secondary); }
+        .breadcrumb .active { color:var(--text-primary); font-weight:600; }
+        .chapter-jump {
+            background:var(--bg-input); color:var(--text-primary);
+            border:1px solid var(--border); border-radius:6px;
+            padding:4px 8px; font-size:.78rem; width:60px; outline:none;
+        }
+
+        /* Reader Content */
+        .reader-content {
+            flex:1; overflow-y:auto; padding:16px 20px;
+        }
+
+        /* Books Grid */
+        .books-section-header {
+            font-size:.7rem; font-weight:700; text-transform:uppercase;
+            color:var(--accent); letter-spacing:.08em;
+            margin:16px 0 8px; padding-bottom:4px;
+            border-bottom:1px solid var(--border);
+        }
+        .books-section-header:first-child { margin-top:0; }
+        .books-grid {
+            display:grid;
+            grid-template-columns:repeat(auto-fill, minmax(90px, 1fr));
+            gap:6px; margin-bottom:12px;
+        }
+        .book-btn {
+            background:var(--bg-card); border:1px solid var(--border);
+            border-radius:6px; padding:8px 4px; text-align:center;
+            font-size:.75rem; color:var(--text-primary);
+            transition:background .15s, border-color .15s;
+            white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+        }
+        .book-btn:hover { background:var(--accent); border-color:var(--accent); color:#fff; }
+
+        /* Chapters Grid */
+        .chapters-grid {
+            display:grid;
+            grid-template-columns:repeat(auto-fill, minmax(48px, 1fr));
+            gap:6px;
+        }
+        .chapter-btn {
+            background:var(--bg-card); border:1px solid var(--border);
+            border-radius:6px; padding:10px 4px; text-align:center;
+            font-size:.85rem; color:var(--text-primary);
+            transition:background .15s;
+        }
+        .chapter-btn:hover { background:var(--accent); color:#fff; }
+
+        /* Verse Reader (full chapter view) */
+        .verse-reader {
+            max-width:800px; margin:0 auto;
+        }
+        .verse-reader-header {
+            font-size:1.1rem; font-weight:700; color:var(--text-primary);
+            margin-bottom:16px; padding-bottom:8px;
+            border-bottom:1px solid var(--border);
+        }
+        .verse-line {
+            display:flex; gap:8px; padding:8px 10px;
+            border-radius:6px; cursor:pointer;
+            transition:background .15s;
+            line-height:1.6;
+        }
+        .verse-line:hover { background:rgba(59,130,246,.08); }
+        .verse-line.highlighted {
+            background:rgba(59,130,246,.15);
+            border-left:3px solid var(--accent);
+        }
+        .verse-line.live-sent {
+            background:rgba(239,68,68,.1);
+            border-left:3px solid var(--danger);
+        }
+        .verse-num {
+            font-size:.7rem; font-weight:700; color:var(--accent);
+            min-width:24px; padding-top:3px;
+            flex-shrink:0; text-align:right;
+        }
+        .verse-text {
+            font-size:.92rem; color:var(--text-primary);
+        }
+
+        /* Parallel translation */
+        .verse-parallel {
+            font-size:.8rem; color:var(--text-secondary);
+            margin-top:4px; font-style:italic;
+            padding-left:32px;
+        }
+
+        /* Search Results */
+        .search-results { display:none; }
+        .search-results.visible { display:block; }
+        .search-result-item {
+            padding:10px 12px; border-radius:6px;
+            border:1px solid var(--border); margin-bottom:6px;
+            cursor:pointer; transition:background .15s;
+        }
+        .search-result-item:hover { background:rgba(59,130,246,.08); }
+        .search-result-ref {
+            font-size:.8rem; font-weight:600; color:var(--accent);
+            margin-bottom:2px;
+        }
+        .search-result-text { font-size:.8rem; color:var(--text-secondary); }
+        .search-empty {
+            padding:20px; text-align:center; color:var(--text-secondary);
+            font-size:.85rem;
+        }
+
+        /* ===== SIDEBAR ===== */
+        .sidebar {
+            width:var(--sidebar-width);
+            background:var(--bg-secondary);
+            border-left:1px solid var(--border);
+            display:flex; flex-direction:column;
+            overflow:hidden;
+        }
+        .sidebar-tabs {
+            display:flex; border-bottom:1px solid var(--border);
+        }
+        .sidebar-tab {
+            flex:1; padding:10px 8px;
+            background:transparent; border:none;
+            font-size:.78rem; color:var(--text-secondary);
+            border-bottom:2px solid transparent;
+            transition:color .15s, border-color .15s;
+        }
+        .sidebar-tab:hover { color:var(--text-primary); }
+        .sidebar-tab.active {
+            color:var(--text-primary);
+            border-bottom-color:var(--accent);
+        }
+        .sidebar-panel { display:none; flex:1; overflow-y:auto; }
+        .sidebar-panel.active { display:flex; flex-direction:column; }
+
+        /* Search Panel */
+        .search-wrap { padding:12px; border-bottom:1px solid var(--border); }
+        .search-input-row { display:flex; gap:6px; }
+        .search-input {
+            flex:1; background:var(--bg-input); color:var(--text-primary);
+            border:1px solid var(--border); border-radius:6px;
+            padding:8px 10px; font-size:.82rem; outline:none;
+        }
+        .search-input:focus { border-color:var(--accent); }
+        .search-btn {
+            background:var(--accent); color:#fff; border:none;
+            border-radius:6px; padding:8px 12px; font-size:.82rem;
+        }
+        .search-btn:hover { background:var(--accent-hover); }
+        .sidebar-search-results { padding:8px; flex:1; overflow-y:auto; }
+
+        /* Presets Panel */
+        .presets-panel-inner { padding:12px; flex:1; overflow-y:auto; }
+        .preset-add-row { display:flex; gap:6px; margin-bottom:12px; }
+        .preset-add-btn {
+            flex:1; background:var(--bg-input); border:1px solid var(--border);
+            border-radius:6px; padding:8px; font-size:.8rem;
+            color:var(--accent); display:flex; align-items:center;
+            justify-content:center; gap:6px; transition:background .15s;
+        }
+        .preset-add-btn:hover { background:var(--accent); color:#fff; }
+        .preset-list { list-style:none; }
+        .preset-item {
+            display:flex; align-items:center; gap:8px;
+            padding:8px 10px; border-radius:6px;
+            border:1px solid var(--border); margin-bottom:6px;
+            cursor:pointer; transition:background .15s;
+        }
+        .preset-item:hover { background:rgba(59,130,246,.08); }
+        .preset-item .label { flex:1; font-size:.82rem; }
+        .preset-item .ref { font-size:.7rem; color:var(--text-secondary); }
+        .preset-item .delete-btn {
+            background:none; border:none; color:var(--text-secondary);
+            padding:4px; font-size:.75rem; transition:color .15s;
+        }
+        .preset-item .delete-btn:hover { color:var(--danger); }
+
+        /* ===== STYLE PANEL ===== */
+        .style-panel-inner { padding:12px; overflow-y:auto; }
+        .style-section-title {
+            font-size:.72rem; font-weight:700; text-transform:uppercase;
+            color:var(--text-secondary); letter-spacing:.06em;
+            margin:14px 0 8px;
+        }
+        .style-section-title:first-child { margin-top:0; }
+
+        /* Stage Preview */
+        .stage-preview-wrap {
+            border-radius:8px; overflow:hidden;
+            border:1px solid var(--border);
+            margin-bottom:14px;
+        }
+        .stage-preview {
+            aspect-ratio:16/9;
+            background:#000;
+            display:flex; flex-direction:column;
+            align-items:center; justify-content:center;
+            padding:8% 10%;
+            position:relative; overflow:hidden;
+        }
+        .stage-preview .preview-verse {
+            font-size:1.1em; color:#fff;
+            line-height:1.4; text-align:center;
+            word-break:break-word; z-index:1;
+            position:relative;
+        }
+        .stage-preview .preview-ref {
+            margin-top:6px; font-size:.7em;
+            color:rgba(255,255,255,.6); text-align:center;
+            z-index:1; position:relative;
+        }
+        .stage-preview .preview-empty {
+            font-size:.75em; color:rgba(255,255,255,.25);
+        }
+        .stage-preview.has-overlay::after {
+            content:''; position:absolute; inset:0;
+            background:rgba(0,0,0,.45); pointer-events:none;
+        }
+
+        /* Design Gallery */
+        .design-gallery {
+            display:grid; grid-template-columns:repeat(2, 1fr); gap:8px;
+            margin-bottom:10px;
+        }
+        .design-card {
+            border-radius:8px; overflow:hidden;
+            border:2px solid var(--border);
+            cursor:pointer; transition:all .2s;
+            position:relative;
+        }
+        .design-card:hover { border-color:var(--accent); transform:translateY(-1px); }
+        .design-card.active { border-color:var(--accent); box-shadow:0 0 0 1px var(--accent); }
+        .design-card .design-thumb {
+            aspect-ratio:16/9;
+            display:flex; flex-direction:column;
+            align-items:center; justify-content:center;
+            padding:10% 8%; position:relative; overflow:hidden;
+        }
+        .design-card .design-thumb .thumb-verse {
+            font-size:.55em; line-height:1.3; text-align:center;
+            z-index:1; position:relative;
+        }
+        .design-card .design-thumb .thumb-ref {
+            font-size:.38em; opacity:.6; margin-top:3px;
+            z-index:1; position:relative;
+        }
+        .design-card .design-thumb.has-overlay::after {
+            content:''; position:absolute; inset:0;
+            background:rgba(0,0,0,.45); pointer-events:none;
+        }
+        .design-card .design-label {
+            padding:5px 8px; font-size:.68rem;
+            color:var(--text-primary); text-align:center;
+            background:var(--bg-card);
+            border-top:1px solid var(--border);
+        }
+
+        /* Apply button */
+        .apply-design-btn {
+            width:100%; padding:10px;
+            background:var(--accent); color:#fff;
+            border:none; border-radius:6px;
+            font-size:.82rem; font-weight:600;
+            transition:background .15s; margin-bottom:12px;
+        }
+        .apply-design-btn:hover { background:var(--accent-hover); }
+
+        /* Transition select */
+        .style-row {
+            display:flex; align-items:center; gap:8px;
+            margin-bottom:8px;
+        }
+        .style-row label {
+            font-size:.75rem; color:var(--text-secondary);
+            min-width:65px;
+        }
+        .style-row select, .style-row input[type="color"] {
+            flex:1; background:var(--bg-input); color:var(--text-primary);
+            border:1px solid var(--border); border-radius:4px;
+            padding:4px 6px; font-size:.78rem; outline:none;
+        }
+        .style-row input[type="color"] {
+            height:30px; padding:2px; cursor:pointer;
+        }
+
+        /* Background images */
+        .bg-images-grid {
+            display:grid; grid-template-columns:repeat(3, 1fr); gap:6px;
+            margin-bottom:8px;
+        }
+        .bg-image-thumb {
+            aspect-ratio:16/9; border-radius:6px;
+            background-size:cover; background-position:center;
+            border:2px solid transparent; cursor:pointer;
+            transition:border-color .15s; position:relative;
+        }
+        .bg-image-thumb:hover { border-color:var(--accent); }
+        .bg-image-thumb.selected { border-color:var(--accent); }
+        .bg-image-thumb .remove-bg {
+            position:absolute; top:2px; right:2px;
+            width:18px; height:18px; border-radius:50%;
+            background:rgba(0,0,0,.7); border:none;
+            color:#fff; font-size:.6rem;
+            display:none; align-items:center; justify-content:center;
+            cursor:pointer;
+        }
+        .bg-image-thumb:hover .remove-bg { display:flex; }
+        .bg-upload-btn {
+            background:var(--bg-input); border:1px solid dashed;
+            border-color:var(--border); border-radius:6px;
+            padding:8px; text-align:center; font-size:.75rem;
+            color:var(--text-secondary); cursor:pointer;
+            transition:border-color .15s, color .15s;
+        }
+        .bg-upload-btn:hover { border-color:var(--accent); color:var(--accent); }
+
+        /* ===== BOTTOM ACTION BAR ===== */
+        .action-bar {
+            display:flex; align-items:center; gap:8px;
+            padding:8px 16px;
+            background:var(--bg-secondary);
+            border-top:1px solid var(--border);
+        }
+        .action-bar .copy-btn {
+            background:var(--bg-input); color:var(--text-secondary);
+            border:1px solid var(--border); border-radius:6px;
+            padding:8px 12px; font-size:.82rem;
+            transition:all .15s;
+        }
+        .action-bar .copy-btn:hover { border-color:var(--accent); color:var(--accent); }
+        .action-bar .verse-nav-btn {
+            background:var(--bg-input); color:var(--text-secondary);
+            border:1px solid var(--border); border-radius:6px;
+            padding:8px 12px; font-size:.82rem;
+            transition:all .15s;
+        }
+        .action-bar .verse-nav-btn:hover { background:var(--accent); color:#fff; }
+        .action-bar .verse-nav-btn:disabled { opacity:.4; cursor:default; }
+        .action-bar .verse-nav-btn:disabled:hover { background:var(--bg-input); color:var(--text-secondary); }
+
+        /* Open Stage Button */
+        .open-stage-btn {
+            display:inline-flex; align-items:center; gap:6px;
+            background:var(--bg-input); color:var(--text-secondary);
+            border:1px solid var(--border); border-radius:6px;
+            padding:6px 12px; font-size:.8rem;
+            transition:all .15s; cursor:pointer;
+        }
+        .open-stage-btn:hover { border-color:var(--accent); color:var(--accent); }
+
+        /* ===== KEYBOARD SHORTCUTS HINT ===== */
+        .shortcuts-hint {
+            font-size:.65rem; color:var(--text-secondary);
+            padding:4px 20px; text-align:center;
+            border-top:1px solid var(--border);
+            background:var(--bg-secondary);
+        }
+        .shortcuts-hint kbd {
+            background:var(--bg-input); border:1px solid var(--border);
+            border-radius:3px; padding:1px 4px; font-size:.6rem;
+        }
+
+        /* ===== RECENT VERSES ===== */
+        .recent-section { padding:12px; border-top:1px solid var(--border); }
+        .recent-title {
+            font-size:.7rem; font-weight:700; color:var(--text-secondary);
+            text-transform:uppercase; margin-bottom:6px;
+        }
+        .recent-item {
+            font-size:.78rem; color:var(--accent); cursor:pointer;
+            padding:3px 0; transition:color .15s;
+        }
+        .recent-item:hover { color:#fff; }
+
+        /* ===== TOAST ===== */
+        .toast-container {
+            position:fixed; top:60px; right:20px; z-index:9999;
+            display:flex; flex-direction:column; gap:8px;
+        }
+        .toast {
+            background:var(--bg-card); border:1px solid var(--border);
+            border-radius:8px; padding:10px 16px;
+            font-size:.82rem; color:var(--text-primary);
+            display:flex; align-items:center; gap:8px;
+            animation:toastIn .3s ease;
+            box-shadow:0 4px 12px rgba(0,0,0,.3);
+        }
+        .toast.removing { animation:toastOut .3s ease forwards; }
+        .toast.success { border-left:3px solid var(--success); }
+        .toast.error { border-left:3px solid var(--danger); }
+        .toast.info { border-left:3px solid var(--accent); }
+        @keyframes toastIn { from { opacity:0; transform:translateX(30px); } }
+        @keyframes toastOut { to { opacity:0; transform:translateX(30px); } }
+
+        /* ===== MOBILE SIDEBAR TOGGLE ===== */
+        .sidebar-toggle {
+            display:none;
+            background:var(--accent); color:#fff; border:none;
+            border-radius:6px; padding:6px 12px; font-size:.8rem;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width:1024px) {
+            :root { --sidebar-width: 320px; }
+            .books-grid { grid-template-columns:repeat(auto-fill, minmax(75px, 1fr)); }
+            .design-gallery { grid-template-columns:repeat(2, 1fr); }
+        }
+        @media (max-width:768px) {
+            .sidebar-toggle { display:block; }
+            .main-layout { flex-direction:column; }
+            .sidebar {
+                width:100%; border-left:none;
+                border-top:1px solid var(--border);
+                max-height:50vh; display:none;
+            }
+            .sidebar.mobile-open { display:flex; }
+            .reader-content { padding:12px; }
+            .header { flex-wrap:wrap; gap:8px; padding:8px 12px; }
+            .header-controls { width:100%; justify-content:space-between; }
+            .verse-line { padding:10px 8px; }
+            .books-grid { grid-template-columns:repeat(auto-fill, minmax(70px, 1fr)); }
+            .action-bar { position:sticky; bottom:0; z-index:50; }
+        }
+        @media (max-width:480px) {
+            .header-brand span.brand-text { display:none; }
+            .books-grid { grid-template-columns:repeat(auto-fill, minmax(60px, 1fr)); }
+            .chapters-grid { grid-template-columns:repeat(auto-fill, minmax(40px, 1fr)); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- Header -->
+    <div class="header">
+        <div class="header-brand">
+            <i class="fas fa-book-bible"></i>
+            <span class="brand-text">B1G Bible</span>
+        </div>
+        <span class="header-room-name" id="room-name">Loading...</span>
+        <div class="header-controls">
+            <select class="version-select" id="version-select">
+                <option value="ESV">ESV</option>
+                <option value="NLT">NLT</option>
+                <option value="TL">Tagalog</option>
+            </select>
+            <div class="header-sep"></div>
+            <button class="header-icon-btn" id="btn-open-stage" title="Open Bible Stage view">
+                <i class="fas fa-tv"></i> Stage
+            </button>
+            <div class="header-sep"></div>
+            <button class="header-icon-btn danger" id="btn-clear" title="Clear verse from stage (Esc)">
+                <i class="fas fa-times"></i> Clear
+            </button>
+            <button class="header-icon-btn" id="btn-blackout" title="Toggle black screen">
+                <i class="fas fa-moon"></i> Black
+            </button>
+            <div class="header-sep"></div>
+            <button class="sidebar-toggle" id="sidebar-toggle">
+                <i class="fas fa-bars"></i> Panel
+            </button>
+            <div class="connection-dot" id="connection-dot" title="Disconnected"></div>
+        </div>
+    </div>
+
+    <!-- Main Layout -->
+    <div class="main-layout">
+        <!-- Reader Panel -->
+        <div class="reader-panel">
+            <div class="reader-nav">
+                <button class="nav-btn" id="btn-back" title="Back"><i class="fas fa-arrow-left"></i></button>
+                <div class="breadcrumb" id="breadcrumb">
+                    <span class="active">Books</span>
+                </div>
+                <button class="nav-btn" id="btn-prev-ch" title="Previous Chapter" disabled><i class="fas fa-chevron-left"></i></button>
+                <button class="nav-btn" id="btn-next-ch" title="Next Chapter" disabled><i class="fas fa-chevron-right"></i></button>
+                <select class="chapter-jump" id="chapter-jump" title="Jump to chapter" style="display:none;"></select>
+            </div>
+
+            <div class="reader-content" id="reader-content">
+                <!-- Filled by JS: books grid, chapters grid, or verse reader -->
+            </div>
+
+            <!-- Search Results (overlays reader content) -->
+            <div class="search-results" id="main-search-results"></div>
+
+            <!-- Action Bar -->
+            <div class="action-bar">
+                <button class="verse-nav-btn" id="btn-prev-verse" title="Previous Verse (↑)" disabled><i class="fas fa-chevron-up"></i> Prev</button>
+                <button class="verse-nav-btn" id="btn-next-verse" title="Next Verse (↓)" disabled><i class="fas fa-chevron-down"></i> Next</button>
+                <span style="flex:1;"></span>
+                <button class="copy-btn" id="btn-copy" title="Copy verse to clipboard"><i class="fas fa-copy"></i></button>
+            </div>
+            <div class="shortcuts-hint">
+                <kbd>&larr;</kbd><kbd>&rarr;</kbd> Chapter &nbsp;
+                <kbd>&uarr;</kbd><kbd>&darr;</kbd> Verse &nbsp;
+                <kbd>Esc</kbd> Clear
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-tabs">
+                <button class="sidebar-tab active" data-tab="search"><i class="fas fa-search"></i> Search</button>
+                <button class="sidebar-tab" data-tab="presets"><i class="fas fa-bookmark"></i> Presets</button>
+                <button class="sidebar-tab" data-tab="style"><i class="fas fa-palette"></i> Style</button>
+            </div>
+
+            <!-- Search Tab -->
+            <div class="sidebar-panel active" id="panel-search">
+                <div class="search-wrap">
+                    <div class="search-input-row">
+                        <input class="search-input" id="search-input" type="text" placeholder='Search "John 3:16" or "love"' autocomplete="off">
+                        <button class="search-btn" id="search-btn"><i class="fas fa-search"></i></button>
+                    </div>
+                </div>
+                <div class="sidebar-search-results" id="sidebar-search-results"></div>
+                <div class="recent-section" id="recent-section">
+                    <div class="recent-title">Recently Displayed</div>
+                    <div id="recent-list"></div>
+                </div>
+            </div>
+
+            <!-- Presets Tab -->
+            <div class="sidebar-panel" id="panel-presets">
+                <div class="presets-panel-inner">
+                    <div class="preset-add-row">
+                        <button class="preset-add-btn" id="btn-add-preset">
+                            <i class="fas fa-plus"></i> Save Current Verse
+                        </button>
+                    </div>
+                    <ul class="preset-list" id="preset-list"></ul>
+                </div>
+            </div>
+
+            <!-- Style Tab -->
+            <div class="sidebar-panel" id="panel-style">
+                <div class="style-panel-inner">
+                    <div class="style-section-title">Stage Preview</div>
+                    <div class="stage-preview-wrap">
+                        <div class="stage-preview" id="stage-preview">
+                            <span class="preview-empty">Select a verse to preview</span>
+                        </div>
+                    </div>
+
+                    <div class="style-section-title">Designs</div>
+                    <div class="design-gallery" id="design-gallery">
+                        <!-- Filled by JS: 10 design cards -->
+                    </div>
+                    <button class="apply-design-btn" id="btn-apply-design"><i class="fas fa-check"></i> Apply Design</button>
+
+                    <div class="style-section-title">Transition</div>
+                    <div class="style-row">
+                        <label>Effect</label>
+                        <select id="style-transition">
+                            <option value="none">None (Instant)</option>
+                            <option value="fade" selected>Fade</option>
+                            <option value="slide-up">Slide Up</option>
+                            <option value="slide-left">Slide Left</option>
+                        </select>
+                    </div>
+
+                    <div class="style-section-title">Custom</div>
+                    <div class="style-row">
+                        <label>Font</label>
+                        <select id="style-font-family">
+                            <option value="'Georgia', serif">Georgia (Serif)</option>
+                            <option value="'Segoe UI', -apple-system, sans-serif">Segoe UI (Sans)</option>
+                            <option value="'Courier New', monospace">Courier (Mono)</option>
+                            <option value="'Playfair Display', Georgia, serif">Playfair Display</option>
+                            <option value="'Arial Black', sans-serif">Arial Black</option>
+                            <option value="'Palatino Linotype', 'Book Antiqua', serif">Palatino</option>
+                        </select>
+                    </div>
+                    <div class="style-row">
+                        <label>Size</label>
+                        <select id="style-font-size">
+                            <option value="small">Small</option>
+                            <option value="normal">Normal</option>
+                            <option value="large" selected>Large</option>
+                            <option value="xlarge">Extra Large</option>
+                        </select>
+                    </div>
+                    <div class="style-row">
+                        <label>Color</label>
+                        <input type="color" id="style-text-color" value="#ffffff">
+                    </div>
+                    <div class="style-row">
+                        <label>BG Type</label>
+                        <select id="style-bg-type">
+                            <option value="solid">Solid</option>
+                            <option value="gradient">Gradient</option>
+                            <option value="image">Image</option>
+                        </select>
+                    </div>
+                    <div class="style-row" id="bg-color-row">
+                        <label>BG Color</label>
+                        <input type="color" id="style-bg-color" value="#000000">
+                    </div>
+                    <div class="style-row">
+                        <label>Align</label>
+                        <select id="style-text-align">
+                            <option value="center">Center</option>
+                            <option value="left">Left</option>
+                            <option value="right">Right</option>
+                        </select>
+                    </div>
+                    <div class="style-row">
+                        <label>Ref Pos</label>
+                        <select id="style-ref-position">
+                            <option value="bottom-center">Bottom Center</option>
+                            <option value="bottom-right">Bottom Right</option>
+                            <option value="top-right">Top Right</option>
+                            <option value="inline-right">Inline Right</option>
+                        </select>
+                    </div>
+
+                    <div class="style-section-title">Background Images</div>
+                    <div class="bg-images-grid" id="bg-images-grid"></div>
+                    <label class="bg-upload-btn" id="bg-upload-btn">
+                        <i class="fas fa-upload"></i> Upload Image
+                        <input type="file" id="bg-upload-input" accept="image/jpeg,image/png,image/webp" style="display:none">
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pusher SDK -->
+    <script src="https://js.pusher.com/8.2/pusher.min.js"></script>
+
+    <!-- JS Modules -->
+    <script src="js/api-client.js?v=4"></script>
+    <script src="js/timer-math.js?v=3"></script>
+    <script src="js/state-manager.js?v=3"></script>
+    <script src="js/pusher-manager.js?v=3"></script>
+    <script src="js/bible-data.js?v=2"></script>
+    <script src="js/bible-controller.js?v=3"></script>
+</body>
+</html>

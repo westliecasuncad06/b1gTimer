@@ -1,0 +1,1163 @@
+/**
+ * B1G Timer - Bible Controller
+ * Full-page Bible controller with reader view, presets, style management, and stage preview
+ */
+
+const BibleController = {
+    // State
+    roomId: null,
+    currentView: 'books', // 'books' | 'chapters' | 'reader'
+    currentBook: null,
+    currentChapter: null,
+    selectedVerse: null,
+    parallelMode: false,
+    _searchTimeout: null,
+    _presets: [],
+    _recentVerses: [],
+    _bgImages: [],
+    _selectedBgImage: null,
+    _blackoutActive: false,
+    _selectedDesign: 'classic',
+    _transition: 'fade',
+
+    // Style state
+    _style: {
+        preset: 'classic',
+        fontFamily: "'Georgia', serif",
+        fontSize: '5vw',
+        refFontSize: '2.5vw',
+        textColor: '#ffffff',
+        bgType: 'solid',
+        bgColor: '#000000',
+        textAlign: 'center',
+        refPosition: 'bottom-center',
+        bgImage: null,
+        transition: 'fade'
+    },
+
+    PRESETS: {
+        classic: {
+            preset: 'classic', name: 'Classic',
+            fontFamily: "'Georgia', serif", fontSize: '5vw', refFontSize: '2.5vw',
+            textColor: '#ffffff', bgType: 'solid', bgColor: '#000000',
+            textAlign: 'center', refPosition: 'bottom-center',
+            preview: { bg: '#000000', text: '#ffffff', font: "Georgia, serif" }
+        },
+        modern: {
+            preset: 'modern', name: 'Modern',
+            fontFamily: "'Segoe UI', -apple-system, sans-serif", fontSize: '4.5vw', refFontSize: '2vw',
+            textColor: '#e0e0e0', bgType: 'gradient', bgColor: 'linear-gradient(135deg, #1a1a2e, #16213e)',
+            textAlign: 'center', refPosition: 'bottom-center',
+            preview: { bg: 'linear-gradient(135deg, #1a1a2e, #16213e)', text: '#e0e0e0', font: "Segoe UI, sans-serif" }
+        },
+        elegant: {
+            preset: 'elegant', name: 'Elegant',
+            fontFamily: "'Playfair Display', Georgia, serif", fontSize: '4.5vw', refFontSize: '2vw',
+            textColor: '#f5e6d3', bgType: 'solid', bgColor: '#1a1410',
+            textAlign: 'center', refPosition: 'bottom-center',
+            preview: { bg: '#1a1410', text: '#f5e6d3', font: "Playfair Display, Georgia, serif" }
+        },
+        warm: {
+            preset: 'warm', name: 'Warm',
+            fontFamily: "'Georgia', serif", fontSize: '5vw', refFontSize: '2.5vw',
+            textColor: '#fff8f0', bgType: 'gradient', bgColor: 'linear-gradient(135deg, #3d1f00, #5c2d00)',
+            textAlign: 'center', refPosition: 'bottom-center',
+            preview: { bg: 'linear-gradient(135deg, #3d1f00, #5c2d00)', text: '#fff8f0', font: "Georgia, serif" }
+        },
+        cinematic: {
+            preset: 'cinematic', name: 'Cinematic',
+            fontFamily: "'Segoe UI', -apple-system, sans-serif", fontSize: '5.5vw', refFontSize: '2vw',
+            textColor: '#ffffff', bgType: 'solid', bgColor: '#0a0a0a',
+            textAlign: 'center', refPosition: 'bottom-right',
+            preview: { bg: '#0a0a0a', text: '#ffffff', font: "Segoe UI, sans-serif" }
+        },
+        minimal: {
+            preset: 'minimal', name: 'Minimal',
+            fontFamily: "'Segoe UI', -apple-system, sans-serif", fontSize: '3.5vw', refFontSize: '1.8vw',
+            textColor: '#cccccc', bgType: 'solid', bgColor: '#111111',
+            textAlign: 'center', refPosition: 'bottom-center',
+            preview: { bg: '#111111', text: '#cccccc', font: "Segoe UI, sans-serif" }
+        },
+        bold: {
+            preset: 'bold', name: 'Bold',
+            fontFamily: "'Arial Black', 'Impact', sans-serif", fontSize: '6vw', refFontSize: '2.5vw',
+            textColor: '#ffd700', bgType: 'solid', bgColor: '#1a0a2e',
+            textAlign: 'center', refPosition: 'bottom-center',
+            preview: { bg: '#1a0a2e', text: '#ffd700', font: "Arial Black, sans-serif" }
+        },
+        nature: {
+            preset: 'nature', name: 'Nature',
+            fontFamily: "'Georgia', serif", fontSize: '4.5vw', refFontSize: '2vw',
+            textColor: '#e8f5e9', bgType: 'gradient', bgColor: 'linear-gradient(135deg, #0d1f0d, #1a3a1a)',
+            textAlign: 'center', refPosition: 'bottom-center',
+            preview: { bg: 'linear-gradient(135deg, #0d1f0d, #1a3a1a)', text: '#e8f5e9', font: "Georgia, serif" }
+        },
+        ocean: {
+            preset: 'ocean', name: 'Ocean',
+            fontFamily: "'Segoe UI', -apple-system, sans-serif", fontSize: '4.5vw', refFontSize: '2vw',
+            textColor: '#b3e5fc', bgType: 'gradient', bgColor: 'linear-gradient(135deg, #001f3f, #003366)',
+            textAlign: 'center', refPosition: 'bottom-center',
+            preview: { bg: 'linear-gradient(135deg, #001f3f, #003366)', text: '#b3e5fc', font: "Segoe UI, sans-serif" }
+        },
+        sunset: {
+            preset: 'sunset', name: 'Sunset',
+            fontFamily: "'Georgia', serif", fontSize: '5vw', refFontSize: '2.5vw',
+            textColor: '#fff5e1', bgType: 'gradient', bgColor: 'linear-gradient(135deg, #4a1942, #c84b31)',
+            textAlign: 'center', refPosition: 'bottom-center',
+            preview: { bg: 'linear-gradient(135deg, #4a1942, #c84b31)', text: '#fff5e1', font: "Georgia, serif" }
+        }
+    },
+
+    FONT_SIZE_MAP: { small: '3vw', normal: '4vw', large: '5vw', xlarge: '6.5vw' },
+    REF_SIZE_MAP: { small: '1.5vw', normal: '2vw', large: '2.5vw', xlarge: '3vw' },
+
+    // ===== INITIALIZATION =====
+
+    async init() {
+        // Parse room ID from URL
+        const params = new URLSearchParams(window.location.search);
+        this.roomId = params.get('room') || 1;
+
+        // Load room name
+        this._loadRoomName();
+
+        // Restore saved style
+        this._restoreStyle();
+
+        // Restore recent verses
+        this._restoreRecent();
+
+        // Setup event listeners
+        this._setupEventListeners();
+
+        // Render design gallery
+        this._renderDesignGallery();
+
+        // Load Bible data
+        await BibleData.load();
+
+        // Show books grid
+        this._showBooks();
+
+        // Load presets
+        this._loadPresets();
+
+        // Load background images
+        this._loadBgImages();
+
+        // Setup BroadcastChannel for live sync
+        this._setupBroadcastChannel();
+
+        // Connection dot
+        this._updateConnectionDot(true);
+
+        // Update preview
+        this._updateStagePreview();
+
+        console.log('[BibleController] Initialized for room', this.roomId);
+    },
+
+    // ===== ROOM =====
+
+    async _loadRoomName() {
+        try {
+            const room = await APIClient.getRoom(this.roomId);
+            const el = document.getElementById('room-name');
+            if (el && room) el.textContent = room.name || `Room ${this.roomId}`;
+        } catch (e) {
+            const el = document.getElementById('room-name');
+            if (el) el.textContent = `Room ${this.roomId}`;
+        }
+    },
+
+    // ===== EVENT LISTENERS =====
+
+    _setupEventListeners() {
+        // Version select
+        const versionSelect = document.getElementById('version-select');
+        if (versionSelect) {
+            versionSelect.addEventListener('change', () => this._onVersionChange(versionSelect.value));
+        }
+
+        // Back button
+        document.getElementById('btn-back')?.addEventListener('click', () => this._navigateBack());
+
+        // Prev/Next chapter
+        document.getElementById('btn-prev-ch')?.addEventListener('click', () => this._prevChapter());
+        document.getElementById('btn-next-ch')?.addEventListener('click', () => this._nextChapter());
+
+        // Prev/Next verse
+        document.getElementById('btn-prev-verse')?.addEventListener('click', () => this._prevVerse());
+        document.getElementById('btn-next-verse')?.addEventListener('click', () => this._nextVerse());
+
+        // Chapter jump
+        document.getElementById('chapter-jump')?.addEventListener('change', (e) => {
+            const ch = parseInt(e.target.value, 10);
+            if (ch && this.currentBook) this._showReader(this.currentBook, ch);
+        });
+
+        // Action buttons (now in header)
+        document.getElementById('btn-clear')?.addEventListener('click', () => this._clearVerse());
+        document.getElementById('btn-blackout')?.addEventListener('click', () => this._toggleBlackout());
+        document.getElementById('btn-copy')?.addEventListener('click', () => this._copyVerse());
+
+        // Open Bible Stage
+        document.getElementById('btn-open-stage')?.addEventListener('click', () => {
+            // Store current verse for stage to pick up
+            this._storeCurrentVerse();
+            window.open(`bible-stage.html?room=${this.roomId}`, '_blank');
+        });
+
+        // Apply Design button
+        document.getElementById('btn-apply-design')?.addEventListener('click', () => this._applyCurrentDesign());
+
+        // Transition select
+        document.getElementById('style-transition')?.addEventListener('change', (e) => {
+            this._transition = e.target.value;
+            this._style.transition = this._transition;
+            this._saveStyle();
+            this._updateStagePreview();
+        });
+
+        // Search
+        const searchInput = document.getElementById('search-input');
+        if (searchInput) {
+            searchInput.addEventListener('input', () => {
+                clearTimeout(this._searchTimeout);
+                this._searchTimeout = setTimeout(() => this._onSearch(searchInput.value), 300);
+            });
+            searchInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    clearTimeout(this._searchTimeout);
+                    this._onSearch(searchInput.value);
+                }
+            });
+        }
+        document.getElementById('search-btn')?.addEventListener('click', () => {
+            this._onSearch(document.getElementById('search-input')?.value || '');
+        });
+
+        // Sidebar tabs
+        document.querySelectorAll('.sidebar-tab').forEach(tab => {
+            tab.addEventListener('click', () => this._switchSidebarTab(tab.dataset.tab));
+        });
+
+        // Sidebar toggle (mobile)
+        document.getElementById('sidebar-toggle')?.addEventListener('click', () => {
+            document.getElementById('sidebar')?.classList.toggle('mobile-open');
+        });
+
+        // Custom style controls
+        const styleFields = ['style-font-family','style-font-size','style-text-color',
+            'style-bg-type','style-bg-color','style-text-align','style-ref-position'];
+        styleFields.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.addEventListener('change', () => this._updateStyleFromControls());
+            if (el && el.type === 'color') el.addEventListener('input', () => this._updateStyleFromControls());
+        });
+
+        // Background image upload
+        document.getElementById('bg-upload-input')?.addEventListener('change', (e) => {
+            if (e.target.files.length) this._uploadBgImage(e.target.files[0]);
+        });
+
+        // Preset add
+        document.getElementById('btn-add-preset')?.addEventListener('click', () => this._addPreset());
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => this._onKeydown(e));
+    },
+
+    // ===== KEYBOARD SHORTCUTS =====
+
+    _onKeydown(e) {
+        // Don't trigger when typing in inputs
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
+
+        if (e.key === 'ArrowLeft') {
+            e.preventDefault();
+            this._prevChapter();
+        } else if (e.key === 'ArrowRight') {
+            e.preventDefault();
+            this._nextChapter();
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            this._prevVerse();
+        } else if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            this._nextVerse();
+        } else if (e.key === 'Escape') {
+            e.preventDefault();
+            this._clearVerse();
+        }
+    },
+
+    // ===== VERSION CHANGE =====
+
+    async _onVersionChange(version) {
+        this._showToast(`Switching to ${version}...`, 'info');
+        await BibleData.setVersion(version);
+
+        // If viewing a chapter, re-render it
+        if (this.currentView === 'reader' && this.currentBook && this.currentChapter) {
+            await this._showReader(this.currentBook, this.currentChapter, this.selectedVerse?.verse);
+        }
+
+        // If a verse is selected, auto-broadcast in new translation
+        if (this.selectedVerse) {
+            const text = await BibleData.getVerse(this.selectedVerse.book, this.selectedVerse.chapter, this.selectedVerse.verse);
+            if (text) {
+                this.selectedVerse.text = text;
+                this.selectedVerse.version = version;
+                this._broadcastVerse(this.selectedVerse);
+            }
+        }
+        this._showToast(`Switched to ${version}`, 'success');
+    },
+
+    // ===== NAVIGATION =====
+
+    async _showBooks() {
+        this.currentView = 'books';
+        this.currentBook = null;
+        this.currentChapter = null;
+        this._updateBreadcrumb();
+        this._updateChapterNav();
+
+        const content = document.getElementById('reader-content');
+        if (!content) return;
+
+        const books = await BibleData.getBooks();
+        let html = '';
+
+        // OT
+        html += '<div class="books-section-header">Old Testament</div><div class="books-grid">';
+        books.slice(0, BibleData.OT_COUNT).forEach(b => {
+            html += `<button class="book-btn" data-book="${this._esc(b)}" title="${this._esc(b)}">${this._esc(this._abbrev(b))}</button>`;
+        });
+        html += '</div>';
+
+        // NT
+        html += '<div class="books-section-header">New Testament</div><div class="books-grid">';
+        books.slice(BibleData.OT_COUNT).forEach(b => {
+            html += `<button class="book-btn" data-book="${this._esc(b)}" title="${this._esc(b)}">${this._esc(this._abbrev(b))}</button>`;
+        });
+        html += '</div>';
+
+        content.innerHTML = html;
+
+        content.querySelectorAll('.book-btn').forEach(btn => {
+            btn.addEventListener('click', () => this._showChapters(btn.dataset.book));
+        });
+    },
+
+    async _showChapters(book) {
+        this.currentView = 'chapters';
+        this.currentBook = book;
+        this.currentChapter = null;
+        this._updateBreadcrumb();
+        this._updateChapterNav();
+
+        const content = document.getElementById('reader-content');
+        if (!content) return;
+
+        const chapters = await BibleData.getChapters(book);
+        let html = '<div class="chapters-grid">';
+        chapters.forEach(ch => {
+            html += `<button class="chapter-btn" data-ch="${ch}">${ch}</button>`;
+        });
+        html += '</div>';
+
+        content.innerHTML = html;
+
+        content.querySelectorAll('.chapter-btn').forEach(btn => {
+            btn.addEventListener('click', () => this._showReader(book, parseInt(btn.dataset.ch, 10)));
+        });
+    },
+
+    async _showReader(book, chapter, highlightVerse) {
+        this.currentView = 'reader';
+        this.currentBook = book;
+        this.currentChapter = chapter;
+        this._updateBreadcrumb();
+        this._updateChapterNav();
+
+        const content = document.getElementById('reader-content');
+        if (!content) return;
+
+        const verses = await BibleData.getVerses(book, chapter);
+        const version = BibleData.getVersion();
+
+        let html = `<div class="verse-reader">`;
+        html += `<div class="verse-reader-header">${this._esc(book)} ${chapter} <small style="color:var(--text-secondary);">(${version})</small></div>`;
+
+        for (const v of verses) {
+            const text = await BibleData.getVerse(book, chapter, v);
+            const isHL = highlightVerse && String(v) === String(highlightVerse);
+            html += `<div class="verse-line${isHL ? ' highlighted' : ''}" data-verse="${v}" data-book="${this._esc(book)}" data-chapter="${chapter}">`;
+            html += `<span class="verse-num">${v}</span>`;
+            html += `<span class="verse-text">${this._esc(text || '')}</span>`;
+            html += `</div>`;
+        }
+        html += '</div>';
+
+        content.innerHTML = html;
+
+        // Bind verse click events
+        content.querySelectorAll('.verse-line').forEach(line => {
+            line.addEventListener('click', () => this._onVerseClick(line));
+        });
+
+        // Scroll to highlighted verse
+        if (highlightVerse) {
+            const hlEl = content.querySelector('.verse-line.highlighted');
+            if (hlEl) {
+                setTimeout(() => hlEl.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
+            }
+        }
+    },
+
+    async _onVerseClick(lineEl) {
+        const v = lineEl.dataset.verse;
+        const book = lineEl.dataset.book;
+        const chapter = parseInt(lineEl.dataset.chapter, 10);
+        const text = await BibleData.getVerse(book, chapter, parseInt(v, 10));
+        const version = BibleData.getVersion();
+
+        this.selectedVerse = { book, chapter, verse: String(v), verseEnd: null, text, version };
+
+        // Highlight
+        document.querySelectorAll('.verse-line.highlighted, .verse-line.live-sent').forEach(el => {
+            el.classList.remove('highlighted');
+            el.classList.remove('live-sent');
+        });
+        lineEl.classList.add('highlighted');
+
+        // Auto-broadcast verse to stage
+        lineEl.classList.add('live-sent');
+        this._broadcastVerse(this.selectedVerse);
+        this._addToRecent(this.selectedVerse);
+
+        // Store for stage to pick up
+        this._storeCurrentVerse();
+
+        // Update preview
+        this._updateStagePreview();
+
+        // Update verse nav buttons
+        this._updateVerseNavButtons();
+    },
+
+    // ===== VERSE NAVIGATION =====
+
+    async _prevVerse() {
+        if (!this.selectedVerse || this.currentView !== 'reader') return;
+        const curV = parseInt(this.selectedVerse.verse, 10);
+        if (curV <= 1) return;
+        const prevLine = document.querySelector(`.verse-line[data-verse="${curV - 1}"]`);
+        if (prevLine) {
+            await this._onVerseClick(prevLine);
+            prevLine.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    },
+
+    async _nextVerse() {
+        if (!this.selectedVerse || this.currentView !== 'reader') return;
+        const curV = parseInt(this.selectedVerse.verse, 10);
+        const nextLine = document.querySelector(`.verse-line[data-verse="${curV + 1}"]`);
+        if (nextLine) {
+            await this._onVerseClick(nextLine);
+            nextLine.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    },
+
+    _updateVerseNavButtons() {
+        const prevBtn = document.getElementById('btn-prev-verse');
+        const nextBtn = document.getElementById('btn-next-verse');
+        if (!prevBtn || !nextBtn) return;
+
+        if (!this.selectedVerse || this.currentView !== 'reader') {
+            prevBtn.disabled = true;
+            nextBtn.disabled = true;
+            return;
+        }
+
+        const curV = parseInt(this.selectedVerse.verse, 10);
+        prevBtn.disabled = curV <= 1;
+        nextBtn.disabled = !document.querySelector(`.verse-line[data-verse="${curV + 1}"]`);
+    },
+
+    // ===== STORE CURRENT VERSE FOR STAGE =====
+
+    _storeCurrentVerse() {
+        if (!this.selectedVerse) return;
+        const data = {
+            ...this.selectedVerse,
+            style: this._style,
+            roomId: this.roomId,
+            timestamp: Date.now()
+        };
+        localStorage.setItem('b1g_bible_current_verse', JSON.stringify(data));
+    },
+
+    _navigateBack() {
+        if (this.currentView === 'reader') {
+            this._showChapters(this.currentBook);
+        } else if (this.currentView === 'chapters') {
+            this._showBooks();
+        }
+    },
+
+    async _prevChapter() {
+        if (!this.currentBook || !this.currentChapter) return;
+        const chapters = await BibleData.getChapters(this.currentBook);
+        const idx = chapters.indexOf(this.currentChapter);
+        if (idx > 0) {
+            this._showReader(this.currentBook, chapters[idx - 1]);
+        } else {
+            // Go to previous book's last chapter
+            const books = await BibleData.getBooks();
+            const bookIdx = books.indexOf(this.currentBook);
+            if (bookIdx > 0) {
+                const prevBook = books[bookIdx - 1];
+                const prevChapters = await BibleData.getChapters(prevBook);
+                if (prevChapters.length) this._showReader(prevBook, prevChapters[prevChapters.length - 1]);
+            }
+        }
+    },
+
+    async _nextChapter() {
+        if (!this.currentBook || !this.currentChapter) return;
+        const chapters = await BibleData.getChapters(this.currentBook);
+        const idx = chapters.indexOf(this.currentChapter);
+        if (idx < chapters.length - 1) {
+            this._showReader(this.currentBook, chapters[idx + 1]);
+        } else {
+            // Go to next book's first chapter
+            const books = await BibleData.getBooks();
+            const bookIdx = books.indexOf(this.currentBook);
+            if (bookIdx < books.length - 1) {
+                const nextBook = books[bookIdx + 1];
+                const nextChapters = await BibleData.getChapters(nextBook);
+                if (nextChapters.length) this._showReader(nextBook, nextChapters[0]);
+            }
+        }
+    },
+
+    _updateBreadcrumb() {
+        const el = document.getElementById('breadcrumb');
+        if (!el) return;
+
+        let html = '<span data-nav="books">Books</span>';
+        if (this.currentBook) {
+            html += '<span class="sep"> › </span>';
+            html += `<span data-nav="chapters">${this._esc(this.currentBook)}</span>`;
+        }
+        if (this.currentChapter !== null) {
+            html += '<span class="sep"> › </span>';
+            html += `<span class="active">Chapter ${this.currentChapter}</span>`;
+        }
+        el.innerHTML = html;
+
+        el.querySelectorAll('span[data-nav]').forEach(s => {
+            s.addEventListener('click', () => {
+                if (s.dataset.nav === 'books') this._showBooks();
+                else if (s.dataset.nav === 'chapters') this._showChapters(this.currentBook);
+            });
+        });
+    },
+
+    async _updateChapterNav() {
+        const prevBtn = document.getElementById('btn-prev-ch');
+        const nextBtn = document.getElementById('btn-next-ch');
+        const jumpSel = document.getElementById('chapter-jump');
+
+        if (this.currentView !== 'reader') {
+            if (prevBtn) prevBtn.disabled = true;
+            if (nextBtn) nextBtn.disabled = true;
+            if (jumpSel) jumpSel.style.display = 'none';
+            return;
+        }
+
+        if (prevBtn) prevBtn.disabled = false;
+        if (nextBtn) nextBtn.disabled = false;
+
+        if (jumpSel && this.currentBook) {
+            jumpSel.style.display = '';
+            const chapters = await BibleData.getChapters(this.currentBook);
+            jumpSel.innerHTML = chapters.map(ch =>
+                `<option value="${ch}"${ch === this.currentChapter ? ' selected' : ''}>Ch ${ch}</option>`
+            ).join('');
+        }
+    },
+
+    // ===== SEARCH =====
+
+    async _onSearch(query) {
+        const trimmed = query.trim();
+        const resultsEl = document.getElementById('sidebar-search-results');
+        if (!resultsEl) return;
+
+        if (!trimmed) {
+            resultsEl.innerHTML = '';
+            return;
+        }
+
+        resultsEl.innerHTML = '<div class="search-empty">Searching...</div>';
+
+        // Reference search first
+        const refResult = await BibleData.searchByReference(trimmed);
+        if (refResult && !refResult.isChapter) {
+            resultsEl.innerHTML = '';
+            resultsEl.appendChild(this._createSearchResultEl(refResult));
+            return;
+        }
+        if (refResult && refResult.isChapter) {
+            // Navigate to chapter
+            this._showReader(refResult.book, refResult.chapter);
+            resultsEl.innerHTML = '';
+            return;
+        }
+
+        // Keyword search
+        const results = await BibleData.searchByKeyword(trimmed);
+        if (results.length === 0) {
+            resultsEl.innerHTML = '<div class="search-empty">No results found</div>';
+            return;
+        }
+
+        resultsEl.innerHTML = '';
+        results.forEach(r => {
+            resultsEl.appendChild(this._createSearchResultEl(r));
+        });
+    },
+
+    _createSearchResultEl(result) {
+        const item = document.createElement('div');
+        item.className = 'search-result-item';
+
+        const ref = BibleData.formatReference(result.book, result.chapter, result.verse, result.verseEnd, result.version);
+        const text = result.snippet || (result.text ? result.text.substring(0, 120) + (result.text.length > 120 ? '...' : '') : '');
+
+        item.innerHTML = `
+            <div class="search-result-ref">${this._esc(ref)}</div>
+            <div class="search-result-text">${this._esc(text)}</div>
+        `;
+
+        item.addEventListener('click', () => {
+            // Navigate to the full chapter with the verse highlighted
+            const verse = result.verse ? parseInt(result.verse, 10) : null;
+            this._showReader(result.book, result.chapter, verse);
+            this.selectedVerse = result;
+        });
+
+        return item;
+    },
+
+    // ===== DISPLAY / CLEAR / COPY =====
+
+    async _displayVerse() {
+        if (!this.selectedVerse) {
+            this._showToast('Select a verse first', 'error');
+            return;
+        }
+        await this._broadcastVerse(this.selectedVerse);
+        this._addToRecent(this.selectedVerse);
+        this._showToast('Verse displayed on stage', 'success');
+    },
+
+    async _clearVerse() {
+        try {
+            await APIClient.clearBibleVerse(this.roomId);
+            this._showToast('Cleared from stage', 'info');
+        } catch (e) {
+            console.error('[BibleController] Clear error:', e);
+        }
+    },
+
+    async _toggleBlackout() {
+        this._blackoutActive = !this._blackoutActive;
+        const btn = document.getElementById('btn-blackout');
+        if (btn) btn.classList.toggle('active', this._blackoutActive);
+        try {
+            const action = this._blackoutActive ? 'BLACKOUT_ON' : 'BLACKOUT_OFF';
+            await APIClient.broadcastEvent(this.roomId, action, {});
+            this._showToast(this._blackoutActive ? 'Black screen ON' : 'Black screen OFF', 'info');
+        } catch (e) {
+            console.error('[BibleController] Blackout error:', e);
+        }
+    },
+
+    _copyVerse() {
+        if (!this.selectedVerse) {
+            this._showToast('Select a verse first', 'error');
+            return;
+        }
+        const ref = BibleData.formatReference(
+            this.selectedVerse.book, this.selectedVerse.chapter,
+            this.selectedVerse.verse, this.selectedVerse.verseEnd, this.selectedVerse.version
+        );
+        const text = `"${this.selectedVerse.text}"\n— ${ref}`;
+        navigator.clipboard.writeText(text).then(() => {
+            this._showToast('Copied to clipboard', 'success');
+        }).catch(() => {
+            this._showToast('Copy failed', 'error');
+        });
+    },
+
+    async _broadcastVerse(verse) {
+        try {
+            await APIClient.broadcastBibleVerse(this.roomId, {
+                book: verse.book,
+                chapter: verse.chapter,
+                verse: verse.verse,
+                verseEnd: verse.verseEnd,
+                text: verse.text,
+                version: verse.version
+            }, { ...this._style, transition: this._transition });
+        } catch (e) {
+            console.error('[BibleController] Broadcast error:', e);
+        }
+    },
+
+    // ===== APPLY DESIGN =====
+
+    _applyCurrentDesign() {
+        // Re-broadcast current verse with current style to update stage
+        if (this.selectedVerse) {
+            this._broadcastVerse(this.selectedVerse);
+            this._storeCurrentVerse();
+            this._showToast('Design applied to stage', 'success');
+        } else {
+            this._showToast('Select a verse first', 'error');
+        }
+    },
+
+    // ===== PRESETS =====
+
+    async _loadPresets() {
+        try {
+            this._presets = await APIClient.getBiblePresets(this.roomId);
+            this._renderPresets();
+        } catch (e) {
+            console.error('[BibleController] Load presets error:', e);
+        }
+    },
+
+    _renderPresets() {
+        const list = document.getElementById('preset-list');
+        if (!list) return;
+
+        if (this._presets.length === 0) {
+            list.innerHTML = '<li style="padding:12px;text-align:center;color:var(--text-secondary);font-size:.8rem;">No saved presets</li>';
+            return;
+        }
+
+        list.innerHTML = '';
+        this._presets.forEach(p => {
+            const li = document.createElement('li');
+            li.className = 'preset-item';
+            const ref = `${p.book} ${p.chapter}:${p.verse_start}${p.verse_end ? '-' + p.verse_end : ''} (${p.version})`;
+            li.innerHTML = `
+                <span class="label">${this._esc(p.label)}</span>
+                <span class="ref">${this._esc(ref)}</span>
+                <button class="delete-btn" title="Delete"><i class="fas fa-trash"></i></button>
+            `;
+
+            // Click to navigate
+            li.addEventListener('click', (e) => {
+                if (e.target.closest('.delete-btn')) return;
+                this._showReader(p.book, parseInt(p.chapter, 10), parseInt(p.verse_start, 10));
+            });
+
+            // Delete
+            li.querySelector('.delete-btn').addEventListener('click', async () => {
+                try {
+                    await APIClient.deleteBiblePreset(p.id);
+                    this._presets = this._presets.filter(x => x.id !== p.id);
+                    this._renderPresets();
+                    this._showToast('Preset deleted', 'info');
+                } catch (e) {
+                    this._showToast('Delete failed', 'error');
+                }
+            });
+
+            list.appendChild(li);
+        });
+    },
+
+    async _addPreset() {
+        if (!this.selectedVerse) {
+            this._showToast('Select a verse first', 'error');
+            return;
+        }
+        const v = this.selectedVerse;
+        const label = BibleData.formatReference(v.book, v.chapter, v.verse, v.verseEnd, v.version);
+        try {
+            const created = await APIClient.createBiblePreset({
+                room_id: this.roomId,
+                label,
+                book: v.book,
+                chapter: v.chapter,
+                verse_start: parseInt(v.verse, 10),
+                verse_end: v.verseEnd ? parseInt(v.verseEnd, 10) : null,
+                version: v.version
+            });
+            this._presets.push(created);
+            this._renderPresets();
+            this._showToast('Preset saved', 'success');
+        } catch (e) {
+            this._showToast('Save failed', 'error');
+        }
+    },
+
+    // ===== RECENT VERSES =====
+
+    _restoreRecent() {
+        try {
+            this._recentVerses = JSON.parse(localStorage.getItem('b1g_bible_recent') || '[]').slice(0, 10);
+            this._renderRecent();
+        } catch (e) { this._recentVerses = []; }
+    },
+
+    _addToRecent(verse) {
+        const ref = BibleData.formatReference(verse.book, verse.chapter, verse.verse, verse.verseEnd, verse.version);
+        // Remove duplicate
+        this._recentVerses = this._recentVerses.filter(r => r.ref !== ref);
+        this._recentVerses.unshift({ ...verse, ref });
+        if (this._recentVerses.length > 10) this._recentVerses.pop();
+        localStorage.setItem('b1g_bible_recent', JSON.stringify(this._recentVerses));
+        this._renderRecent();
+    },
+
+    _renderRecent() {
+        const el = document.getElementById('recent-list');
+        if (!el) return;
+        if (this._recentVerses.length === 0) {
+            el.innerHTML = '<div style="font-size:.75rem;color:var(--text-secondary);">No recent verses</div>';
+            return;
+        }
+        el.innerHTML = '';
+        this._recentVerses.forEach(r => {
+            const div = document.createElement('div');
+            div.className = 'recent-item';
+            div.textContent = r.ref;
+            div.addEventListener('click', () => {
+                this._showReader(r.book, r.chapter, r.verse ? parseInt(r.verse, 10) : null);
+                this.selectedVerse = r;
+            });
+            el.appendChild(div);
+        });
+    },
+
+    // ===== STYLE MANAGEMENT =====
+
+    _restoreStyle() {
+        try {
+            const saved = localStorage.getItem('b1g_bible_style_controller');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                this._style = parsed;
+                this._selectedDesign = parsed.preset || 'classic';
+                this._transition = parsed.transition || 'fade';
+                this._syncStyleControls();
+            }
+        } catch (e) { /* use defaults */ }
+    },
+
+    _saveStyle() {
+        localStorage.setItem('b1g_bible_style_controller', JSON.stringify(this._style));
+    },
+
+    // ===== DESIGN GALLERY =====
+
+    _renderDesignGallery() {
+        const gallery = document.getElementById('design-gallery');
+        if (!gallery) return;
+
+        gallery.innerHTML = '';
+        const sampleVerse = '"For God so loved the world..."';
+        const sampleRef = 'John 3:16';
+
+        Object.entries(this.PRESETS).forEach(([key, preset]) => {
+            const card = document.createElement('div');
+            card.className = 'design-card' + (key === this._selectedDesign ? ' active' : '');
+            card.dataset.design = key;
+
+            const p = preset.preview;
+            const isGradient = p.bg.includes('gradient');
+            const bgStyle = isGradient ? `background:${p.bg};` : `background:${p.bg};`;
+
+            card.innerHTML = `
+                <div class="design-thumb" style="${bgStyle}">
+                    <span class="thumb-verse" style="color:${p.text};font-family:${p.font};">${sampleVerse}</span>
+                    <span class="thumb-ref" style="color:${p.text};font-family:${p.font};">${sampleRef}</span>
+                </div>
+                <div class="design-label">${preset.name}</div>
+            `;
+
+            card.addEventListener('click', () => this._selectDesign(key));
+            gallery.appendChild(card);
+        });
+    },
+
+    _selectDesign(name) {
+        const preset = this.PRESETS[name];
+        if (!preset) return;
+
+        this._selectedDesign = name;
+        this._style = {
+            preset: name,
+            fontFamily: preset.fontFamily,
+            fontSize: preset.fontSize,
+            refFontSize: preset.refFontSize,
+            textColor: preset.textColor,
+            bgType: preset.bgType,
+            bgColor: preset.bgColor,
+            textAlign: preset.textAlign,
+            refPosition: preset.refPosition,
+            bgImage: null,
+            transition: this._transition
+        };
+        this._selectedBgImage = null;
+        this._syncStyleControls();
+        this._saveStyle();
+        this._updateStagePreview();
+
+        // Update gallery active state
+        document.querySelectorAll('.design-card').forEach(c =>
+            c.classList.toggle('active', c.dataset.design === name));
+        document.querySelectorAll('.bg-image-thumb').forEach(t => t.classList.remove('selected'));
+    },
+
+    _applyStylePreset(name) {
+        this._selectDesign(name);
+    },
+
+    _updateStyleFromControls() {
+        const sizeVal = document.getElementById('style-font-size')?.value || 'large';
+        this._style = {
+            preset: 'custom',
+            fontFamily: document.getElementById('style-font-family')?.value || "'Georgia', serif",
+            fontSize: this.FONT_SIZE_MAP[sizeVal] || '5vw',
+            refFontSize: this.REF_SIZE_MAP[sizeVal] || '2.5vw',
+            textColor: document.getElementById('style-text-color')?.value || '#ffffff',
+            bgType: document.getElementById('style-bg-type')?.value || 'solid',
+            bgColor: document.getElementById('style-bg-color')?.value || '#000000',
+            textAlign: document.getElementById('style-text-align')?.value || 'center',
+            refPosition: document.getElementById('style-ref-position')?.value || 'bottom-center',
+            bgImage: this._selectedBgImage,
+            transition: this._transition
+        };
+        this._selectedDesign = 'custom';
+        document.querySelectorAll('.design-card').forEach(c => c.classList.remove('active'));
+
+        // Show/hide bg color row based on bg type
+        const bgColorRow = document.getElementById('bg-color-row');
+        if (bgColorRow) bgColorRow.style.display = this._style.bgType === 'image' ? 'none' : '';
+
+        this._saveStyle();
+        this._updateStagePreview();
+    },
+
+    _syncStyleControls() {
+        const s = this._style;
+        const el = (id) => document.getElementById(id);
+        if (el('style-font-family')) el('style-font-family').value = s.fontFamily || "'Georgia', serif";
+        if (el('style-text-color')) el('style-text-color').value = s.textColor || '#ffffff';
+        if (el('style-bg-type')) el('style-bg-type').value = s.bgType || 'solid';
+        if (el('style-bg-color')) el('style-bg-color').value = (s.bgType === 'solid' && s.bgColor) ? s.bgColor : '#000000';
+        if (el('style-text-align')) el('style-text-align').value = s.textAlign || 'center';
+        if (el('style-ref-position')) el('style-ref-position').value = s.refPosition || 'bottom-center';
+        if (el('style-transition')) el('style-transition').value = this._transition || 'fade';
+
+        // Font size reverse map
+        const sizeMap = { '3vw': 'small', '3.5vw': 'small', '4vw': 'normal', '4.5vw': 'normal', '5vw': 'large', '5.5vw': 'large', '6vw': 'xlarge', '6.5vw': 'xlarge' };
+        if (el('style-font-size')) el('style-font-size').value = sizeMap[s.fontSize] || 'large';
+
+        // Design card active state
+        document.querySelectorAll('.design-card').forEach(c =>
+            c.classList.toggle('active', c.dataset.design === s.preset));
+
+        const bgColorRow = document.getElementById('bg-color-row');
+        if (bgColorRow) bgColorRow.style.display = s.bgType === 'image' ? 'none' : '';
+    },
+
+    // ===== STAGE PREVIEW =====
+
+    _updateStagePreview() {
+        const preview = document.getElementById('stage-preview');
+        if (!preview) return;
+
+        const s = this._style;
+        const hasVerse = !!this.selectedVerse;
+
+        // Background
+        if (s.bgType === 'image' && s.bgImage) {
+            preview.style.background = `url(../${s.bgImage}) center/cover no-repeat`;
+            preview.classList.add('has-overlay');
+        } else if (s.bgType === 'gradient') {
+            preview.style.background = s.bgColor || 'linear-gradient(135deg, #1a1a2e, #16213e)';
+            preview.classList.remove('has-overlay');
+        } else {
+            preview.style.background = s.bgColor || '#000000';
+            preview.classList.remove('has-overlay');
+        }
+
+        if (hasVerse) {
+            const ref = BibleData.formatReference(
+                this.selectedVerse.book, this.selectedVerse.chapter,
+                this.selectedVerse.verse, this.selectedVerse.verseEnd, this.selectedVerse.version
+            );
+            const text = this.selectedVerse.text || '';
+            const displayText = text.length > 80 ? text.substring(0, 80) + '...' : text;
+            preview.innerHTML = `
+                <span class="preview-verse" style="color:${s.textColor};font-family:${s.fontFamily};text-align:${s.textAlign};">${this._esc(displayText)}</span>
+                <span class="preview-ref" style="color:${s.textColor};font-family:${s.fontFamily};">${this._esc(ref)}</span>
+            `;
+        } else {
+            preview.innerHTML = '<span class="preview-empty">Select a verse to preview</span>';
+        }
+    },
+
+    // ===== BACKGROUND IMAGES =====
+
+    async _loadBgImages() {
+        try {
+            this._bgImages = await APIClient.listBibleBackgrounds();
+            this._renderBgImages();
+        } catch (e) { /* ignore */ }
+    },
+
+    _renderBgImages() {
+        const grid = document.getElementById('bg-images-grid');
+        if (!grid) return;
+        grid.innerHTML = '';
+
+        this._bgImages.forEach(img => {
+            const thumb = document.createElement('div');
+            thumb.className = 'bg-image-thumb' + (this._selectedBgImage === img.url ? ' selected' : '');
+            thumb.style.backgroundImage = `url(../${img.url})`;
+            thumb.innerHTML = `<button class="remove-bg" title="Remove"><i class="fas fa-times"></i></button>`;
+
+            thumb.addEventListener('click', (e) => {
+                if (e.target.closest('.remove-bg')) return;
+                this._selectedBgImage = img.url;
+                this._style.bgType = 'image';
+                this._style.bgImage = img.url;
+                this._selectedDesign = 'custom';
+                document.querySelectorAll('.bg-image-thumb').forEach(t => t.classList.remove('selected'));
+                thumb.classList.add('selected');
+                document.querySelectorAll('.design-card').forEach(c => c.classList.remove('active'));
+                const bgType = document.getElementById('style-bg-type');
+                if (bgType) bgType.value = 'image';
+                this._saveStyle();
+                this._updateStagePreview();
+            });
+
+            thumb.querySelector('.remove-bg').addEventListener('click', async () => {
+                try {
+                    await APIClient.deleteBibleBackground(img.filename);
+                    this._bgImages = this._bgImages.filter(x => x.filename !== img.filename);
+                    if (this._selectedBgImage === img.url) {
+                        this._selectedBgImage = null;
+                        this._style.bgImage = null;
+                        this._saveStyle();
+                    }
+                    this._renderBgImages();
+                    this._showToast('Background removed', 'info');
+                } catch (e) {
+                    this._showToast('Remove failed', 'error');
+                }
+            });
+
+            grid.appendChild(thumb);
+        });
+    },
+
+    async _uploadBgImage(file) {
+        try {
+            this._showToast('Uploading...', 'info');
+            const result = await APIClient.uploadBibleBackground(file);
+            this._bgImages.push(result);
+            this._renderBgImages();
+            this._showToast('Background uploaded', 'success');
+        } catch (e) {
+            this._showToast(e.message || 'Upload failed', 'error');
+        }
+    },
+
+    // ===== SIDEBAR TABS =====
+
+    _switchSidebarTab(tabName) {
+        document.querySelectorAll('.sidebar-tab').forEach(t =>
+            t.classList.toggle('active', t.dataset.tab === tabName));
+        document.querySelectorAll('.sidebar-panel').forEach(p =>
+            p.classList.toggle('active', p.id === `panel-${tabName}`));
+    },
+
+    // ===== BROADCAST CHANNEL =====
+
+    _setupBroadcastChannel() {
+        try {
+            this._channel = new BroadcastChannel('b1g-timer-room-' + this.roomId);
+        } catch (e) { /* not supported */ }
+    },
+
+    _updateConnectionDot(connected) {
+        const dot = document.getElementById('connection-dot');
+        if (dot) {
+            dot.classList.toggle('connected', connected);
+            dot.title = connected ? 'Connected' : 'Disconnected';
+        }
+    },
+
+    // ===== UTILITIES =====
+
+    _esc(str) {
+        const div = document.createElement('div');
+        div.textContent = str || '';
+        return div.innerHTML;
+    },
+
+    _abbrev(book) {
+        const abbrevs = {
+            'Genesis': 'Gen', 'Exodus': 'Exo', 'Leviticus': 'Lev', 'Numbers': 'Num',
+            'Deuteronomy': 'Deut', 'Joshua': 'Josh', 'Judges': 'Judg', 'Ruth': 'Ruth',
+            '1 Samuel': '1 Sam', '2 Samuel': '2 Sam', '1 Kings': '1 Ki', '2 Kings': '2 Ki',
+            '1 Chronicles': '1 Chr', '2 Chronicles': '2 Chr', 'Ezra': 'Ezra', 'Nehemiah': 'Neh',
+            'Esther': 'Est', 'Job': 'Job', 'Psalms': 'Ps', 'Proverbs': 'Prov',
+            'Ecclesiastes': 'Eccl', 'Song of Solomon': 'Song', 'Isaiah': 'Isa', 'Jeremiah': 'Jer',
+            'Lamentations': 'Lam', 'Ezekiel': 'Ezek', 'Daniel': 'Dan', 'Hosea': 'Hos',
+            'Joel': 'Joel', 'Amos': 'Amos', 'Obadiah': 'Obad', 'Jonah': 'Jonah',
+            'Micah': 'Mic', 'Nahum': 'Nah', 'Habakkuk': 'Hab', 'Zephaniah': 'Zeph',
+            'Haggai': 'Hag', 'Zechariah': 'Zech', 'Malachi': 'Mal',
+            'Matthew': 'Matt', 'Mark': 'Mark', 'Luke': 'Luke', 'John': 'John',
+            'Acts': 'Acts', 'Romans': 'Rom', '1 Corinthians': '1 Cor', '2 Corinthians': '2 Cor',
+            'Galatians': 'Gal', 'Ephesians': 'Eph', 'Philippians': 'Phil', 'Colossians': 'Col',
+            '1 Thessalonians': '1 Thes', '2 Thessalonians': '2 Thes', '1 Timothy': '1 Tim',
+            '2 Timothy': '2 Tim', 'Titus': 'Titus', 'Philemon': 'Phlm', 'Hebrews': 'Heb',
+            'James': 'Jas', '1 Peter': '1 Pet', '2 Peter': '2 Pet', '1 John': '1 Jn',
+            '2 John': '2 Jn', '3 John': '3 Jn', 'Jude': 'Jude', 'Revelation': 'Rev'
+        };
+        return abbrevs[book] || book;
+    },
+
+    _showToast(message, type = 'info') {
+        const container = document.getElementById('toast-container');
+        if (!container) return;
+        const icons = { success: 'fa-check-circle', error: 'fa-exclamation-circle', info: 'fa-info-circle' };
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.innerHTML = `<i class="fas ${icons[type] || icons.info}"></i><span>${this._esc(message)}</span>`;
+        container.appendChild(toast);
+        setTimeout(() => {
+            toast.classList.add('removing');
+            setTimeout(() => toast.remove(), 300);
+        }, 2500);
+    }
+};
+
+// Initialize on load
+window.addEventListener('DOMContentLoaded', () => BibleController.init());
+window.BibleController = BibleController;

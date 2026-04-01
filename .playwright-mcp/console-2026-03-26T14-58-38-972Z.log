@@ -1,0 +1,5 @@
+[     200ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost/B1G_TIMER/api/v1/rooms/1:0
+[     202ms] [ERROR] API Error [GET /rooms/1]: Error: Room with ID '1' not found
+    at Object.request (http://localhost/B1G_TIMER/public/js/api-client.js?v=4:34:23)
+    at async Object.getRoom (http://localhost/B1G_TIMER/public/js/api-client.js?v=4:57:26)
+    at async Object._loadRoomName (http://localhost/B1G_TIMER/public/js/bible-controller.js?v=2:98:26) @ http://localhost/B1G_TIMER/public/js/api-client.js?v=4:39

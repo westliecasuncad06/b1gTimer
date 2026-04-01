@@ -84,7 +84,9 @@ try {
         'MESSAGE_HIDE',
         'ROOM_UPDATED',
         'TIME_ADJUSTMENT',
-        'STAGE_STYLE_UPDATE'
+        'STAGE_STYLE_UPDATE',
+        'BIBLE_VERSE_UPDATE',
+        'BIBLE_VERSE_CLEAR'
     ];
     
     if (!in_array($action, $allowed_actions)) {
@@ -119,7 +121,7 @@ try {
     ];
     
     // ── Save live timer state to DB (enables cross-browser polling) ──────────
-    $tracked_actions = ['TIMER_START', 'TIMER_PAUSE', 'TIMER_RESUME', 'TIMER_STOP', 'TIMER_RESET', 'NEXT_TIMER', 'PREVIOUS_TIMER', 'TIME_ADJUSTMENT', 'STAGE_STYLE_UPDATE', 'MESSAGE_SHOW', 'MESSAGE_HIDE'];
+    $tracked_actions = ['TIMER_START', 'TIMER_PAUSE', 'TIMER_RESUME', 'TIMER_STOP', 'TIMER_RESET', 'NEXT_TIMER', 'PREVIOUS_TIMER', 'TIME_ADJUSTMENT', 'STAGE_STYLE_UPDATE', 'MESSAGE_SHOW', 'MESSAGE_HIDE', 'BIBLE_VERSE_UPDATE', 'BIBLE_VERSE_CLEAR'];
     if (in_array($action, $tracked_actions)) {
         try {
             // Guarantee the table exists (matches database/schema.sql definition)
@@ -160,6 +162,12 @@ try {
                     ADD COLUMN IF NOT EXISTS `message_json` TEXT NULL DEFAULT NULL AFTER `stage_style_json`");
             } catch (Exception $msg_alter) { /* column already exists */ }
 
+            // Migrate: add bible columns if missing
+            try {
+                $pdo->exec("ALTER TABLE `timer_live_state`
+                    ADD COLUMN IF NOT EXISTS `bible_json` TEXT NULL DEFAULT NULL AFTER `message_json`");
+            } catch (Exception $bible_alter) { /* column already exists */ }
+
             // STAGE_STYLE_UPDATE: persist style only (don't overwrite timer state)
             if ($action === 'STAGE_STYLE_UPDATE') {
                 $style_json = json_encode($payload);
@@ -194,6 +202,29 @@ try {
                                ON DUPLICATE KEY UPDATE
                                    message_json = NULL,
                                    updated_at   = NOW()")
+                    ->execute([$room_id]);
+                goto pusher_broadcast;
+            }
+
+            // BIBLE_VERSE_UPDATE / BIBLE_VERSE_CLEAR: persist bible state
+            if ($action === 'BIBLE_VERSE_UPDATE') {
+                $bible_json = json_encode($payload);
+                $pdo->prepare("INSERT INTO timer_live_state
+                                   (room_id, is_running, state_json, bible_json)
+                               VALUES (?, 0, '{}', ?)
+                               ON DUPLICATE KEY UPDATE
+                                   bible_json = VALUES(bible_json),
+                                   updated_at = NOW()")
+                    ->execute([$room_id, $bible_json]);
+                goto pusher_broadcast;
+            }
+            if ($action === 'BIBLE_VERSE_CLEAR') {
+                $pdo->prepare("INSERT INTO timer_live_state
+                                   (room_id, is_running, state_json, bible_json)
+                               VALUES (?, 0, '{}', NULL)
+                               ON DUPLICATE KEY UPDATE
+                                   bible_json = NULL,
+                                   updated_at = NOW()")
                     ->execute([$room_id]);
                 goto pusher_broadcast;
             }

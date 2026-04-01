@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>B1G Timer - Bible Stage</title>
+    <style>
+        *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+        html, body {
+            width:100vw; height:100vh; overflow:hidden;
+            background:#000; color:#fff;
+            font-family: 'Georgia', serif;
+        }
+
+        /* Blackout overlay */
+        .blackout-overlay {
+            position:fixed; inset:0;
+            background:#000;
+            display:none;
+            z-index:100;
+        }
+        .blackout-overlay.active { display:block; }
+
+        /* Connection status dot - hidden */
+        .connection-status { display:none; }
+
+        /* Fullscreen button */
+        .fullscreen-btn {
+            position:fixed;
+            bottom:2vh; right:2vw;
+            width:40px; height:40px;
+            border-radius:8px;
+            background:rgba(255,255,255,.1);
+            border:1px solid rgba(255,255,255,.2);
+            color:rgba(255,255,255,.5);
+            font-size:1.2rem;
+            display:flex; align-items:center; justify-content:center;
+            cursor:pointer;
+            z-index:60;
+            opacity:0;
+            transition:opacity .3s, background .2s;
+        }
+        body:hover .fullscreen-btn { opacity:1; }
+        .fullscreen-btn:hover {
+            background:rgba(255,255,255,.2);
+            color:#fff;
+        }
+
+        /* Waiting message */
+        .waiting-message {
+            position:fixed; inset:0;
+            display:flex; flex-direction:column;
+            align-items:center; justify-content:center;
+            color:rgba(255,255,255,.3);
+            font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+            font-size:2vw;
+            z-index:1;
+        }
+        .waiting-message i { font-size:4vw; margin-bottom:2vh; }
+        .waiting-message.hidden { display:none; }
+
+        /* Bible Display */
+        .bible-display {
+            position:fixed; inset:0;
+            display:none;
+            flex-direction:column;
+            align-items:center;
+            justify-content:center;
+            z-index:40;
+            padding:5vh 6vw;
+            background:#000;
+        }
+        .bible-display.visible { display:flex; }
+        .bible-display .bible-verse-text {
+            font-family:'Georgia', serif;
+            font-size:clamp(16px, 5vw, 80px);
+            color:#fff;
+            line-height:1.5;
+            text-align:center;
+            word-break:break-word;
+            max-width:90vw;
+        }
+        .bible-display .bible-reference {
+            margin-top:3vh;
+            font-family:'Georgia', serif;
+            font-size:clamp(10px, 2.5vw, 40px);
+            color:rgba(255,255,255,.75);
+            text-align:center;
+        }
+
+        /* Reference positions */
+        .bible-display.bible-ref-bottom-center .bible-reference { text-align:center; }
+        .bible-display.bible-ref-bottom-right .bible-reference { text-align:right; align-self:flex-end; }
+        .bible-display.bible-ref-top-right .bible-reference { position:absolute; top:3vh; right:4vw; }
+        .bible-display.bible-ref-inline-right .bible-reference { align-self:flex-end; margin-right:6vw; }
+        /* Text alignment */
+        .bible-display.bible-align-left .bible-verse-text { text-align:left; }
+        .bible-display.bible-align-right .bible-verse-text { text-align:right; }
+        /* Image background */
+        .bible-display.bible-bg-image {
+            background-size:cover;
+            background-position:center;
+            background-repeat:no-repeat;
+        }
+        .bible-display.bible-bg-image::after {
+            content:'';
+            position:absolute;
+            inset:0;
+            background:rgba(0,0,0,.45);
+            pointer-events:none;
+        }
+        .bible-display.bible-bg-image .bible-verse-text,
+        .bible-display.bible-bg-image .bible-reference {
+            position:relative;
+            z-index:1;
+            text-shadow:0 2px 8px rgba(0,0,0,.8);
+        }
+
+        /* Text wrapper — transitions apply here, NOT on .bible-display */
+        .bible-text-wrapper {
+            display:flex; flex-direction:column;
+            align-items:center; justify-content:center;
+            width:100%; flex:1;
+            position:relative; z-index:1;
+        }
+
+        /* ===== ALL TRANSITIONS (text-only) ===== */
+        .bible-text-wrapper.transition-out {
+            animation: transitionOut 0.25s ease forwards;
+        }
+        @keyframes transitionOut {
+            to { opacity:0; transform:scale(0.98); }
+        }
+
+        /* Fade */
+        .bible-text-wrapper.transition-fade-in { animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+
+        /* Slide Up */
+        .bible-text-wrapper.transition-slide-up-in { animation: slideUpIn 0.4s ease; }
+        @keyframes slideUpIn { from { opacity:0; transform:translateY(30px); } to { opacity:1; transform:translateY(0); } }
+
+        /* Slide Down */
+        .bible-text-wrapper.transition-slide-down-in { animation: slideDownIn 0.4s ease; }
+        @keyframes slideDownIn { from { opacity:0; transform:translateY(-30px); } to { opacity:1; transform:translateY(0); } }
+
+        /* Slide Left */
+        .bible-text-wrapper.transition-slide-left-in { animation: slideLeftIn 0.4s ease; }
+        @keyframes slideLeftIn { from { opacity:0; transform:translateX(40px); } to { opacity:1; transform:translateX(0); } }
+
+        /* Slide Right */
+        .bible-text-wrapper.transition-slide-right-in { animation: slideRightIn 0.4s ease; }
+        @keyframes slideRightIn { from { opacity:0; transform:translateX(-40px); } to { opacity:1; transform:translateX(0); } }
+
+        /* Zoom In */
+        .bible-text-wrapper.transition-zoom-in-in { animation: zoomInAnim 0.4s ease; }
+        @keyframes zoomInAnim { from { opacity:0; transform:scale(0.8); } to { opacity:1; transform:scale(1); } }
+
+        /* Zoom Out */
+        .bible-text-wrapper.transition-zoom-out-in { animation: zoomOutAnim 0.4s ease; }
+        @keyframes zoomOutAnim { from { opacity:0; transform:scale(1.2); } to { opacity:1; transform:scale(1); } }
+
+        /* Flip */
+        .bible-text-wrapper.transition-flip-in { animation: flipAnim 0.5s ease; perspective:1000px; }
+        @keyframes flipAnim { from { opacity:0; transform:rotateY(90deg); } to { opacity:1; transform:rotateY(0); } }
+
+        /* Blur */
+        .bible-text-wrapper.transition-blur-in { animation: blurAnim 0.4s ease; }
+        @keyframes blurAnim { from { opacity:0; filter:blur(10px); } to { opacity:1; filter:blur(0); } }
+
+        /* Scale Fade */
+        .bible-text-wrapper.transition-scale-fade-in { animation: scaleFadeIn 0.4s ease; }
+        @keyframes scaleFadeIn { from { opacity:0; transform:scale(0.9); } to { opacity:1; transform:scale(1); } }
+
+        /* Typewriter handled by JS */
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Blackout Overlay -->
+    <div class="blackout-overlay" id="blackout-overlay"></div>
+
+    <!-- Connection Status -->
+    <div class="connection-status" id="connection-status"></div>
+
+    <!-- Fullscreen Button (appears on hover) -->
+    <button class="fullscreen-btn" id="fullscreen-btn" title="Toggle fullscreen">
+        <i class="fas fa-expand"></i>
+    </button>
+
+    <!-- Waiting Message -->
+    <div class="waiting-message" id="waiting-message">
+        <i class="fas fa-book-bible"></i>
+        Bible Stage — Waiting for verse...
+    </div>
+
+    <!-- Bible Display -->
+    <div class="bible-display" id="bible-display">
+        <div class="bible-text-wrapper" id="bible-text-wrapper">
+            <div class="bible-verse-text" id="bible-verse-text"></div>
+            <div class="bible-reference" id="bible-reference"></div>
+        </div>
+    </div>
+
+    <!-- Pusher SDK -->
+    <script src="https://js.pusher.com/8.2/pusher.min.js"></script>
+
+    <!-- JS Modules -->
+    <script src="js/api-client.js?v=4"></script>
+    <script src="js/timer-math.js?v=3"></script>
+    <script src="js/state-manager.js?v=3"></script>
+    <script src="js/pusher-manager.js?v=3"></script>
+    <script src="js/room-picker.js?v=1"></script>
+    <script src="js/bible-display.js?v=3"></script>
+
+    <script>
+    const BibleStage = {
+        roomId: null,
+        broadcastChannel: null,
+        blackout: false,
+
+        async init() {
+            // RoomPicker resolves instantly if ?room= is set, otherwise shows the UI
+            const pickedRoom = await RoomPicker.pick();
+            const params = new URLSearchParams(window.location.search);
+            this.roomId = pickedRoom || params.get('room') || '1';
+            const isPresent = params.get('present') === '1';
+
+            console.log('[BibleStage] Initializing for room', this.roomId, isPresent ? '(present mode)' : '');
+
+            // Setup fullscreen button
+            this.setupFullscreen();
+
+            // If present mode, auto-fullscreen
+            if (isPresent) {
+                setTimeout(() => {
+                    document.documentElement.requestFullscreen?.().catch(() => {});
+                }, 500);
+            }
+
+            // Setup BroadcastChannel
+            this.setupBroadcastChannel();
+
+            // Initialize Pusher
+            let pusherReady = false;
+            try {
+                pusherReady = await PusherManager.initialize();
+            } catch (e) {
+                console.warn('[BibleStage] Pusher init error:', e.message);
+            }
+
+            if (pusherReady) {
+                PusherManager.subscribeToRoom(this.roomId, (action, data) => {
+                    this.handleEvent(action, data);
+                });
+                const statusEl = document.getElementById('connection-status');
+                if (statusEl) statusEl.classList.add('connected');
+            }
+
+            this.restoreCurrentVerse();
+            console.log('[BibleStage] Ready for room', this.roomId);
+        },
+
+        setupFullscreen() {
+            const btn = document.getElementById('fullscreen-btn');
+            if (!btn) return;
+            btn.addEventListener('click', () => {
+                if (document.fullscreenElement) {
+                    document.exitFullscreen?.();
+                    btn.innerHTML = '<i class="fas fa-expand"></i>';
+                } else {
+                    document.documentElement.requestFullscreen?.();
+                    btn.innerHTML = '<i class="fas fa-compress"></i>';
+                }
+            });
+            document.addEventListener('fullscreenchange', () => {
+                if (document.fullscreenElement) {
+                    btn.innerHTML = '<i class="fas fa-compress"></i>';
+                } else {
+                    btn.innerHTML = '<i class="fas fa-expand"></i>';
+                }
+            });
+        },
+
+        setupBroadcastChannel() {
+            try {
+                // Uses the DEDICATED Bible BroadcastChannel, separate from the timer channel.
+                // This ensures timer events (TIMER_START etc.) never reach the Bible stage,
+                // and Bible events never contaminate the timer stage.
+                this.broadcastChannel = new BroadcastChannel('b1g-bible-room-' + this.roomId);
+                this.broadcastChannel.onmessage = (event) => {
+                    const { action, data } = event.data || {};
+                    if (action) {
+                        console.log('[BibleStage] BroadcastChannel event:', action);
+                        this.handleEvent(action, data);
+                        const statusEl = document.getElementById('connection-status');
+                        if (statusEl) statusEl.classList.add('connected');
+                    }
+                };
+            } catch (e) {
+                console.warn('[BibleStage] BroadcastChannel not supported:', e.message);
+            }
+        },
+
+        handleEvent(action, rawData) {
+            const data = rawData && rawData.payload ? rawData.payload : (rawData || {});
+            switch (action) {
+                case 'BIBLE_VERSE_UPDATE':
+                    if (typeof BibleDisplay !== 'undefined') {
+                        BibleDisplay.displayVerseOnStage(data);
+                        const waiting = document.getElementById('waiting-message');
+                        if (waiting) waiting.classList.add('hidden');
+                    }
+                    break;
+                case 'BIBLE_VERSE_CLEAR':
+                    if (typeof BibleDisplay !== 'undefined') {
+                        BibleDisplay.clearVerseOnStage();
+                        // Don't show waiting message - background is preserved
+                    }
+                    break;
+                case 'BLACKOUT_ON':
+                    this.setBlackout(true);
+                    break;
+                case 'BLACKOUT_OFF':
+                    this.setBlackout(false);
+                    break;
+                case 'FLASH_TRIGGER':
+                    this.flashDisplay();
+                    break;
+            }
+        },
+
+        setBlackout(on) {
+            this.blackout = on;
+            const overlay = document.getElementById('blackout-overlay');
+            if (overlay) overlay.classList.toggle('active', on);
+        },
+
+        flashDisplay() {
+            const display = document.getElementById('bible-display');
+            if (!display || !display.classList.contains('visible')) return;
+            const wrapper = document.getElementById('bible-text-wrapper');
+            const target = wrapper || display;
+            let flashes = 0;
+            const interval = setInterval(() => {
+                target.style.opacity = target.style.opacity === '0' ? '1' : '0';
+                flashes++;
+                if (flashes >= 6) {
+                    clearInterval(interval);
+                    target.style.opacity = '1';
+                }
+            }, 150);
+        },
+
+        restoreCurrentVerse() {
+            try {
+                const currentRaw = localStorage.getItem('b1g_bible_current_verse');
+                if (currentRaw) {
+                    const current = JSON.parse(currentRaw);
+                    if (current && current.text && String(current.roomId) === String(this.roomId)) {
+                        BibleDisplay.displayVerseOnStage(current);
+                        const waiting = document.getElementById('waiting-message');
+                        if (waiting) waiting.classList.add('hidden');
+                        return;
+                    }
+                }
+                const raw = localStorage.getItem('b1g_timer_state');
+                if (!raw) return;
+                const state = JSON.parse(raw);
+                if (state && state.activeBible && String(state.selectedRoomId) === String(this.roomId)) {
+                    BibleDisplay.displayVerseOnStage(state.activeBible);
+                    const waiting = document.getElementById('waiting-message');
+                    if (waiting) waiting.classList.add('hidden');
+                }
+            } catch (e) {
+                console.warn('[BibleStage] Could not restore state:', e.message);
+            }
+        }
+    };
+
+    document.addEventListener('DOMContentLoaded', () => BibleStage.init());
+    </script>
+</body>
+</html>

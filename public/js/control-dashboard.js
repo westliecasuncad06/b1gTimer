@@ -7,6 +7,8 @@ const ControlDashboard = {
     // State
     selectMode: false,
     selectedTimers: new Set(),
+    _autoSaveHandle: null,
+    _autoSaveIndicatorHandle: null,
     messages: [{ id: 1, text: '', color: 'white', bold: false, fontSize: 'normal', visible: false, fontStyle: 'sans-serif', scrollEnabled: false, scrollDirection: 'left', scrollSpeed: 10, msgBgType: 'default', msgBgColor: '#000000' }],
     editingTimerIndex: null,
     activePopover: null,
@@ -108,17 +110,15 @@ const ControlDashboard = {
             this.setupEventListeners();
             this.setupStateListeners();
 
-            // Restore last selected room and timer state from localStorage
-            const persisted = typeof StateManager.getPersistedTimerState === 'function'
-                ? StateManager.getPersistedTimerState() : null;
-            if (persisted && persisted.selectedRoomId) {
-                const selector = document.getElementById('room-selector');
-                if (selector) {
-                    selector.value = persisted.selectedRoomId;
-                    // restoreMode: true — load room data WITHOUT resetting timer state
+            // Restore last selected room from localStorage
+            const persisted = StateManager.getPersistedTimerState() || {};
+            if (persisted.selectedRoomId) {
+                try {
                     await RoomManager.loadRoom(persisted.selectedRoomId, { restoreMode: true });
+                } catch (e) {
+                    console.warn('[ControlDashboard] Failed to restore room:', e);
                 }
-                // If loadRoom failed (API error), fall back to cached timers from localStorage
+
                 if (StateManager.state.timers.length === 0 && persisted.cachedTimers && persisted.cachedTimers.length > 0) {
                     console.log('[ControlDashboard] API unavailable - restoring timers from cache');
                     StateManager.state.timers = persisted.cachedTimers;
@@ -180,6 +180,10 @@ const ControlDashboard = {
                     // Re-render timer list with correct active timer highlighted
                     RoomManager.renderTimerList(StateManager.state.timers);
                 }
+            } else if (typeof RoomPicker !== 'undefined') {
+                // Auto-open picker without blocking init() — shows the modal
+                // in the background; room loads when user selects one.
+                RoomPicker.open().catch(e => console.warn('[ControlDashboard] Room picker:', e.message));
             }
 
             // Restore stage style from persisted state
@@ -239,6 +243,9 @@ const ControlDashboard = {
         this.on('#btn-save', 'click', () => this.saveTimers());
 
         // Room
+        this.on('#btn-room-picker', 'click', async () => {
+            if (typeof RoomPicker !== 'undefined') await RoomPicker.open();
+        });
         this.on('#btn-create-room', 'click', () => this.createRoom());
         this.on('#btn-delete-room', 'click', () => this.deleteRoom());
 
@@ -274,6 +281,19 @@ const ControlDashboard = {
         this.on('#btn-toggle-stage-style', 'click', () => {
             const panel = document.getElementById('stage-style-panel');
             if (panel) panel.classList.toggle('show');
+        });
+
+        // Panel tabs (Messages / Bible)
+        document.querySelectorAll('.panel-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                const panelName = tab.dataset.panel;
+                document.querySelectorAll('.panel-tab').forEach(t => t.classList.toggle('active', t === tab));
+                document.querySelectorAll('.panel-tab-content').forEach(c => {
+                    c.classList.toggle('active', c.id === 'tab-' + panelName);
+                });
+                // Lazy-load Bible data when Bible tab is first opened
+                // Bible UI is now in separate bible.html page
+            });
         });
         this.on('#stage-style-apply', 'click', () => this.applyStageStyle());
         this.on('#stage-timer-color-reset', 'click', () => {
@@ -758,10 +778,74 @@ const ControlDashboard = {
             this.showAlert('No Room Selected', 'Please select a room first.');
             return;
         }
-        await RoomManager.deleteRoom(roomId);
-        // Reset preview after deletion
-        this.updatePreviewDisplay(0);
-        this.updatePlayButton(false);
+        const deleted = await RoomManager.deleteRoom(roomId);
+        if (deleted) {
+            // Reset preview after deletion
+            this.updatePreviewDisplay(0);
+            this.updatePlayButton(false);
+            // Reset the picker button label
+            const lbl = document.getElementById('room-picker-label');
+            if (lbl) lbl.textContent = 'Select Room';
+            // Re-open the animated room picker so user can choose another room
+            if (typeof RoomPicker !== 'undefined') {
+                RoomPicker.open().catch(e => console.warn('[ControlDashboard] Room picker after delete:', e.message));
+            }
+        }
+    },
+
+    // ===== AUTOSAVE =====
+
+    /**
+     * Debounced autosave — fires 800 ms after the last change.
+     * Called after every operation that mutates timer data.
+     */
+    autoSaveTimers() {
+        clearTimeout(this._autoSaveHandle);
+        const indicator = document.getElementById('autosave-indicator');
+        if (indicator) { indicator.textContent = 'Saving…'; indicator.classList.add('saving', 'visible'); }
+        this._autoSaveHandle = setTimeout(() => this._performAutoSave(), 800);
+    },
+
+    async _performAutoSave() {
+        const roomId = StateManager.state.selectedRoomId;
+        if (!roomId) return;
+        const roomName = StateManager.state.currentRoom?.name || 'Room';
+        const timers = StateManager.state.timers.map((t, i) => ({
+            id: t.id,
+            title: t.title,
+            duration_seconds: t.duration_seconds,
+            position: i
+        }));
+        try {
+            const room = await APIClient.updateRoom(roomId, roomName, timers);
+            if (room && room.timers) {
+                // Sync server-assigned IDs back into client state (new timers get IDs)
+                room.timers.forEach((st, i) => {
+                    if (StateManager.state.timers[i]) {
+                        StateManager.state.timers[i].id = st.id;
+                    }
+                });
+                StateManager.setCurrentRoom(room);
+            }
+            this._showAutoSaveIndicator(true);
+        } catch (e) {
+            console.warn('[AutoSave] Failed:', e.message);
+            this._showAutoSaveIndicator(false);
+        }
+    },
+
+    _showAutoSaveIndicator(success) {
+        const indicator = document.getElementById('autosave-indicator');
+        if (!indicator) return;
+        indicator.classList.remove('saving');
+        indicator.textContent = success ? '✓ Autosaved' : '⚠ Save failed';
+        indicator.style.color = success ? '' : '#f87171';
+        indicator.classList.add('visible');
+        clearTimeout(this._autoSaveIndicatorHandle);
+        this._autoSaveIndicatorHandle = setTimeout(() => {
+            indicator.classList.remove('visible');
+            indicator.style.color = '';
+        }, 2500);
     },
 
     // ===== ADD TIMER =====
@@ -787,6 +871,7 @@ const ControlDashboard = {
         };
         StateManager.state.timers.push(newTimer);
         RoomManager.renderTimerList(StateManager.state.timers);
+        this.autoSaveTimers();
     },
 
     // ===== SAVE =====
@@ -959,6 +1044,7 @@ const ControlDashboard = {
 
         this.closeSettingsModal();
         RoomManager.renderTimerList(StateManager.state.timers);
+        this.autoSaveTimers();
     },
 
     updateDurationHint() {
@@ -1044,6 +1130,7 @@ const ControlDashboard = {
         timer.start_date = document.getElementById('pop-start-date').value;
         this.closePopovers();
         RoomManager.renderTimerList(StateManager.state.timers);
+        this.autoSaveTimers();
     },
 
     saveDurationPopover() {
@@ -1057,6 +1144,7 @@ const ControlDashboard = {
         timer.appearance = document.getElementById('pop-appearance').value;
         this.closePopovers();
         RoomManager.renderTimerList(StateManager.state.timers);
+        this.autoSaveTimers();
     },
 
     // ===== MESSAGES =====
@@ -1366,5 +1454,15 @@ const ControlDashboard = {
 
 // Initialize on DOM ready
 document.addEventListener('DOMContentLoaded', () => {
+    // Bind Bible Controller button immediately (outside async init)
+    // so it works even if Pusher/rooms fail to load
+    const openBibleBtn = document.getElementById('btn-open-bible');
+    if (openBibleBtn) {
+        openBibleBtn.addEventListener('click', () => {
+            const roomId = StateManager.state.selectedRoomId;
+            window.open('bible.html?room=' + (roomId || 1), '_blank');
+        });
+    }
+
     ControlDashboard.init();
 });

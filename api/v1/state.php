@@ -70,6 +70,12 @@ try {
             ADD COLUMN IF NOT EXISTS `message_json` TEXT NULL DEFAULT NULL AFTER `stage_style_json`");
     } catch (Exception $e) { /* column already exists */ }
 
+    // Migrate: ensure bible_json column exists
+    try {
+        $pdo->exec("ALTER TABLE `timer_live_state`
+            ADD COLUMN IF NOT EXISTS `bible_json` TEXT NULL DEFAULT NULL AFTER `message_json`");
+    } catch (Exception $e) { /* column already exists */ }
+
     $stmt = $pdo->prepare('SELECT * FROM timer_live_state WHERE room_id = ?');
     $stmt->execute([$room_id]);
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -102,6 +108,14 @@ try {
             $msg = json_decode($row['message_json'], true);
             if ($msg) {
                 $response['activeMessage'] = $msg;
+            }
+        }
+
+        // Include active Bible verse if stored
+        if (!empty($row['bible_json'])) {
+            $bible = json_decode($row['bible_json'], true);
+            if ($bible) {
+                $response['activeBible'] = $bible;
             }
         }
 
