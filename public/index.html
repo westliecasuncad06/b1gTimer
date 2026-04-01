@@ -223,10 +223,15 @@
         }
         .preview-progress-bar {
             height:100%;
-            background: linear-gradient(90deg, #4ade80 0%, #4ade80 60%, #facc15 75%, #f97316 88%, #ef4444 100%);
+            background: linear-gradient(90deg,
+                rgba(74, 222, 128, 0.15) 0%,
+                rgba(74, 222, 128, 0.5) 30%,
+                #4ade80 60%,
+                #4ade80 100%);
             width:100%;
             transition: width .1s linear;
             position:relative;
+            transform-origin: right;
         }
         .preview-progress-marker {
             position:absolute; top:-4px;
@@ -271,9 +276,21 @@
         }
         .time-markers-bar {
             height:4px; margin:0 16px 2px;
-            background: linear-gradient(90deg, #4ade80 0%, #4ade80 60%, #facc15 75%, #f97316 88%, #ef4444 100%);
+            background: #1a1a1a;
             border-radius:2px;
             position:relative;
+            overflow:hidden;
+        }
+        .time-markers-bar-fill {
+            height:100%;
+            background: linear-gradient(90deg,
+                rgba(74, 222, 128, 0.15) 0%,
+                rgba(74, 222, 128, 0.5) 30%,
+                #4ade80 60%,
+                #4ade80 100%);
+            width:100%;
+            transition: width .1s linear;
+            border-radius:2px;
         }
         .time-markers-bar .marker-flag {
             position:absolute; top:-8px;
@@ -357,7 +374,7 @@
         }
 
         /* ===== TIMERS PANEL (CENTER) ===== */
-        .timers-panel .panel-body { padding:0; }
+        .timers-panel .panel-body { padding:0; overflow-y:auto; scroll-behavior:smooth; }
 
         /* Selection toolbar */
         .selection-toolbar {
@@ -392,7 +409,7 @@
             gap:8px;
             padding:10px 14px;
             border-bottom:1px solid #1a1a2a;
-            cursor:pointer;
+            cursor:default;
             transition:background .12s;
             position:relative;
         }
@@ -402,9 +419,57 @@
             border-color:#2563eb;
         }
         .timer-card.active:hover { background:#1e40af; }
-        .timer-card.running-danger {
-            background:#7f1d1d;
+        .timer-card.running-active {
+            background: #b91c1c;
             border-color:#991b1b;
+            overflow: hidden;
+        }
+        .timer-card.running-active:hover { filter: brightness(1.1); background: #b91c1c; }
+        /* Dark overlay that sweeps left-to-right showing elapsed time */
+        .tc-progress-fill {
+            position:absolute;
+            top:0; left:0;
+            width:100%; height:100%;
+            background: rgba(0,0,0,0.22);
+            pointer-events:none;
+            transition: transform 0.1s linear;
+            z-index:0;
+            border-radius: inherit;
+            transform: translateX(-100%);
+        }
+        .timer-card > * { position: relative; z-index: 1; }
+        .timer-card.running-danger {
+            background:#991b1b;
+            border-color:#7f1d1d;
+        }
+        /* Running-active overrides for active blue styles */
+        .timer-card.active.running-active {
+            background: #b91c1c;
+            border-color:#991b1b;
+        }
+        .timer-card.active.running-active:hover {
+            background: #b91c1c;
+            filter: brightness(1.1);
+        }
+        .timer-card.active.running-active .tc-ctrl-btn {
+            background: rgba(0,0,0,0.25);
+            border-color: rgba(255,255,255,0.15);
+            color: #fca5a5;
+        }
+        .timer-card.active.running-active .tc-ctrl-btn:hover {
+            background: rgba(0,0,0,0.4);
+            color: #fff;
+        }
+        .timer-card.active.running-active .tc-number { color: #fca5a5; }
+        .timer-card.active.running-active .tc-drag { color: #fca5a5; }
+        .timer-card.active.running-active .tc-title { color: #fff; }
+        .timer-card.active.running-active .tc-type { color: #fca5a5; }
+        .timer-card.active.running-active .tc-start-time { color: #fca5a5; }
+        .timer-card.active.running-active .tc-edit-btn { color: #fca5a5; }
+        .timer-card.active.running-active .tc-add-time { color: #fca5a5; }
+        .timer-card.active.running-danger {
+            background: #991b1b;
+            border-color: #7f1d1d;
         }
         .timer-card .tc-drag {
             color:#444; font-size:.9rem; cursor:grab;
@@ -500,6 +565,7 @@
             flex-direction:row; white-space:nowrap;
         }
         .tc-add-popup.show { display:flex; }
+        .tc-add-popup.flip-up { top:auto; bottom:100%; }
         .tc-add-popup button {
             background:#252540; border:1px solid #3a3a50; color:#ccc;
             font-size:.7rem; padding:3px 8px; border-radius:3px;
@@ -1237,6 +1303,7 @@
 
             <!-- Time markers bar -->
             <div class="time-markers-bar" id="time-markers-bar">
+                <div class="time-markers-bar-fill" id="time-markers-bar-fill"></div>
                 <div class="marker-flag" id="marker-flag" style="left:50%;"></div>
             </div>
             <div class="time-markers" id="time-markers">

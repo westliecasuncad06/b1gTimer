@@ -374,6 +374,12 @@ const ControlDashboard = {
             if (el) el.addEventListener('input', () => this.updateDurationHint());
         });
 
+        // Settings modal - update start hint when start type or time changes
+        ['setting-start-type', 'setting-start-time', 'setting-start-date'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.addEventListener('change', () => this.updateStartHint());
+        });
+
         // Popover - update hints on duration changes
         ['pop-dur-h', 'pop-dur-m', 'pop-dur-s'].forEach(id => {
             const el = document.getElementById(id);
@@ -507,7 +513,11 @@ const ControlDashboard = {
             const duration = currentTimer.duration_seconds;
             const progress = duration > 0 ? (remainingSeconds / duration) * 100 : 0;
             const progressBar = document.getElementById('preview-progress-bar');
-            if (progressBar) progressBar.style.width = Math.max(0, Math.min(100, progress)) + '%';
+            if (progressBar) {
+                // Green bar showing remaining time, decreasing left-to-right
+                const remaining = Math.max(0, Math.min(100, progress));
+                progressBar.style.width = remaining + '%';
+            }
 
             // Color states
             const pct = progress / 100;
@@ -548,8 +558,15 @@ const ControlDashboard = {
             // Update time markers based on current timer duration
             this.updateTimeMarkers(duration);
 
-            // Update active timer card danger state
-            this.updateTimerCardDanger(pct);
+            // Sync the time-markers-bar fill with progress
+            const markersBarFill = document.getElementById('time-markers-bar-fill');
+            if (markersBarFill) {
+                const clampedProgress = Math.max(0, Math.min(100, progress));
+                markersBarFill.style.width = clampedProgress + '%';
+            }
+
+            // Update active timer card running state (red sync)
+            this.updateTimerCardRunningState(pct);
         }
     },
 
@@ -564,14 +581,34 @@ const ControlDashboard = {
         markers.innerHTML = `<span>${q1}</span><span>${q2}</span><span>${q3}</span><span>${q4}</span>`;
     },
 
-    updateTimerCardDanger(pct) {
+    updateTimerCardRunningState(pct) {
         const cards = document.querySelectorAll('.timer-card');
         const activeIndex = StateManager.state.currentTimerIndex;
+        const isRunning = StateManager.state.isRunning;
         cards.forEach((card, i) => {
-            if (i === activeIndex && StateManager.state.isRunning && pct <= 0.1) {
-                card.classList.add('running-danger');
+            const progressFill = card.querySelector('[data-progress-fill]');
+            if (i === activeIndex && isRunning) {
+                card.classList.add('running-active');
+                // Stagetimer-style: dark overlay sweeps left-to-right showing elapsed time
+                // translateX(-100%) = no elapsed (full time remaining, no dark overlay visible)
+                // translateX(0%)    = fully elapsed (entire card darkened)
+                if (progressFill) {
+                    const elapsed = 1 - Math.max(0, Math.min(1, pct));
+                    progressFill.style.transform = `translateX(${-100 + (elapsed * 100)}%)`;
+                    progressFill.style.display = 'block';
+                }
+                if (pct <= 0.1) {
+                    card.classList.add('running-danger');
+                } else {
+                    card.classList.remove('running-danger');
+                }
             } else {
-                card.classList.remove('running-danger');
+                card.classList.remove('running-active', 'running-danger');
+                card.style.backgroundColor = '';
+                if (progressFill) {
+                    progressFill.style.transform = 'translateX(-100%)';
+                    progressFill.style.display = 'none';
+                }
             }
         });
     },
@@ -583,6 +620,17 @@ const ControlDashboard = {
         cards.forEach((card, i) => {
             const isActive = i === activeIndex;
             card.classList.toggle('active', isActive);
+            // Clear running state when stopped
+            if (!isRunning || !isActive) {
+                card.classList.remove('running-active', 'running-danger');
+                card.style.backgroundColor = '';
+                // Reset progress fill
+                const progressFill = card.querySelector('[data-progress-fill]');
+                if (progressFill) {
+                    progressFill.style.width = '0%';
+                    progressFill.style.display = 'none';
+                }
+            }
             // Update play/pause toggle button icon
             const toggleBtn = card.querySelector('[data-toggle-timer]');
             if (toggleBtn) {
@@ -615,7 +663,8 @@ const ControlDashboard = {
             const x = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
             const pct = x / rect.width;
             const duration = currentTimer.duration_seconds;
-            const timeAtPos = Math.round(pct * duration);
+            // Left = full duration, right = 0
+            const timeAtPos = Math.round((1 - pct) * duration);
 
             hoverLine.style.left = x + 'px';
             hoverLine.style.display = 'block';
@@ -636,7 +685,8 @@ const ControlDashboard = {
             const x = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
             const pct = x / rect.width;
             const duration = currentTimer.duration_seconds;
-            const targetRemaining = Math.round(pct * duration);
+            // Left = full duration, right = 0
+            const targetRemaining = Math.round((1 - pct) * duration);
             const current = StateManager.state.currentTimerRemainingSeconds;
             const delta = targetRemaining - current;
             if (delta !== 0) {
@@ -1011,6 +1061,7 @@ const ControlDashboard = {
         document.getElementById('setting-red-s').value = timer.wrap_red_s ?? 15;
 
         this.updateDurationHint();
+        this.updateStartHint();
         modal.classList.add('show');
     },
 
@@ -1059,6 +1110,23 @@ const ControlDashboard = {
         }
     },
 
+    updateStartHint() {
+        const startType = document.getElementById('setting-start-type')?.value;
+        const startTime = document.getElementById('setting-start-time')?.value;
+        const startDate = document.getElementById('setting-start-date')?.value;
+        const hint = document.getElementById('setting-start-hint');
+        if (!hint) return;
+
+        if (startType === 'manual' || !startTime) {
+            hint.textContent = 'No start time given. Triggered manually.';
+            hint.style.color = '#666';
+        } else {
+            const dateStr = startDate ? new Date(startDate + 'T' + startTime).toLocaleString() : `Today at ${startTime}`;
+            hint.textContent = `Will auto-start at ${dateStr}.`;
+            hint.style.color = '#4ade80';
+        }
+    },
+
     updatePopoverDurationHint() {
         const h = parseInt(document.getElementById('pop-dur-h')?.value, 10) || 0;
         const m = parseInt(document.getElementById('pop-dur-m')?.value, 10) || 0;
@@ -1091,6 +1159,8 @@ const ControlDashboard = {
         pop.style.top = (rect.bottom + 4) + 'px';
         pop.classList.add('show');
         this.activePopover = pop;
+        // Adjust if popover overflows viewport bottom
+        this._adjustPopoverPosition(pop);
     },
 
     showDurationPopover(event, timerIndex) {
@@ -1114,6 +1184,24 @@ const ControlDashboard = {
         pop.style.top = (rect.bottom + 4) + 'px';
         pop.classList.add('show');
         this.activePopover = pop;
+        // Adjust if popover overflows viewport bottom
+        this._adjustPopoverPosition(pop);
+    },
+
+    /**
+     * Adjust popover position to stay within viewport
+     */
+    _adjustPopoverPosition(pop) {
+        requestAnimationFrame(() => {
+            const popRect = pop.getBoundingClientRect();
+            const viewportH = window.innerHeight;
+            if (popRect.bottom > viewportH - 10) {
+                // Move above the trigger or shift up to fit
+                const overflow = popRect.bottom - viewportH + 10;
+                const currentTop = parseInt(pop.style.top, 10) || 0;
+                pop.style.top = Math.max(10, currentTop - overflow) + 'px';
+            }
+        });
     },
 
     closePopovers() {
@@ -1449,6 +1537,57 @@ const ControlDashboard = {
         setInterval(async () => {
             try { await APIClient.getHealth(); } catch (e) {}
         }, 30000);
+
+        // Start scheduled timer auto-start checker (runs every second)
+        this._startScheduleChecker();
+    },
+
+    /**
+     * Check for scheduled timers that should auto-start
+     * Monitors timers with start_type='scheduled' and auto-starts them when due
+     */
+    _startScheduleChecker() {
+        this._scheduleFiredSet = new Set(); // track which timer+time combos already fired
+        setInterval(() => {
+            if (!StateManager.state.timers || StateManager.state.isRunning) return;
+
+            const now = new Date();
+            const timers = StateManager.state.timers;
+
+            for (let i = 0; i < timers.length; i++) {
+                const timer = timers[i];
+                if (timer.start_type !== 'scheduled' || !timer.start_time) continue;
+
+                // Parse scheduled time
+                const [schedH, schedM] = timer.start_time.split(':').map(Number);
+                if (isNaN(schedH) || isNaN(schedM)) continue;
+
+                // Build target date
+                let targetDate;
+                if (timer.start_date) {
+                    targetDate = new Date(timer.start_date + 'T' + timer.start_time);
+                } else {
+                    // Today
+                    targetDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), schedH, schedM, 0);
+                }
+
+                // Unique key to prevent re-firing
+                const key = `${i}-${timer.start_time}-${targetDate.toDateString()}`;
+                if (this._scheduleFiredSet.has(key)) continue;
+
+                // Check if within the trigger window (within 2 seconds of scheduled time)
+                const diffMs = now.getTime() - targetDate.getTime();
+                if (diffMs >= 0 && diffMs < 2000) {
+                    console.log(`[ScheduleChecker] Auto-starting timer ${i + 1} "${timer.title}" (scheduled ${timer.start_time})`);
+                    this._scheduleFiredSet.add(key);
+                    StateManager.state.currentTimerIndex = i;
+                    TimerEngine.start(i);
+                    RoomManager.renderTimerList(StateManager.state.timers);
+                    this.showToast(`Timer "${timer.title}" auto-started (scheduled)`, 'info');
+                    break; // only start one timer at a time
+                }
+            }
+        }, 1000);
     }
 };
 
